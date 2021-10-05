@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/cmd"
-
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
+	bridge "github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/aguaclara/bridge"
 )
 
 func main() {
@@ -14,10 +12,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// h1 := net.NewPeer(ctx, "/ip4/0.0.0.0/tcp/7779")
-	h2 := net.NewPeer(ctx, "/ip4/0.0.0.0/tcp/7777")
 
-	router := "/ip4/192.168.50.138/tcp/7779/p2p/12D3KooWLNeo1sqTtMsrReTurqLTQ7fdjGwPaXsEBMbgnTgBJEbt"
-	cmd.NewEdge(ctx, h2, router)
+	bridge.NewAguaclara(
+		ctx, "", "tcp://localhost:8899", "http://localhost:26657", "http://localhost:26657",
+
+		1, "",
+	)
 	// cmd.NewRouter(ctx, h1)
 	//  	run(ctx, h2, h1.Addrs()[0].String())
 	// run(ctx, h2,

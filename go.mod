@@ -16,9 +16,8 @@ require (
 	github.com/libp2p/go-libp2p-noise v0.2.0
 	github.com/multiformats/go-multiaddr v0.3.3
 	github.com/proofzero/go-ipld-linkstore v1.0.0
-	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
-	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
-	google.golang.org/grpc v1.38.0 // indirect
+	github.com/tendermint/tendermint v0.34.13
+	github.com/tendermint/tm-db v0.6.5
 )
 
 replace github.com/libp2p/go-libp2p => github.com/libp2p/go-libp2p v0.14.1
