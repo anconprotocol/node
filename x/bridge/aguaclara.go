@@ -77,14 +77,19 @@ func NewAguaclara(ctx context.Context,
 		Proxy:       proxy,
 		LightClient: node,
 	}
+	proxy.Client.Start()
+
 	outChan, _ := proxy.Client.Subscribe(ctx, "localhost", q)
+	go func() {
+		for {
+			select {
+			case msg := <-outChan:
+				a.ReceivedHTLAMessage(&msg)
+			default:
 
-	select {
-	case msg := <-outChan:
-		a.ReceivedHTLAMessage(&msg)
-	default:
-
-	}
+			}
+		}
+	}()
 	return a, nil
 }
 
