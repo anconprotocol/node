@@ -15,8 +15,8 @@ func main() {
 
 	aguaclara, _ := bridge.NewAguaclara(
 		ctx, "", "tcp://localhost:8899", "http://localhost:26657", "http://localhost:26657",
-		23, "DB4C48DAD11B502B8E18421BC6E81007E60DC78DD3FE1A22EB4D09600C107F9C",
-	)
+		819, "7CF4887E64FBA3EAA9A73D8D25B3DB80CB543800EA6F4D0F3D88D75E480049E8",
+
 	aguaclara.Proxy.ListenAndServe()
 	// cmd.NewRouter(ctx, h1)
 	//  	run(ctx, h2, h1.Addrs()[0].String())

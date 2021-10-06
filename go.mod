@@ -3,6 +3,7 @@ module github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync
 go 1.16
 
 require (
+	github.com/Electronic-Signatures-Industries/ancon-evm v0.6.1
 	github.com/ipfs/go-block-format v0.0.3
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipfs/go-graphsync v0.9.3
@@ -23,3 +24,5 @@ require (
 replace github.com/libp2p/go-libp2p => github.com/libp2p/go-libp2p v0.14.1
 
 replace github.com/libp2p/go-libp2p-core v0.10.0 => github.com/libp2p/go-libp2p-core v0.9.0
+
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

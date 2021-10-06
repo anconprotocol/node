@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/tendermint/tendermint/light/provider"
 	dbs "github.com/tendermint/tendermint/light/store/db"
 
+	evmTypes "github.com/Electronic-Signatures-Industries/ancon-evm/x/evm/types"
 	"github.com/tendermint/tendermint/light"
 )
 
@@ -35,8 +37,10 @@ func (adapter *AguaclaraAdapter) ReceivedHTLAMessage(evt *coretypes.ResultEvent)
 	// rpctypes.Context
 
 	// Send to chain b
-
-	fmt.Sprintf("%s", evt.Data)
+	//evmTypes.msg
+	ethtx := &evmTypes.UnwrapEthereumMsg()
+	ethtx.
+		fmt.Sprintf("%s", evt.Events["message.sender"])
 
 	return nil, nil
 }
