@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/bridge"
 )
@@ -14,10 +15,17 @@ func main() {
 	// h1 := net.NewPeer(ctx, "/ip4/0.0.0.0/tcp/7779")
 
 	aguaclara, _ := bridge.NewAguaclara(
-		ctx, "", "tcp://localhost:8899", "http://localhost:26657", "http://localhost:26657",
-		819, "7CF4887E64FBA3EAA9A73D8D25B3DB80CB543800EA6F4D0F3D88D75E480049E8",
+		ctx,
+		"anconprotocol_9000-1",
+		"tcp://localhost:8899",
+		"http://ancon.did.pa:26657",
+		"http://ancon.did.pa:26657",
+		27,
+		"6D58C14836E7A951D06684FA2AB515835B3C9EB068DBD1ADF8EA58E6F5FD5294",
+	)
+	err := aguaclara.Proxy.ListenAndServe()
 
-	aguaclara.Proxy.ListenAndServe()
+	fmt.Errorf("%s", err)
 	// cmd.NewRouter(ctx, h1)
 	//  	run(ctx, h2, h1.Addrs()[0].String())
 	// run(ctx, h2,
