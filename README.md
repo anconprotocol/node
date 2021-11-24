@@ -39,9 +39,9 @@ Uploads JSON data to be stored as DAG nodes.
 
 #### Request
 
-'did': (Reserved) User DID
-'path': Path
-`data`: JSON data as Base64 encoded
+- `did`: (Reserved) User DID
+- `path`: Path
+- `data`: JSON data as Base64 encoded
 
 #### Response
 
@@ -54,8 +54,8 @@ Fetches JSON
 
 #### Request
 
-`cid`: file cid
-`path`: Path
+- `cid`: file cid
+- `path`: Path
 
 
 ### POST /dagcbor
@@ -64,9 +64,9 @@ Uploads CBOR data to be stored as DAG nodes.
 
 #### Request
 
-'did': (Reserved) User DID
-'path': Path
-`data`: CBOR data as Base64 encoded
+- `did`: (Reserved) User DID
+- `path`: Path
+- `data`: CBOR data as Base64 encoded
 
 #### Response
 
@@ -80,6 +80,6 @@ Fetches CBOR
 
 #### Request
 
-`cid`: file cid
-`path`: Path
+- `cid`: file cid
+- `path`: Path
 
