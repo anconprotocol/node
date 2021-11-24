@@ -16,35 +16,12 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/cmd"
-	"github.com/multiformats/go-multihash"
 )
-
-func GetLinkPrototype() ipld.LinkPrototype {
-	// tip: 0x0129 dag-json
-	return cidlink.LinkPrototype{cid.Prefix{
-		Version:  1,
-		Codec:    0x71, // dag-cbor
-		MhType:   0x12, // sha2-256
-		MhLength: 32,   // sha2-256 hash has a 32-byte sum.
-	}}
-}
-
-// CreateCidLink takes a hash eg ethereum hash and converts it to cid multihash
-func CreateCidLink(hash []byte) cidlink.Link {
-	lchMh, err := multihash.Encode(hash, GetLinkPrototype().(cidlink.LinkPrototype).MhType)
-	if err != nil {
-		return cidlink.Link{}
-	}
-	lcCID := cid.NewCidV1(GetLinkPrototype().(cidlink.LinkPrototype).Codec, lchMh)
-	lcLinkCID := cidlink.Link{Cid: lcCID}
-	return lcLinkCID
-}
 
 func main() {
 	s := cmd.NewStorage(".ancon")
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {
-
 		w, fn, err := s.DataStore.PutStream(c.Request.Context())
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -80,7 +57,7 @@ func main() {
 		var bz []byte
 		bz, _ = json.Marshal(file.Header)
 
-		lnk := CreateCidLink(bz)
+		lnk := cmd.CreateCidLink(bz)
 
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -92,6 +69,28 @@ func main() {
 		c.JSON(201, gin.H{
 			"cid": lnk.String(),
 		})
+	})
+	r.POST("/compute", func(c *gin.Context) {
+		dcomp := cmd.DagCompute{Storage: s}
+
+		scid := c.PostForm("schemacid")
+
+		caddr := c.PostForm("contractaddress")
+		conid := c.PostForm("contractid")
+		pcid := c.PostForm("payloadcid")
+		jargs := c.PostForm("jsonargs")
+		cid, err := dcomp.ExecuteDataContractTransaction(scid, pcid, jargs, "", caddr, conid)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("Error while executing data contract transaction. %v", err).Error(),
+			})
+			return
+		}
+
+		c.JSON(201, gin.H{
+			"cid": cid,
+		})
+		return
 	})
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
