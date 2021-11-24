@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +16,29 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/cmd"
+	"github.com/multiformats/go-multihash"
 )
+
+func GetLinkPrototype() ipld.LinkPrototype {
+	// tip: 0x0129 dag-json
+	return cidlink.LinkPrototype{cid.Prefix{
+		Version:  1,
+		Codec:    0x71, // dag-cbor
+		MhType:   0x12, // sha2-256
+		MhLength: 32,   // sha2-256 hash has a 32-byte sum.
+	}}
+}
+
+// CreateCidLink takes a hash eg ethereum hash and converts it to cid multihash
+func CreateCidLink(hash []byte) cidlink.Link {
+	lchMh, err := multihash.Encode(hash, GetLinkPrototype().(cidlink.LinkPrototype).MhType)
+	if err != nil {
+		return cidlink.Link{}
+	}
+	lcCID := cid.NewCidV1(GetLinkPrototype().(cidlink.LinkPrototype).Codec, lchMh)
+	lcLinkCID := cidlink.Link{Cid: lcCID}
+	return lcLinkCID
+}
 
 func main() {
 	s := cmd.NewStorage(".ancon")
@@ -24,37 +48,43 @@ func main() {
 		w, fn, err := s.DataStore.PutStream(c.Request.Context())
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Error while getting stream. %v", err).Error(),
 			})
 			return
 		}
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Error in form file %v", err).Error(),
 			})
 			return
 		}
 		src, err := file.Open()
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Cannot open file. %v", err).Error(),
 			})
 			return
 		}
 		defer src.Close()
+		// var bz []byte
 
 		_, err = io.Copy(w, src)
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Failed reading file. %v", err).Error(),
 			})
 			return
 		}
-		_, lnk, err := cid.CidFromReader(src)
+
+		var bz []byte
+		bz, _ = json.Marshal(file.Header)
+
+		lnk := CreateCidLink(bz)
+
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Cid error. %v", err).Error(),
 			})
 			return
 		}
@@ -67,7 +97,7 @@ func main() {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Cid error. %v", err).Error(),
 			})
 			return
 		}
@@ -75,7 +105,7 @@ func main() {
 
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Error while getting stream. %v", err).Error(),
 			})
 			return
 		}
@@ -147,10 +177,14 @@ func main() {
 	})
 
 	r.POST("/dagjson", func(c *gin.Context) {
-		n, err := cmd.Decode(basicnode.Prototype.Any, c.PostForm("data"))
+
+		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
+
+		n, err := cmd.Decode(basicnode.Prototype.Any, string(buff))
+
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
+				"error": fmt.Errorf("Decode Error %v", err).Error(),
 			})
 			return
 		}
@@ -160,7 +194,10 @@ func main() {
 		})
 	})
 	r.POST("/dagcbor", func(c *gin.Context) {
-		n, err := cmd.DecodeCBOR(basicnode.Prototype.Any, []byte(c.PostForm("data")))
+
+		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
+
+		n, err := cmd.DecodeCBOR(basicnode.Prototype.Any, buff)
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("%v", err),

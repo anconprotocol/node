@@ -17,19 +17,28 @@ require (
 	github.com/libp2p/go-libp2p-noise v0.2.0
 	github.com/multiformats/go-multiaddr v0.3.3
 	github.com/prometheus/procfs v0.7.0 // indirect
-	github.com/proofzero/go-ipld-linkstore v1.0.0
 	github.com/smartystreets/assertions v1.1.1 // indirect
-	github.com/tendermint/tendermint v0.34.13
-	github.com/tendermint/tm-db v0.6.5
 )
 
 require (
+	github.com/btcsuite/btcd v0.22.0-beta // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.6.3
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gogo/protobuf v1.3.3 // indirect
+	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
+	github.com/huin/goupnp v1.0.1-0.20210310174557-0ca763054c88 // indirect
+	github.com/klauspost/compress v1.11.9 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/multiformats/go-multihash v0.1.0
+	github.com/prometheus/common v0.29.0 // indirect
+	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/spf13/cast v1.4.1
-	github.com/tharsis/ethermint v0.7.1
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
+	golang.org/x/tools v0.1.5 // indirect
+	google.golang.org/grpc v1.41.0 // indirect
 )
 
 replace github.com/libp2p/go-libp2p => github.com/libp2p/go-libp2p v0.14.1
