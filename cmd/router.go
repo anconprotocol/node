@@ -10,7 +10,6 @@ import (
 	graphsync "github.com/ipfs/go-graphsync/impl"
 	gsmsg "github.com/ipfs/go-graphsync/message"
 	gsnet "github.com/ipfs/go-graphsync/network"
-	linkstore "github.com/proofzero/go-ipld-linkstore"
 
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -39,12 +38,11 @@ func NewRouter(ctx context.Context, gsynchost host.Host) string {
 		gsynchost.Connect(ctx, *pi)
 	}
 
-	sls := linkstore.NewStorageLinkSystemWithNewStorage(cidlink.DefaultLinkSystem())
 	network := gsnet.NewFromLibp2pHost(gsynchost)
 
 	//add carv1
 	var exchange gsync.GraphExchange
-	exchange = graphsync.New(ctx, network, sls.LinkSystem)
+	exchange = graphsync.New(ctx, network,cidlink.DefaultLinkSystem())
 
 	finalResponseStatusChan := make(chan gsync.ResponseStatusCode, 1)
 	exchange.RegisterCompletedResponseListener(func(p peer.ID, request gsync.RequestData, status gsync.ResponseStatusCode) {
