@@ -68,28 +68,7 @@ func main() {
 			"cid": lnk.String(),
 		})
 	})
-	r.POST("/compute", func(c *gin.Context) {
-		dcomp := cmd.DagCompute{Storage: s}
-
-		scid := c.PostForm("schemacid")
-
-		caddr := c.PostForm("contractaddress")
-		conid := c.PostForm("contractid")
-		pcid := c.PostForm("payloadcid")
-		jargs := c.PostForm("jsonargs")
-		cid, err := dcomp.ExecuteDataContractTransaction(scid, pcid, jargs, "", caddr, conid)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Error while executing data contract transaction. %v", err).Error(),
-			})
-			return
-		}
-
-		c.JSON(201, gin.H{
-			"cid": cid,
-		})
-		return
-	})
+	r.POST("/gql", cmd.QueryGraphQL(s))
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {

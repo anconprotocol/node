@@ -10,6 +10,7 @@ require (
 	github.com/ipfs/go-ipfs-blockstore v1.0.4 // indirect
 	github.com/ipld/go-car/v2 v2.0.2
 	github.com/ipld/go-ipld-prime v0.14.0
+	github.com/jensneuse/graphql-go-tools v1.32.0
 	github.com/libp2p/go-libp2p v0.14.4
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
 	github.com/libp2p/go-libp2p-core v0.8.6
@@ -30,13 +31,13 @@ require (
 	github.com/graphql-go/graphql v0.8.0
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/huin/goupnp v1.0.1-0.20210310174557-0ca763054c88 // indirect
-	github.com/klauspost/compress v1.11.9 // indirect
+	github.com/jensneuse/abstractlogger v0.0.4
+	github.com/jensneuse/graphql-go-tools/examples/federation v0.0.0-20211112164205-61500487df00 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/multiformats/go-multihash v0.1.0
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/cast v1.4.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
