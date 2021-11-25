@@ -3,10 +3,10 @@ package contract
 import (
 	"encoding/json"
 
-	"github.com/vektah/gqlparser/ast"
+	"github.com/graphql-go/graphql"
 )
 
-func ToDeployment(schema ast.Schema) ([]byte, error) {
+func ToDeployment(schema graphql.Schema) ([]byte, error) {
 	bz, err := json.Marshal(schema)
 
 	if err != nil {
@@ -16,8 +16,8 @@ func ToDeployment(schema ast.Schema) ([]byte, error) {
 	return bz, nil
 }
 
-func HandleSchema(schema []byte) (*ast.Schema, error) {
-	var schemaObj ast.Schema
+func HandleSchema(schema []byte) (*graphql.Schema, error) {
+	var schemaObj graphql.Schema
 	err := json.Unmarshal(schema, &schemaObj)
 
 	return &schemaObj, err
