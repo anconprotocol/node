@@ -21,6 +21,7 @@ require (
 )
 
 require (
+	github.com/99designs/gqlgen v0.14.0
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.6.3
@@ -36,6 +37,7 @@ require (
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/spf13/cast v1.4.1
+	github.com/vektah/gqlparser v1.3.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
