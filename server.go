@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,30 +15,36 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/cmd"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 )
 
 func main() {
 	s := cmd.NewStorage(".ancon")
+	ctx := context.Background()
+	host := net.NewPeer(ctx, "/ip4/0.0.0.0/tcp/7701")
+	peerhost := "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
+
+	cmd.NewRouter(ctx, host, s.LinkSystem, peerhost)
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {
 		w, fn, err := s.DataStore.PutStream(c.Request.Context())
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Error while getting stream. %v", err).Error(),
+				"error": fmt.Errorf("error while getting stream. %v", err).Error(),
 			})
 			return
 		}
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Error in form file %v", err).Error(),
+				"error": fmt.Errorf("error in form file %v", err).Error(),
 			})
 			return
 		}
 		src, err := file.Open()
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Cannot open file. %v", err).Error(),
+				"error": fmt.Errorf("cannot open file. %v", err).Error(),
 			})
 			return
 		}
@@ -47,7 +54,7 @@ func main() {
 		_, err = io.Copy(w, src)
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Failed reading file. %v", err).Error(),
+				"error": fmt.Errorf("failed reading file. %v", err).Error(),
 			})
 			return
 		}
@@ -59,7 +66,7 @@ func main() {
 
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Cid error. %v", err).Error(),
+				"error": fmt.Errorf("cid error. %v", err).Error(),
 			})
 			return
 		}
@@ -73,7 +80,7 @@ func main() {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Cid error. %v", err).Error(),
+				"error": fmt.Errorf("cid error. %v", err).Error(),
 			})
 			return
 		}
@@ -81,7 +88,7 @@ func main() {
 
 		if err != nil {
 			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Error while getting stream. %v", err).Error(),
+				"error": fmt.Errorf("error while getting stream. %v", err).Error(),
 			})
 			return
 		}
