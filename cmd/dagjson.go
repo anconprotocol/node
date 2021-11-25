@@ -9,7 +9,7 @@ import (
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 )
 
-func DagJsonCreate(s Storage) func(*gin.Context) {
+func DagJsonRead(s Storage) func(*gin.Context) {
 	return func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {

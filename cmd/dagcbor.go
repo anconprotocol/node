@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func DagCborCreate(s Storage) func(*gin.Context) {
+func DagCborRead(s Storage) func(*gin.Context) {
 	return func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {

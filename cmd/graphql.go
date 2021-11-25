@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -30,7 +29,14 @@ func ReadFromStore(s Storage, hash string, path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("read trusted anchor JSON  error %v", err)
 	}
-
+	//CURL fields:
+	//grabar un schema cid
+	//save with prop called schema in plain text
+	//json base 64
+	//variable json asplaintext
+	//op (operations) string
+	//resolve path
+	//query
 	node, err := s.Load(
 		ipld.LinkContext{
 			LinkPath: datamodel.ParsePath(path),
@@ -52,18 +58,18 @@ func ReadFromStore(s Storage, hash string, path string) (string, error) {
 
 func QueryGraphQL(s Storage) func(*gin.Context) {
 	return func(c *gin.Context) {
-		if c.PostForm("path") == "" {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Missing path").Error(),
-			})
-			return
-		}
-		if c.PostForm("op") == "" {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Missing operation").Error(),
-			})
-			return
-		}
+		// if c.PostForm("path") == "" {
+		// 	c.JSON(400, gin.H{
+		// 		"error": fmt.Errorf("Missing path").Error(),
+		// 	})
+		// 	return
+		// }
+		// if c.PostForm("op") == "" {
+		// 	c.JSON(400, gin.H{
+		// 		"error": fmt.Errorf("Missing operation").Error(),
+		// 	})
+		// 	return
+		// }
 		if c.PostForm("query") == "" {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("Missing query").Error(),
@@ -82,12 +88,12 @@ func QueryGraphQL(s Storage) func(*gin.Context) {
 			})
 			return
 		}
-		if c.PostForm("variables") == "" {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Missing variables").Error(),
-			})
-			return
-		}
+		// if c.PostForm("variables") == "" {
+		// 	c.JSON(400, gin.H{
+		// 		"error": fmt.Errorf("Missing variables").Error(),
+		// 	})
+		// 	return
+		// }
 
 		gqlschema := c.PostForm("schemacid")
 		jsonPayload := c.PostForm("payloadcid")
@@ -106,7 +112,7 @@ func QueryGraphQL(s Storage) func(*gin.Context) {
 		}
 		// GraphQL Schema
 		schemaGQL, err := ReadFromStore(s, gqlschema, "")
-		var v map[string]string{}
+		var v map[string]string
 		json.Unmarshal([]byte(schemaGQL), &v)
 
 		if err != nil {
@@ -150,8 +156,8 @@ func QueryGraphQL(s Storage) func(*gin.Context) {
 			return
 		}
 
-		buff, _ := base64.StdEncoding.DecodeString(resultWriter.String())
-		n, err := Decode(basicnode.Prototype.Any, string(buff))
+		// buff, _ := base64.StdEncoding.DecodeString(resultWriter.String())
+		n, err := Decode(basicnode.Prototype.Any, resultWriter.String())
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("Decode Error %v", err).Error(),

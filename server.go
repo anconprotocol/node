@@ -95,8 +95,8 @@ func main() {
 
 		c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 	})
-	r.GET("/dagjson/:cid/*path", cmd.DagJsonCreate(s))
-	r.GET("/dagcbor/:cid/*path", cmd.DagCborCreate(s))
+	r.GET("/dagjson/:cid/*path", cmd.DagJsonRead(s))
+	r.GET("/dagcbor/:cid/*path", cmd.DagCborRead(s))
 
 	r.POST("/dagjson", func(c *gin.Context) {
 
