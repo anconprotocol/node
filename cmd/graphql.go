@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -105,6 +106,8 @@ func QueryGraphQL(s Storage) func(*gin.Context) {
 		}
 		// GraphQL Schema
 		schemaGQL, err := ReadFromStore(s, gqlschema, "")
+		var v map[string]string{}
+		json.Unmarshal([]byte(schemaGQL), &v)
 
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -112,7 +115,7 @@ func QueryGraphQL(s Storage) func(*gin.Context) {
 			})
 			return
 		}
-		schema, err := NewSchemaFrom([]byte(schemaGQL))
+		schema, err := NewSchemaFrom([]byte(v["schema"]))
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("Schema generation failed %v", err).Error(),
