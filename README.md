@@ -8,7 +8,7 @@
 ## Usage
 
 1. Download latest release
-2. Run `anconsync` with `anconsync -peeraddr <seed peer multiaddress> -addr <host multiaddress> -apiaddr <host API address> -data <data directory>
+2. Run `anconsync` with `anconsync -peeraddr <seed peer multiaddress> -addr <host multiaddress> -apiaddr <host API address> -data <data directory>`
 3. Configure ports and firewall rules
 4. Enjoy
 
