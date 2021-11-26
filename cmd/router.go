@@ -2,16 +2,13 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	gsync "github.com/ipfs/go-graphsync"
 	graphsync "github.com/ipfs/go-graphsync/impl"
 	gsnet "github.com/ipfs/go-graphsync/network"
 	"github.com/multiformats/go-multiaddr"
 
-	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/libp2p/go-libp2p-core/host"
 	peer "github.com/libp2p/go-libp2p-core/peer"
@@ -50,12 +47,6 @@ func NewRouter(ctx context.Context, gsynchost host.Host, s Storage, peerhost str
 		// 	hookActions.SendExtensionData(td.extensionResponse)
 		// }
 		hookActions.ValidateRequest()
-
-		has, _ := s.DataStore.Has(ctx, requestData.Root().String())
-		if !has {
-			hookActions.TerminateWithError(errors.New("not found"))
-			net.FetchBlock(ctx, exchange, p, cidlink.Link{Cid: requestData.Root()})
-		}
 		hookActions.UseLinkTargetNodePrototypeChooser(basicnode.Chooser)
 		fmt.Println(requestData.Root(), requestData.ID(), requestData.IsCancel())
 	})
