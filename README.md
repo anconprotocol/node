@@ -20,7 +20,7 @@ Uses the latest `go-ipld-prime` API
 
 ### DAG Contracts 
 
-DAG Contracts enables a whole set of use cases that regular smart contracts might be to costly or expensive. In this first release, DAG contracts will work with GraphQL queries with immutable CID data.
+DAG Contracts enables a whole set of use cases that regular smart contracts might be too costly or expensive. In this first release, DAG contracts will work with GraphQL queries with immutable CID data.
 
 Further down the road, GraphQL mutations will be used to integrate with onchain platforms, in an agnostic way.
 
