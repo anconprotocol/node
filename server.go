@@ -147,6 +147,7 @@ func main() {
 		c.JSON(201, gin.H{
 			"cid": cid,
 		})
+		net.PushBlock(c.Request.Context(), exchange, ipfspeer.ID, cid)
 	})
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
