@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	peerAddr := flag.String("peeraddr", "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi", "A remote peer to sync")
+	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWAGyXSBPPo7Zq16WoCe6BtHDRQpFXPg9VCDQ1EPXcHWMw", "A remote peer to sync")
 	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
 	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
 	dataFolder := flag.String("data", ".ancon", "Data directory")
@@ -33,7 +33,7 @@ func main() {
 	// peerhost := "/ip4/192.168.50.138/tcp/7702/p2p/12D3KooWA7vRHFLC8buiEP2xYwUN5kdCgzEtQRozMtnCPDi4n4HM"
 	// "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
 
-	exchange, ipfspeer := cmd.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
+	exchange, ipfspeer := cmd.NewRouter(ctx, host, s, *peerAddr)
 	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {

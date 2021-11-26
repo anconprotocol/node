@@ -2,20 +2,23 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	gsync "github.com/ipfs/go-graphsync"
 	graphsync "github.com/ipfs/go-graphsync/impl"
 	gsnet "github.com/ipfs/go-graphsync/network"
 	"github.com/multiformats/go-multiaddr"
 
-	"github.com/ipld/go-ipld-prime/linking"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/libp2p/go-libp2p-core/host"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 )
 
-func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem, peerhost string) (gsync.GraphExchange, *peer.AddrInfo) {
+func NewRouter(ctx context.Context, gsynchost host.Host, s Storage, peerhost string) (gsync.GraphExchange, *peer.AddrInfo) {
 
 	var pi *peer.AddrInfo
 	for _, addr := range dht.DefaultBootstrapPeers {
@@ -28,7 +31,7 @@ func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem
 	network := gsnet.NewFromLibp2pHost(gsynchost)
 
 	// Add Ancon fsstore
-	exchange := graphsync.New(ctx, network, lsys)
+	exchange := graphsync.New(ctx, network, s.LinkSystem)
 
 	// var receivedResponseData []byte
 	// var receivedRequestData []byte
@@ -46,9 +49,16 @@ func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem
 		// } else {
 		// 	hookActions.SendExtensionData(td.extensionResponse)
 		// }
-		fmt.Println(requestData.Root(), requestData.ID())
-	})
+		hookActions.ValidateRequest()
 
+		has, _ := s.DataStore.Has(ctx, requestData.Root().String())
+		if !has {
+			hookActions.TerminateWithError(errors.New("not found"))
+			net.FetchBlock(ctx, exchange, p, cidlink.Link{Cid: requestData.Root()})
+		}
+		hookActions.UseLinkTargetNodePrototypeChooser(basicnode.Chooser)
+		fmt.Println(requestData.Root(), requestData.ID(), requestData.IsCancel())
+	})
 	finalResponseStatusChan := make(chan gsync.ResponseStatusCode, 1)
 	exchange.RegisterCompletedResponseListener(func(p peer.ID, request gsync.RequestData, status gsync.ResponseStatusCode) {
 		select {

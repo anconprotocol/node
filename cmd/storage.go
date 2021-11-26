@@ -55,7 +55,7 @@ func NewStorage(folder string) Storage {
 // eth-tx-receipt-trie	ipld	0x94	permanent	Ethereum Transaction Receipt Trie (Eth-Trie)
 // eth-tx-receipt	ipld	0x95	permanent	Ethereum Transaction Receipt (MarshalBinary)
 // eth-state-trie	ipld	0x96	permanent	Ethereum State Trie (Eth-Secure-Trie)
-// eth-account-snapshot	ipld	0x97	permanent	Ethereum Account Snapshot (RLP)
+// eth-account-snapshot	ipld	0x97	permanent	Eth	ereum Account Snapshot (RLP)
 // eth-storage-trie	ipld	0x98	permanent	Ethereum Contract Storage Trie (Eth-Secure-Trie)
 // eth-receipt-log-trie	ipld	0x99	draft	Ethereum Transaction Receipt Log Trie (Eth-Trie)
 // eth-reciept-log	ipld	0x9a	draft	Ethereum Transaction Receipt Log (RLP)

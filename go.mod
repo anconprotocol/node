@@ -1,4 +1,4 @@
-module github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync
+	module github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync
 
 go 1.16
 

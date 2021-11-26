@@ -211,7 +211,10 @@ func PushBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ipl
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	resps, errs := gs.Request(ctx, p, c, selectAll)
+	resps, errs := gs.Request(ctx, p, c, selectAll, gsync.ExtensionData{
+		Name: graphsync.ExtensionMetadata,
+		Data: []byte{},
+	})
 	for {
 		select {
 		case <-ctx.Done():
