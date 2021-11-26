@@ -22,7 +22,7 @@ import (
 func main() {
 	peerAddr := flag.String("peeraddr", "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi", "A remote peer to sync")
 	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
-	apiAddr := flag.String("apiAddr", "0.0.0.0:7788", "API address")
+	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
 	dataFolder := flag.String("data", ".ancon", "Data directory")
 
 	flag.Parse()
