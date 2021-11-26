@@ -4,11 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
-	blocks "github.com/ipfs/go-block-format"
 	gsync "github.com/ipfs/go-graphsync"
 	graphsync "github.com/ipfs/go-graphsync/impl"
-	gsmsg "github.com/ipfs/go-graphsync/message"
 	gsnet "github.com/ipfs/go-graphsync/network"
 	"github.com/multiformats/go-multiaddr"
 
@@ -18,7 +15,7 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 )
 
-func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem, peerhost string) string {
+func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem, peerhost string) (gsync.GraphExchange, *peer.AddrInfo) {
 
 	var pi *peer.AddrInfo
 	for _, addr := range dht.DefaultBootstrapPeers {
@@ -33,49 +30,62 @@ func NewRouter(ctx context.Context, gsynchost host.Host, lsys linking.LinkSystem
 	// Add Ancon fsstore
 	exchange := graphsync.New(ctx, network, lsys)
 
+	// var receivedResponseData []byte
+	// var receivedRequestData []byte
+
+	exchange.RegisterIncomingResponseHook(
+		func(p peer.ID, responseData gsync.ResponseData, hookActions gsync.IncomingResponseHookActions) {
+			fmt.Println(responseData.Status().String(), responseData.RequestID())
+		})
+
+	exchange.RegisterIncomingRequestHook(func(p peer.ID, requestData gsync.RequestData, hookActions gsync.IncomingRequestHookActions) {
+		// var has bool
+		// receivedRequestData, has = requestData.Extension(td.extensionName)
+		// if !has {
+		// 	hookActions.TerminateWithError(errors.New("Missing extension"))
+		// } else {
+		// 	hookActions.SendExtensionData(td.extensionResponse)
+		// }
+		fmt.Println(requestData.Root(), requestData.ID())
+	})
+
 	finalResponseStatusChan := make(chan gsync.ResponseStatusCode, 1)
 	exchange.RegisterCompletedResponseListener(func(p peer.ID, request gsync.RequestData, status gsync.ResponseStatusCode) {
 		select {
 		case finalResponseStatusChan <- status:
-			fmt.Sprintf("%s", status)
 		default:
 		}
 	})
-
 	pi, _ = peer.AddrInfoFromP2pAddr(multiaddr.StringCast(peerhost))
-	r := &net.Receiver{
-		MessageReceived: make(chan net.ReceivedMessage),
-	}
+	// err := network.ConnectTo(ctx, pi.ID)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	network.SetDelegate(r)
-	err := network.ConnectTo(ctx, pi.ID)
-	if err != nil {
-		panic(err)
-	}
+	a := fmt.Sprintf("%s/p2p/%s", gsynchost.Addrs()[0].String(), gsynchost.ID().Pretty())
 
-	defer gsynchost.Close()
+	//	defer gsynchost.Close()
+
 	go func() {
-		a := fmt.Sprintf("%s/p2p/%s", gsynchost.Addrs()[0].String(), gsynchost.ID().Pretty())
 		fmt.Printf("Ancon Router Sync peer id is %s\n", a)
+		// var received gsmsg.GraphSyncMessage
+		// var receivedBlocks []blocks.Block
+		// for {
+		// 	var message net.ReceivedMessage
 
-		var received gsmsg.GraphSyncMessage
-		var receivedBlocks []blocks.Block
-		for {
-			var message net.ReceivedMessage
-
-			sender := message.Sender
-			received = message.Message
-			fmt.Sprintf("%s %s", sender.String(), received)
-			receivedBlocks = append(receivedBlocks, received.Blocks()...)
-			receivedResponses := received.Responses()
-			if len(receivedResponses) == 0 {
-				continue
-			}
-			fmt.Sprintf("%s", receivedResponses[0].Status())
-			if receivedResponses[0].Status() != gsync.PartialResponse {
-				break
-			}
-		}
+		// 	sender := message.Sender
+		// 	received = message.Message
+		// 	fmt.Sprintf("%s %s", sender.String(), received)
+		// 	receivedBlocks = append(receivedBlocks, received.Blocks()...)
+		// 	receivedResponses := received.Responses()
+		// 	if len(receivedResponses) == 0 {
+		// 		continue
+		// 	}
+		// 	fmt.Sprintf("%s", receivedResponses[0].Status())
+		// 	if receivedResponses[0].Status() != gsync.PartialResponse {
+		// 		break
+		// 	}
+		// }
 	}()
-	return ""
+	return exchange, pi
 }

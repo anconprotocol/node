@@ -7,12 +7,16 @@ import (
 	"time"
 
 	blocks "github.com/ipfs/go-block-format"
+
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-graphsync"
 	gsync "github.com/ipfs/go-graphsync"
 	gsmsg "github.com/ipfs/go-graphsync/message"
 	blockstore "github.com/ipld/go-car/v2/blockstore"
+	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
+	ipldselector "github.com/ipld/go-ipld-prime/traversal/selector"
 	"github.com/ipld/go-ipld-prime/traversal/selector/builder"
 
 	"github.com/libp2p/go-libp2p"
@@ -141,7 +145,7 @@ func (r *Receiver) Disconnected(p peer.ID) {
 
 // VerifyHasErrors verifies that at least one error was sent over a channel
 func VerifyHasErrors(ctx context.Context, errChan <-chan error) error {
-	errCount := 0
+
 	for {
 		select {
 		case e, ok := <-errChan:
@@ -150,7 +154,6 @@ func VerifyHasErrors(ctx context.Context, errChan <-chan error) error {
 			} else {
 				return e
 			}
-			errCount++
 		case <-ctx.Done():
 		}
 	}
@@ -161,12 +164,70 @@ func PrintProgress(ctx context.Context, pgChan <-chan gsync.ResponseProgress) {
 	errCount := 0
 	for {
 		select {
-		case data, ok := <-pgChan:
+		case _, ok := <-pgChan:
 			if ok {
-				fmt.Sprintf("path: %s, last path: %s", data.Path.String(), data.LastBlock.Path.String())
+				fmt.Println("ok")
 			}
 			errCount++
 		case <-ctx.Done():
+		}
+	}
+
+}
+
+var selectAll ipld.Node = func() ipld.Node {
+	ssb := builder.NewSelectorSpecBuilder(basicnode.Prototype.Any)
+	return ssb.ExploreRecursive(
+		ipldselector.RecursionLimitDepth(100), // default max
+		ssb.ExploreAll(ssb.ExploreRecursiveEdge()),
+	).Node()
+}()
+
+func FetchBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ipld.Link) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	resps, errs := gs.Request(ctx, p, c, selectAll)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case _, ok := <-resps:
+			if !ok {
+				resps = nil
+			}
+		case err, ok := <-errs:
+			if !ok {
+				// done.
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("got an unexpected error: %s", err)
+			}
+		}
+	}
+}
+func PushBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ipld.Link) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	resps, errs := gs.Request(ctx, p, c, selectAll)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case _, ok := <-resps:
+			if !ok {
+				resps = nil
+			}
+		case err, ok := <-errs:
+			if !ok {
+				// done.
+				return nil
+			}
+			if err != nil {
+				return fmt.Errorf("got an unexpected error: %s", err)
+			}
 		}
 	}
 }

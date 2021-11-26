@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,12 +20,21 @@ import (
 )
 
 func main() {
-	s := cmd.NewStorage(".ancon")
-	ctx := context.Background()
-	host := net.NewPeer(ctx, "/ip4/0.0.0.0/tcp/7701")
-	peerhost := "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
+	peerAddr := flag.String("peeraddr", "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi", "A remote peer to sync")
+	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
+	apiAddr := flag.String("apiAddr", "0.0.0.0:7788", "API address")
+	dataFolder := flag.String("data", ".ancon", "Data directory")
 
-	cmd.NewRouter(ctx, host, s.LinkSystem, peerhost)
+	flag.Parse()
+
+	s := cmd.NewStorage(*dataFolder)
+	ctx := context.Background()
+	host := net.NewPeer(ctx, *addr)
+	// peerhost := "/ip4/192.168.50.138/tcp/7702/p2p/12D3KooWA7vRHFLC8buiEP2xYwUN5kdCgzEtQRozMtnCPDi4n4HM"
+	// "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
+
+	exchange, ipfspeer := cmd.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
+	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {
 		w, fn, err := s.DataStore.PutStream(c.Request.Context())
@@ -102,9 +112,8 @@ func main() {
 
 		c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 	})
-	r.GET("/dagjson/:cid/*path", cmd.DagJsonRead(s))
+	r.GET("/dagjson/:cid/*path", cmd.DagJsonRead(s, exchange, ipfspeer))
 	r.GET("/dagcbor/:cid/*path", cmd.DagCborRead(s))
-
 	r.POST("/dagjson", func(c *gin.Context) {
 
 		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
@@ -121,6 +130,7 @@ func main() {
 		c.JSON(201, gin.H{
 			"cid": cid,
 		})
+		net.PushBlock(c.Request.Context(), exchange, ipfspeer.ID, cid)
 	})
 	r.POST("/dagcbor", func(c *gin.Context) {
 
@@ -138,5 +148,5 @@ func main() {
 			"cid": cid,
 		})
 	})
-	r.Run("0.0.0.0:7788") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
