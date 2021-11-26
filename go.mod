@@ -24,7 +24,7 @@ require (
 require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.0
 	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/glog v1.0.0
 	github.com/google/cel-go v0.9.0
