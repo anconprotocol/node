@@ -1,0 +1,26 @@
+{
+  "name": "atlantico",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "babel-jest": "^27.3.1",
+    "chai": "^4.3.4",
+    "flow-js-testing": "^0.1.15-alpha.4",
+    "jest": "^27.3.1",
+    "jest-environment-node": "^27.3.1"
+  },
+  "dependencies": {
+    "@confio/ics23": "^0.6.5",
+    "ethers": "^5.5.1",
+    "web3": "^1.6.0"
+  }
+}

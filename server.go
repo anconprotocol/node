@@ -15,8 +15,8 @@ import (
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/spf13/cast"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/cmd"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 )
 
 func main() {
@@ -27,13 +27,13 @@ func main() {
 
 	flag.Parse()
 
-	s := cmd.NewStorage(*dataFolder)
+	s := anconsync.NewStorage(*dataFolder)
 	ctx := context.Background()
 	host := net.NewPeer(ctx, *addr)
 	// peerhost := "/ip4/192.168.50.138/tcp/7702/p2p/12D3KooWA7vRHFLC8buiEP2xYwUN5kdCgzEtQRozMtnCPDi4n4HM"
 	// "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
 
-	exchange, ipfspeer := cmd.NewRouter(ctx, host, s, *peerAddr)
+	exchange, ipfspeer := anconsync.NewRouter(ctx, host, s, *peerAddr)
 	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {
@@ -72,7 +72,7 @@ func main() {
 		var bz []byte
 		bz, _ = json.Marshal(file.Header)
 
-		lnk := cmd.CreateCidLink(bz)
+		lnk := anconsync.CreateCidLink(bz)
 
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -85,7 +85,7 @@ func main() {
 			"cid": lnk.String(),
 		})
 	})
-	r.POST("/gql", cmd.QueryGraphQL(s))
+	r.POST("/gql", anconsync.QueryGraphQL(s))
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {
@@ -112,13 +112,13 @@ func main() {
 
 		c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 	})
-	r.GET("/dagjson/:cid/*path", cmd.DagJsonRead(s, exchange, ipfspeer))
-	r.GET("/dagcbor/:cid/*path", cmd.DagCborRead(s))
+	r.GET("/dagjson/:cid/*path", anconsync.DagJsonRead(s, exchange, ipfspeer))
+	r.GET("/dagcbor/:cid/*path", anconsync.DagCborRead(s))
 	r.POST("/dagjson", func(c *gin.Context) {
 
 		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
 
-		n, err := cmd.Decode(basicnode.Prototype.Any, string(buff))
+		n, err := anconsync.Decode(basicnode.Prototype.Any, string(buff))
 
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -136,7 +136,7 @@ func main() {
 
 		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
 
-		n, err := cmd.DecodeCBOR(basicnode.Prototype.Any, buff)
+		n, err := anconsync.DecodeCBOR(basicnode.Prototype.Any, buff)
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("%v", err),

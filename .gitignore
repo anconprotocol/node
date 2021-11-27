@@ -13,6 +13,16 @@ anconsync
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+main
+vue/node_modules
+flow/atlantico/node_modules
+flow/node_modules
+vue/dist
+secret.yml
+.idea/
+gen
+ethereum/node_modules
+ethereum/build/contracts
+.env
+ethereum/.env
+.vscode

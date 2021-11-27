@@ -1,0 +1,6 @@
+{
+  "testEnvironment": "node",
+  "testTimeout": 10000,
+  "verbose": true,
+  "coveragePathIgnorePatterns": ["/node_modules/"]
+}
