@@ -25,6 +25,7 @@ contract XDVNFT is
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
+    address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
 
@@ -42,8 +43,10 @@ contract XDVNFT is
     constructor(
         string memory name,
         string memory symbol,
-        address tokenERC20
+        address tokenERC20,
+        address _dagContractOperator
     ) ERC721(name, symbol) {
+        dagContractOperator = _dagContractOperator;
         stablecoin = IERC20(tokenERC20);
     }
 
@@ -100,10 +103,15 @@ contract XDVNFT is
             data,
             (address, uint256)
         );
-        // TODO: Add require checks
+        // Verify operator
+        require(operator == dagContractOperator, "Invalid operator");
+        
+        // Verify owner owns token id
+        address owned = ownerOf(_tokenId);
+        require(owned == from, "Invalid token id owner");
+        
         // set metadata URI
         _setTokenURI(_tokenId, newCid);
-
         return this.onDagContractResponseReceived.selector;
     }
 

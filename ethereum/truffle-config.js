@@ -42,15 +42,15 @@ module.exports = {
       skipDryRun: false,
     },
     localhost: {
-      from: '0x28D6A581C2793BE9095925F8462D9E556A9E822A',
+      from: '0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6',
       host: 'localhost',
       port: 8545,
       network_id: '*', // Match any network id
     },
     development: {
-      from: '0x28D6A581C2793BE9095925F8462D9E556A9E822A',
+      from: '0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6',
       host: 'localhost',
-      port: 8646,
+      port: 8545,
       network_id: '*', // Match any network id
     },
     ancon: {
