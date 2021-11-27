@@ -2,13 +2,13 @@
 pragma solidity ^0.8.4;
 
 import "./IDagContractTrustedReceiver.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
-contract DagContractTrusted is Ownable, IDagContractTrustedReceiver {
+contract DagContractTrusted is Ownable {
     using ECDSA for bytes32;
-
+    using Address for address;
     string public url;
     address private _signer;
     mapping(bytes32 => bool) executed;
@@ -19,7 +19,7 @@ contract DagContractTrusted is Ownable, IDagContractTrustedReceiver {
         string variables;
         string contractMutation;
         string result;
-        address addr;
+        address toReceiverContractAddress;
         bytes32 signature;
     }
 
@@ -40,13 +40,16 @@ contract DagContractTrusted is Ownable, IDagContractTrustedReceiver {
     /**
      * @dev Requests a DAG contract offchain execution
      */
-    function request(address addr) public returns (bytes32) {
+    function request(address toReceiverContractAddress, uint256 tokenId)
+        public
+        returns (bytes32)
+    {
         revert OffchainLookup(
             url,
             abi.encodeWithSignature(
-                "requestWithProof(address addr, DagContractRequestProof memory proof)",
-                contractMutation,
-                addr
+                "requestWithProof(address toReceiverContractAddress, uint256 tokenId, DagContractRequestProof memory proof)",
+                toReceiverContractAddress,
+                tokenId
             )
         );
     }
@@ -55,7 +58,8 @@ contract DagContractTrusted is Ownable, IDagContractTrustedReceiver {
      * @dev Requests a DAG contract offchain execution with proof
      */
     function requestWithProof(
-        address addr,
+        address toReceiverContractAddress,
+        uint256 tokenId,
         DagContractRequestProof memory proof
     ) external returns (bool) {
         if (executed[proof.signature]) {
@@ -71,42 +75,83 @@ contract DagContractTrusted is Ownable, IDagContractTrustedReceiver {
                             proof.variables,
                             proof.contractMutation,
                             proof.result,
-                            addr
+                            toReceiverContractAddress,
+                            tokenId
                         )
                     )
                 )
             );
-            address recovered = digest.recover(proof.signature);
+
+            address recovered = digest.recover(digest, proof.signature);
 
             require(
                 _signer == recovered,
                 "Signer is not the signer of the token"
             );
-            executed(proof.signature);
-            bytes memory none = bytes("");
-            onDagContractResponseReceived(
-                this.address,
+            executed[proof.signature] = true;
+            bytes memory data = abi.encodePacked(
+                toReceiverContractAddress,
+                tokenId
+            );
+            _onDagContractResponseReceived(
+                toReceiverContractAddress,
+                address(this),
                 msg.sender,
-                proof.dataSourceCid, 
+                proof.dataSourceCid,
                 proof.result,
-                none
+                data
             );
             return true;
         }
     }
 
-
-
     /**
      * @dev Receives the DAG contract execution result
      */
-    function onDagContractResponseReceived(
+    // function onDagContractResponseReceived(
+    //     address operator,
+    //     address from,
+    //     string memory parentCid,
+    //     string memory newCid,
+    //     bytes calldata data
+    // ) external returns (bytes4) {
+    //     return IDagContractTrustedReceiver.onDagContractResponseReceived.selector;
+    // }
+
+    function _onDagContractResponseReceived(
+        address to,
         address operator,
         address from,
         string memory parentCid,
         string memory newCid,
-        bytes calldata data
-    ) external returns (bytes4) {
-        return DagContractTrusted.onDagContractResponseReceived.selector;  
+        bytes memory _data
+    ) private returns (bool) {
+        if (to.isContract()) {
+            try
+                IDagContractTrustedReceiver(to).onDagContractResponseReceived(
+                    operator,
+                    from,
+                    parentCid,
+                    newCid,
+                    _data
+                )
+            returns (bytes4 retval) {
+                return
+                    retval ==
+                    IDagContractTrustedReceiver
+                        .onDagContractResponseReceived
+                        .selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert("DagContractTrusted: invalid receiver implementer");
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        } else {
+            return true;
+        }
     }
 }

@@ -9,7 +9,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./ICredentialRegistry.sol";
+import "./ancon/IDagContractTrustedReceiver.sol";
+import "./ancon/DagContractTrusted.sol";
 
 //  a NFT secure document
 contract XDVNFT is
@@ -17,12 +18,13 @@ contract XDVNFT is
     ERC721Pausable,
     ERC721URIStorage,
     Ownable,
-    IERC721Receiver
+    IERC721Receiver,
+    DagContractTrusted,
+    IDagContractTrustedReceiver
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
-    address public verifierAddress;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
 
@@ -40,11 +42,9 @@ contract XDVNFT is
     constructor(
         string memory name,
         string memory symbol,
-        address tokenERC20,
-        address verifierAddr
+        address tokenERC20
     ) ERC721(name, symbol) {
         stablecoin = IERC20(tokenERC20);
-        verifierAddress = verifierAddr;
     }
 
     function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
@@ -83,24 +83,28 @@ contract XDVNFT is
         uint256 tokenId,
         bytes calldata data
     ) external returns (bytes4) {
-        // Verify operator
-        require(operator == verifierAddress, "Invalid verifier");
-        
-        // Verify owner owns token id
-        address owned = ownerOf(tokenId);
-        require(owned == from, "Invalid token id owner");
-        (
-            string memory _metadata,
-            uint256 _tokenId
-        ) = abi.decode(
-                data,
-                (string, uint256)
-            );
-        require(bytes(_metadata).length == 0, "Empty metadata");
-
-        // set metadata URI
-        _setTokenURI(_tokenId, _metadata);
         return this.onERC721Received.selector;
+    }
+
+    /**
+     * @dev Receives the DAG contract execution result
+     */
+    function onDagContractResponseReceived(
+        address operator,
+        address from,
+        string memory parentCid,
+        string memory newCid,
+        bytes calldata data
+    ) external returns (bytes4) {
+        (address _tokenAddress, uint256 _tokenId) = abi.decode(
+            data,
+            (address, uint256)
+        );
+        // TODO: Add require checks
+        // set metadata URI
+        _setTokenURI(_tokenId, newCid);
+
+        return this.onDagContractResponseReceived.selector;
     }
 
     /**
