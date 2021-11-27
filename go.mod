@@ -1,4 +1,4 @@
-	module github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync
+module github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync
 
 go 1.16
 
@@ -23,14 +23,13 @@ require (
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
+	github.com/ethereum/go-ethereum v1.10.13
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.0
 	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/glog v1.0.0
 	github.com/google/cel-go v0.9.0
 	github.com/graphql-go/graphql v0.8.0
-	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
-	github.com/huin/goupnp v1.0.1-0.20210310174557-0ca763054c88 // indirect
 	github.com/jensneuse/abstractlogger v0.0.4
 	github.com/jensneuse/graphql-go-tools/examples/federation v0.0.0-20211112164205-61500487df00 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
