@@ -1,0 +1,6 @@
+type ERC721Metadata @entity {
+  name: String!
+  description: String!
+  image: String!
+  
+}

@@ -1,0 +1,7 @@
+POST http://localhost:7788/dagjson
+Content-Type: application/x-www-form-urlencoded
+
+path=/&data=ewogICJuYW1lIjogIlhEViBtZXRhZGF0YSBzYW1wbGUiLAogICJkZXNjcmlwdGlvbiI6ICJ0ZXN0aW5nIHNhbXBsZSIsCiAgImltYWdlIjogImh0dHBzOi8vZXhwbG9yZS5pcGxkLmlvLyMvZXhwbG9yZS9RbVNudVdteHB0SlpkTEpwS1JhcnhCTVMySnUyb0FOVnJnYnIyeFdiaWU5YjJEIgp9Cg==
+
+
+GET http://localhost:7788/dagjson/baguqeeraouhd5jr7ktftgkbo5ufmihs3e2yqonajjejhomvbtsrwynlqdxba/

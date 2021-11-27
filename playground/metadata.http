@@ -1,0 +1,29 @@
+POST http://localhost:7788/graphqli
+Content-Type: application/json
+Authorization: Bearer xxx
+X-REQUEST-TYPE: GraphQL
+
+query ($parent: String!, $owner: String!) {
+  repository(name: $name, owner: $owner) {
+    name
+    fullName: nameWithOwner
+    description
+    diskUsage
+    forkCount
+    stargazers(first: 5) {
+        totalCount
+        nodes {
+            login
+            name
+        }
+    }
+    watchers {
+        totalCount
+    }
+  }
+}
+
+{
+    "parent": "vscode-restclient",
+    "owner": "Huachao"
+}

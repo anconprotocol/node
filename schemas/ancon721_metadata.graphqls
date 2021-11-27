@@ -1,0 +1,13 @@
+type Ancon721Metadata @entity {
+  name: String!
+  description: String!
+  image: String!
+  parent: String!
+  owner: String!
+  sources: [DagLink!]
+}
+
+type DagLink @entity {
+  path: String!
+  cid: String!
+}

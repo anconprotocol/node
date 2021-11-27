@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-ipld-prime"
-	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/spf13/cast"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
@@ -85,7 +82,8 @@ func main() {
 			"cid": lnk.String(),
 		})
 	})
-	r.POST("/gql", anconsync.QueryGraphQL(s))
+	r.POST("/dagcontract_trusted", anconsync.QueryGraphQL(s))
+	r.POST("/graphqli", anconsync.QueryGraphQL(s))
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {
@@ -114,40 +112,7 @@ func main() {
 	})
 	r.GET("/dagjson/:cid/*path", anconsync.DagJsonRead(s, exchange, ipfspeer))
 	r.GET("/dagcbor/:cid/*path", anconsync.DagCborRead(s))
-	r.POST("/dagjson", func(c *gin.Context) {
-
-		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
-
-		n, err := anconsync.Decode(basicnode.Prototype.Any, string(buff))
-
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("Decode Error %v", err).Error(),
-			})
-			return
-		}
-		cid := s.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(c.PostForm("path"))}, n)
-		c.JSON(201, gin.H{
-			"cid": cid,
-		})
-		net.PushBlock(c.Request.Context(), exchange, ipfspeer.ID, cid)
-	})
-	r.POST("/dagcbor", func(c *gin.Context) {
-
-		buff, _ := base64.StdEncoding.DecodeString(c.PostForm("data"))
-
-		n, err := anconsync.DecodeCBOR(basicnode.Prototype.Any, buff)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%v", err),
-			})
-			return
-		}
-		cid := s.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(c.PostForm("path"))}, n)
-		c.JSON(201, gin.H{
-			"cid": cid,
-		})
-		net.PushBlock(c.Request.Context(), exchange, ipfspeer.ID, cid)
-	})
+	r.POST("/dagjson", anconsync.DagJsonWrite(s, exchange, ipfspeer))
+	r.POST("/dagcbor", anconsync.DagCborWrite(s, exchange, ipfspeer))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

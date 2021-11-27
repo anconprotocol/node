@@ -1,0 +1,15 @@
+  {
+  "name": "XDV metadata sample",
+  "description": "testing sample",
+  "image": "https://explore.ipld.io/#/explore/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D",
+  "services": [
+    "https://explore.ipld.io/#/explore/",
+    "https://explore.ipld.io/#/explore/",
+    "https://explore.ipld.io/#/explore/"
+  ],
+  "links": [
+    "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D",
+    "z8mWaJHXieAVxxLagBpdaNWFEBKVWmMiE",
+    "QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm"
+  ]
+}
