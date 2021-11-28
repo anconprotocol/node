@@ -1,13 +1,20 @@
-type Ancon721Metadata @entity {
+scalar Ancon721Metadata
+type Ancon721Metadata {
   name: String!
   description: String!
   image: String!
-  parent: String!
-  owner: String!
+  parent: String
+  owner: String
   sources: [DagLink!]
 }
 
-type DagLink @entity {
+type DagLink {
   path: String!
   cid: String!
+}
+type Query {
+  metadata: Ancon721Metadata
+}
+type Mutation {
+  metadata: Ancon721Metadata
 }

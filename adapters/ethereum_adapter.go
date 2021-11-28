@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -117,7 +116,7 @@ func (adapter *EthereumAdapter) ExecuteDagContract(
 	variables string,
 	contractMutation string,
 	result string,
-) (*anconsync.DagTransaction, error) {
+) (*DagTransaction, error) {
 
 	pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
 	if !has {
@@ -140,13 +139,11 @@ func (adapter *EthereumAdapter) ExecuteDagContract(
 		return nil, fmt.Errorf("signing failed")
 	}
 
-	return &anconsync.DagTransaction{
-		SchemaCid:        schemaCid,
-		DataSourceCid:    dataSourceCid,
-		Variables:        variables,
-		ContractMutation: contractMutation,
-		Result:           result,
-		Signature:        hexutil.Encode(signature),
+	return &DagTransaction{
+		SchemaCid:     schemaCid,
+		DataSourceCid: dataSourceCid,
+		Result:        result,
+		Signature:     hexutil.Encode(signature),
 	}, nil
 }
 

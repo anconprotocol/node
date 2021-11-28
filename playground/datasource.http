@@ -1,7 +1,13 @@
+
+
 POST http://localhost:7788/dagjson
-Content-Type: application/x-www-form-urlencoded
+Content-Type: application/json
 
-path=/&data=ewogICJuYW1lIjogIlhEViBtZXRhZGF0YSBzYW1wbGUiLAogICJkZXNjcmlwdGlvbiI6ICJ0ZXN0aW5nIHNhbXBsZSIsCiAgImltYWdlIjogImh0dHBzOi8vZXhwbG9yZS5pcGxkLmlvLyMvZXhwbG9yZS9RbVNudVdteHB0SlpkTEpwS1JhcnhCTVMySnUyb0FOVnJnYnIyeFdiaWU5YjJEIgp9Cg==
-
-
-GET http://localhost:7788/dagjson/baguqeeraouhd5jr7ktftgkbo5ufmihs3e2yqonajjejhomvbtsrwynlqdxba/
+{
+  "path": "/",
+  "data": {
+    "name": "XDV metadata sample",
+    "description": "testing sample",
+    "image": "https://explore.ipld.io/#/explore/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D"
+  }
+}

@@ -14,6 +14,8 @@ import (
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/impl"
 )
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 	// peerhost := "/ip4/192.168.50.138/tcp/7702/p2p/12D3KooWA7vRHFLC8buiEP2xYwUN5kdCgzEtQRozMtnCPDi4n4HM"
 	// "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
 
-	exchange, ipfspeer := anconsync.NewRouter(ctx, host, s, *peerAddr)
+	exchange, ipfspeer := impl.NewRouter(ctx, host, s, *peerAddr)
 	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
 	r.POST("/file", func(c *gin.Context) {
@@ -82,8 +84,8 @@ func main() {
 			"cid": lnk.String(),
 		})
 	})
-	r.POST("/dagcontract_trusted", anconsync.QueryGraphQL(s))
-	r.POST("/graphqli", anconsync.QueryGraphQL(s))
+	r.POST("/dagcontract", handler.QueryGraphQL(s))
+	r.POST("/graphqli", handler.QueryGraphQL(s))
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {
@@ -110,9 +112,9 @@ func main() {
 
 		c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 	})
-	r.GET("/dagjson/:cid/*path", anconsync.DagJsonRead(s, exchange, ipfspeer))
-	r.GET("/dagcbor/:cid/*path", anconsync.DagCborRead(s))
-	r.POST("/dagjson", anconsync.DagJsonWrite(s, exchange, ipfspeer))
-	r.POST("/dagcbor", anconsync.DagCborWrite(s, exchange, ipfspeer))
+	r.GET("/dagjson/:cid/*path", handler.DagJsonRead(s, exchange, ipfspeer))
+	r.GET("/dagcbor/:cid/*path", handler.DagCborRead(s))
+	r.POST("/dagjson", handler.DagJsonWrite(s, exchange, ipfspeer))
+	r.POST("/dagcbor", handler.DagCborWrite(s, exchange, ipfspeer))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

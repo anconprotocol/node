@@ -1,4 +1,10 @@
+
 POST http://localhost:7788/dagjson
 Content-Type: application/json
 
-{"path":"/",data:{"schema":"type Ancon721Metadata @entity {\n  name: String!\n  description: String!\n  image: String!\n  parent: String!\n  owner: String!\n  sources: [DagLink!]\n}\n\ntype DagLink @entity {\n  path: String!\n  cid: String!\n  }"}}
+{
+  "path": "/",
+  "data": {
+    "schema": "scalar Ancon721Metadata\ntype Ancon721Metadata {  name: String!\n  description: String!\n  image: String!\n  parent: String\n  owner: String\n    sources: [DagLink!]\n}\ntype DagLink {  path: String!\n  cid: String!\n}\ntype Query {  metadata: Ancon721Metadata}\ntype Mutation {  metadata: Ancon721Metadata}"
+  }
+}

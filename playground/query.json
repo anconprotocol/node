@@ -1,0 +1,8 @@
+{
+  "schema_cid": "baguqeeravlayomrwh4fcnsihcotwscwd6g4xbosbhilfvh6kef46myw3zmgq",
+  "datasource_cid": "baguqeeraouhd5jr7ktftgkbo5ufmihs3e2yqonajjejhomvbtsrwynlqdxba",
+  "path": "",
+  "variables": {},
+  "query": "query {name,descripion,image}",
+  "op": ""
+}

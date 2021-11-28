@@ -1,0 +1,37 @@
+scalar Bytes
+
+type Ancon721Metadata {
+  name: String!
+  description: String!
+  image: String!
+  parent: String
+  owner: String
+  sources: [DagLink!]
+}
+
+type DagLink {
+  path: String!
+  cid: String!
+}
+
+type DagContractTrusted {
+  data: DagLink!
+  payload: Ancon721Metadata!
+}
+
+type Query {
+  metadata(cid: String!, path: String!): Ancon721Metadata
+}
+
+input MetadataTransactionInput {
+  path: String!
+  cid: String!
+  owner: String!
+  newOwner: String!
+}
+
+
+
+type Mutation {
+  apply(tx: MetadataTransactionInput!): DagLink!
+}

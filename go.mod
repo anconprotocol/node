@@ -10,7 +10,6 @@ require (
 	github.com/ipfs/go-ipfs-blockstore v1.0.4 // indirect
 	github.com/ipld/go-car/v2 v2.0.2
 	github.com/ipld/go-ipld-prime v0.14.0
-	github.com/jensneuse/graphql-go-tools v1.32.0
 	github.com/libp2p/go-libp2p v0.14.4
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
 	github.com/libp2p/go-libp2p-core v0.8.6
@@ -22,7 +21,11 @@ require (
 )
 
 require (
+	github.com/99designs/gqlgen v0.14.0
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
+	github.com/buger/jsonparser v1.1.1
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.0
@@ -30,14 +33,15 @@ require (
 	github.com/golang/glog v1.0.0
 	github.com/google/cel-go v0.9.0
 	github.com/graphql-go/graphql v0.8.0
-	github.com/jensneuse/abstractlogger v0.0.4
-	github.com/jensneuse/graphql-go-tools/examples/federation v0.0.0-20211112164205-61500487df00 // indirect
+	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/multiformats/go-multihash v0.1.0
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/spf13/cast v1.4.1
+	github.com/vektah/gqlparser/v2 v2.2.0
+	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
