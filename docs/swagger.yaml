@@ -1,0 +1,96 @@
+basePath: /v0
+host: ancon.did.pa/api
+info:
+  contact: {}
+  description: API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Ancon Protocol Sync API v0.4.0
+  version: 0.4.0
+paths:
+  /v0/dagcbor:
+    post:
+      consumes:
+      - application/json
+      description: Writes a dag-cbor block which syncs with IPFS. Returns a CID.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Stores CBOR as dag-json
+      tags:
+      - dag-cbor
+  /v0/dagcbor/{cid}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: Returns CBOR
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Reads CBOR from a dag-cbor block
+      tags:
+      - dag-cbor
+  /v0/dagjson:
+    post:
+      consumes:
+      - application/json
+      description: Writes a dag-json block which syncs with IPFS. Returns a CID.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Stores JSON as dag-json
+      tags:
+      - dag-json
+  /v0/dagjson/{cid}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: Returns JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Reads JSON from a dag-json block
+      tags:
+      - dag-json
+  /v0/file:
+    post:
+      consumes:
+      - application/json
+      description: Writes a raw block which syncs with IPFS. Returns a CID.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Stores files
+      tags:
+      - file
+  /v0/file/{cid}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: Returns JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Reads JSON from a dag-json block
+      tags:
+      - file
+swagger: "2.0"

@@ -7,7 +7,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-graphsync"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
@@ -81,11 +80,6 @@ func ParseCidLink(hash string) (cidlink.Link, error) {
 	}
 
 	return cidlink.Link{Cid: lnk}, nil
-}
-
-type DagContractTrustedContext struct {
-	Store    Storage
-	Exchange graphsync.GraphExchange
 }
 
 func GetLinkPrototype() ipld.LinkPrototype {

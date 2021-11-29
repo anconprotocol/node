@@ -11,6 +11,7 @@ import (
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/generated"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/model"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
 	ipld "github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/must"
@@ -19,7 +20,7 @@ import (
 )
 
 func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (*model.Ancon721Metadata, error) {
-	dag := ctx.Value("dag").(*anconsync.DagContractTrustedContext)
+	dag := ctx.Value("dag").(*handler.DagContractTrustedContext)
 
 	jsonmodel, err := anconsync.ReadFromStore(dag.Store, cid, path)
 	if err != nil {
@@ -31,7 +32,7 @@ func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (
 }
 
 func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.Ancon721Metadata, error) {
-	dag := ctx.Value("dag").(*anconsync.DagContractTrustedContext)
+	dag := ctx.Value("dag").(*handler.DagContractTrustedContext)
 
 	lnk, err := anconsync.ParseCidLink(tx.Cid)
 	if err != nil {
