@@ -8,15 +8,51 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cast"
 
+	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/generated"
+
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/impl"
 )
+
+// Defining the Graphql handler
+func graphqlHandler(s anconsync.Storage) gin.HandlerFunc {
+	// NewExecutableSchema and Config are in the generated.go file
+	// Resolver is in the resolver.go file
+	h := gqlgenh.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+
+
+	return func(c *gin.Context) {
+		ctx :=context.WithValue(c.Request.Context(),"dag", &anconsync.DagContractTrustedContext{
+			Store: s,
+		})
+		rq :=c.Request.WithContext(ctx)
+	
+		h.ServeHTTP(c.Writer, rq)
+	}
+}
+
+// Defining the Playground handler
+func playgroundHandler(s anconsync.Storage) gin.HandlerFunc {
+	h := playground.Handler("GraphQL", "/query")
+
+	return func(c *gin.Context) {
+		ctx :=context.WithValue(c.Request.Context(),"dag", &anconsync.DagContractTrustedContext{
+			Store: s,
+		})
+		rq :=c.Request.WithContext(ctx)
+	
+		h.ServeHTTP(c.Writer, rq)
+	}
+}
 
 func main() {
 	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWAGyXSBPPo7Zq16WoCe6BtHDRQpFXPg9VCDQ1EPXcHWMw", "A remote peer to sync")
@@ -35,6 +71,7 @@ func main() {
 	exchange, ipfspeer := impl.NewRouter(ctx, host, s, *peerAddr)
 	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
+
 	r.POST("/file", func(c *gin.Context) {
 		w, fn, err := s.DataStore.PutStream(c.Request.Context())
 		if err != nil {
@@ -84,8 +121,8 @@ func main() {
 			"cid": lnk.String(),
 		})
 	})
-	r.POST("/dagcontract", handler.QueryGraphQL(s))
-	r.POST("/graphqli", handler.QueryGraphQL(s))
+	r.POST("/query", graphqlHandler(s))
+	r.GET("/query",playgroundHandler(s))
 	r.GET("/file/:cid", func(c *gin.Context) {
 		lnk, err := cid.Parse(c.Param("cid"))
 		if err != nil {

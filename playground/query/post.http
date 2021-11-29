@@ -1,0 +1,10 @@
+
+
+POST http://localhost:7788/graphqli
+Content-Type: application/json
+
+{
+  "variables": null,
+  "query": "query   { metadata(cid: \"baguqeeralcob2l4xst23llrcwnrufvhpxd447g25avmyacglf4cxdq5zatmq\", path: \"/\"){name} }",
+  "op": null
+}

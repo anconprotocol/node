@@ -14,10 +14,23 @@ import (
 	ipld "github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/must"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/ipld/go-ipld-prime/traversal"
 )
 
-func (r *mutationResolver) Apply(ctx context.Context, tx model.MetadataTransactionInput) (*model.DagLink, error) {
+func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (*model.Ancon721Metadata, error) {
+	dag := ctx.Value("dag").(*anconsync.DagContractTrustedContext)
+
+	jsonmodel, err := anconsync.ReadFromStore(dag.Store, cid, path)
+	if err != nil {
+		return nil, err
+	}
+	var metadata model.Ancon721Metadata
+	json.Unmarshal([]byte(jsonmodel), &metadata)
+	return &metadata, nil
+}
+
+func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.Ancon721Metadata, error) {
 	dag := ctx.Value("dag").(*anconsync.DagContractTrustedContext)
 
 	lnk, err := anconsync.ParseCidLink(tx.Cid)
@@ -51,7 +64,7 @@ func (r *mutationResolver) Apply(ctx context.Context, tx model.MetadataTransacti
 		n,
 		datamodel.ParsePath("parent"),
 		func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
-			nb := prev.Prototype().NewBuilder()
+			nb := basicnode.Prototype.Any.NewBuilder()
 			// set previous hash, not current
 			l, _ := anconsync.ParseCidLink(tx.Cid)
 			nb.AssignLink(l)
@@ -60,16 +73,7 @@ func (r *mutationResolver) Apply(ctx context.Context, tx model.MetadataTransacti
 
 	link := dag.Store.Store(ipld.LinkContext{}, n)
 
-	return &model.DagLink{
-		Path: "/",
-		Cid:  link.String(),
-	}, nil
-}
-
-func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (*model.Ancon721Metadata, error) {
-	dag := ctx.Value("dag").(*anconsync.DagContractTrustedContext)
-
-	jsonmodel, err := anconsync.ReadFromStore(dag.Store, cid, path)
+	jsonmodel, err := anconsync.ReadFromStore(dag.Store, link.String(), "/")
 	if err != nil {
 		return nil, err
 	}
@@ -78,11 +82,11 @@ func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (
 	return &metadata, nil
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-type mutationResolver struct{ *Resolver }
+// Transaction returns generated.TransactionResolver implementation.
+func (r *Resolver) Transaction() generated.TransactionResolver { return &transactionResolver{r} }
+
 type queryResolver struct{ *Resolver }
+type transactionResolver struct{ *Resolver }

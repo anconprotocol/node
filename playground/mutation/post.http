@@ -1,0 +1,9 @@
+
+
+POST http://localhost:7788/graphqli
+Content-Type: application/json
+
+{
+  "variables": null,
+  "op": null
+}

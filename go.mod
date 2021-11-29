@@ -37,7 +37,6 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/multiformats/go-multihash v0.1.0
 	github.com/prometheus/common v0.29.0 // indirect
-	github.com/qri-io/jsonschema v0.2.1
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/spf13/cast v1.4.1
 	github.com/vektah/gqlparser/v2 v2.2.0

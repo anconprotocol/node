@@ -11,27 +11,57 @@ import (
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/generated"
 	"github.com/gin-gonic/gin"
+	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/must"
+	"github.com/ipld/go-ipld-prime/traversal"
 )
 
 func QueryGraphQL(s anconsync.Storage) func(*gin.Context) {
 	return func(c *gin.Context) {
-		gql := (generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+		cfg := generated.Config{Resolvers: &graph.Resolver{}}
+		cfg.Directives.FocusedTransform = func(ctx context.Context, obj interface{},
+			next graphql.Resolver,
+			cid, path, previousValue, newValue string) (interface{}, error) {
+			lnk, err := anconsync.ParseCidLink(cid)
+			if err != nil {
+				return nil, err
+			}
+			rootNode, err := s.Load(ipld.LinkContext{}, lnk)
+			if err != nil {
+				return nil, err
+			}
+
+			n, err := traversal.FocusedTransform(
+				rootNode,
+				datamodel.ParsePath(path),
+				func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+					if progress.Path.String() == path && must.String(prev) == previousValue {
+						nb := prev.Prototype().NewBuilder()
+						nb.AssignString(newValue)
+						return nb.Build(), nil
+					}
+					return nil, fmt.Errorf("not found")
+				}, false)
+
+			if err != nil {
+				return nil, err
+			}
+			link := s.Store(ipld.LinkContext{}, n)
+
+			jsonmodel, err := anconsync.ReadFromStore(s, link.String(), "/")
+			if err != nil {
+				return nil, err
+			}
+			next(ctx)
+			return jsonmodel, nil
+		}
+		gql := generated.NewExecutableSchema(cfg)
 
 		var values map[string]interface{}
 
 		c.BindJSON(&values)
-		// if values["path"] == "" {
-		// 	c.JSON(400, gin.H{
-		// 		"error": fmt.Errorf("missing path").Error(),
-		// 	})
-		// 	return
-		// }
-		// if values["op"] == "" {
-		// 	c.JSON(400, gin.H{
-		// 		"error": fmt.Errorf("missing operation").Error(),
-		// 	})
-		// 	return
-		// }
+
 		if values["query"] == "" {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("missing query").Error(),
@@ -66,6 +96,7 @@ func QueryGraphQL(s anconsync.Storage) func(*gin.Context) {
 			OperationName: op,
 			Variables:     vars,
 		})
+		ctx = graphql.WithOperationContext(ctx, opctx)
 		h, ctxh := ex.DispatchOperation(ctx, opctx)
 
 		res := h(ctxh)

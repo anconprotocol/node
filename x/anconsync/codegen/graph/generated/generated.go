@@ -34,11 +34,12 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Mutation() MutationResolver
 	Query() QueryResolver
+	Transaction() TransactionResolver
 }
 
 type DirectiveRoot struct {
+	FocusedTransform func(ctx context.Context, obj interface{}, next graphql.Resolver, cid string, path string, previousValue string, value string) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -61,20 +62,20 @@ type ComplexityRoot struct {
 		Path func(childComplexity int) int
 	}
 
-	Mutation struct {
-		Apply func(childComplexity int, tx model.MetadataTransactionInput) int
-	}
-
 	Query struct {
 		Metadata func(childComplexity int, cid string, path string) int
 	}
+
+	Transaction struct {
+		Metadata func(childComplexity int, tx model.MetadataTransactionInput) int
+	}
 }
 
-type MutationResolver interface {
-	Apply(ctx context.Context, tx model.MetadataTransactionInput) (*model.DagLink, error)
-}
 type QueryResolver interface {
 	Metadata(ctx context.Context, cid string, path string) (*model.Ancon721Metadata, error)
+}
+type TransactionResolver interface {
+	Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.Ancon721Metadata, error)
 }
 
 type executableSchema struct {
@@ -162,18 +163,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DagLink.Path(childComplexity), true
 
-	case "Mutation.apply":
-		if e.complexity.Mutation.Apply == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_apply_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.Apply(childComplexity, args["tx"].(model.MetadataTransactionInput)), true
-
 	case "Query.metadata":
 		if e.complexity.Query.Metadata == nil {
 			break
@@ -185,6 +174,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Metadata(childComplexity, args["cid"].(string), args["path"].(string)), true
+
+	case "Transaction.metadata":
+		if e.complexity.Transaction.Metadata == nil {
+			break
+		}
+
+		args, err := ec.field_Transaction_metadata_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Transaction.Metadata(childComplexity, args["tx"].(model.MetadataTransactionInput)), true
 
 	}
 	return 0, false
@@ -202,7 +203,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				return nil
 			}
 			first = false
-			data := ec._Query(ctx, rc.Operation.SelectionSet)
+			data := ec._queryMiddleware(ctx, rc.Operation, func(ctx context.Context) (interface{}, error) {
+				return ec._Query(ctx, rc.Operation.SelectionSet), nil
+			})
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -216,7 +219,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				return nil
 			}
 			first = false
-			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
+			data := ec._mutationMiddleware(ctx, rc.Operation, func(ctx context.Context) (interface{}, error) {
+				return ec._Transaction(ctx, rc.Operation.SelectionSet), nil
+			})
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -252,6 +257,11 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "graph/schema.graphqls", Input: `scalar Bytes
 
+schema {
+    query: Query
+    mutation: Transaction
+}
+
 type Ancon721Metadata {
   name: String!
   description: String!
@@ -284,9 +294,14 @@ input MetadataTransactionInput {
 
 
 
-type Mutation {
-  apply(tx: MetadataTransactionInput!): DagLink!
-}`, BuiltIn: false},
+type Transaction {
+  metadata(tx: MetadataTransactionInput!): Ancon721Metadata!
+}
+
+
+
+directive @focusedTransform(cid: String!, path: String!,previousValue: String!,value: String!) on QUERY | MUTATION
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -294,18 +309,45 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_apply_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) dir_focusedTransform_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.MetadataTransactionInput
-	if tmp, ok := rawArgs["tx"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tx"))
-		arg0, err = ec.unmarshalNMetadataTransactionInput2githubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐMetadataTransactionInput(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["cid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tx"] = arg0
+	args["cid"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["path"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("path"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["path"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["previousValue"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("previousValue"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["previousValue"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["value"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["value"] = arg3
 	return args, nil
 }
 
@@ -348,6 +390,21 @@ func (ec *executionContext) field_Query_metadata_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Transaction_metadata_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.MetadataTransactionInput
+	if tmp, ok := rawArgs["tx"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tx"))
+		arg0, err = ec.unmarshalNMetadataTransactionInput2githubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐMetadataTransactionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tx"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -381,6 +438,72 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ***************************** args.gotpl *****************************
 
 // region    ************************** directives.gotpl **************************
+
+func (ec *executionContext) _queryMiddleware(ctx context.Context, obj *ast.OperationDefinition, next func(ctx context.Context) (interface{}, error)) graphql.Marshaler {
+
+	for _, d := range obj.Directives {
+		switch d.Name {
+		case "focusedTransform":
+			rawArgs := d.ArgumentMap(ec.Variables)
+			args, err := ec.dir_focusedTransform_args(ctx, rawArgs)
+			if err != nil {
+				ec.Error(ctx, err)
+				return graphql.Null
+			}
+			n := next
+			next = func(ctx context.Context) (interface{}, error) {
+				if ec.directives.FocusedTransform == nil {
+					return nil, errors.New("directive focusedTransform is not implemented")
+				}
+				return ec.directives.FocusedTransform(ctx, obj, n, args["cid"].(string), args["path"].(string), args["previousValue"].(string), args["value"].(string))
+			}
+		}
+	}
+	tmp, err := next(ctx)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if data, ok := tmp.(graphql.Marshaler); ok {
+		return data
+	}
+	ec.Errorf(ctx, `unexpected type %T from directive, should be graphql.Marshaler`, tmp)
+	return graphql.Null
+
+}
+
+func (ec *executionContext) _mutationMiddleware(ctx context.Context, obj *ast.OperationDefinition, next func(ctx context.Context) (interface{}, error)) graphql.Marshaler {
+
+	for _, d := range obj.Directives {
+		switch d.Name {
+		case "focusedTransform":
+			rawArgs := d.ArgumentMap(ec.Variables)
+			args, err := ec.dir_focusedTransform_args(ctx, rawArgs)
+			if err != nil {
+				ec.Error(ctx, err)
+				return graphql.Null
+			}
+			n := next
+			next = func(ctx context.Context) (interface{}, error) {
+				if ec.directives.FocusedTransform == nil {
+					return nil, errors.New("directive focusedTransform is not implemented")
+				}
+				return ec.directives.FocusedTransform(ctx, obj, n, args["cid"].(string), args["path"].(string), args["previousValue"].(string), args["value"].(string))
+			}
+		}
+	}
+	tmp, err := next(ctx)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if data, ok := tmp.(graphql.Marshaler); ok {
+		return data
+	}
+	ec.Errorf(ctx, `unexpected type %T from directive, should be graphql.Marshaler`, tmp)
+	return graphql.Null
+
+}
 
 // endregion ************************** directives.gotpl **************************
 
@@ -727,48 +850,6 @@ func (ec *executionContext) _DagLink_cid(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_apply(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_apply_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Apply(rctx, args["tx"].(model.MetadataTransactionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.DagLink)
-	fc.Result = res
-	return ec.marshalNDagLink2ᚖgithubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐDagLink(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_metadata(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -877,6 +958,48 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Transaction_metadata(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Transaction",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Transaction_metadata_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Transaction().Metadata(rctx, args["tx"].(model.MetadataTransactionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Ancon721Metadata)
+	fc.Result = res
+	return ec.marshalNAncon721Metadata2ᚖgithubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐAncon721Metadata(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2163,37 +2286,6 @@ func (ec *executionContext) _DagLink(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
-var mutationImplementors = []string{"Mutation"}
-
-func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
-
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Mutation",
-	})
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Mutation")
-		case "apply":
-			out.Values[i] = ec._Mutation_apply(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2224,6 +2316,37 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var transactionImplementors = []string{"Transaction"}
+
+func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, transactionImplementors)
+
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Transaction",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Transaction")
+		case "metadata":
+			out.Values[i] = ec._Transaction_metadata(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2485,6 +2608,10 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAncon721Metadata2githubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐAncon721Metadata(ctx context.Context, sel ast.SelectionSet, v model.Ancon721Metadata) graphql.Marshaler {
+	return ec._Ancon721Metadata(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNAncon721Metadata2ᚖgithubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐAncon721Metadata(ctx context.Context, sel ast.SelectionSet, v *model.Ancon721Metadata) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -2508,10 +2635,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNDagLink2githubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐDagLink(ctx context.Context, sel ast.SelectionSet, v model.DagLink) graphql.Marshaler {
-	return ec._DagLink(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNDagLink2ᚖgithubᚗcomᚋElectronicᚑSignaturesᚑIndustriesᚋanconᚑipldᚑrouterᚑsyncᚋxᚋanconsyncᚋcodegenᚋgraphᚋmodelᚐDagLink(ctx context.Context, sel ast.SelectionSet, v *model.DagLink) graphql.Marshaler {

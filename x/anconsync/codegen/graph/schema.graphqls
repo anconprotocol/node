@@ -1,5 +1,10 @@
 scalar Bytes
 
+schema {
+    query: Query
+    mutation: Transaction
+}
+
 type Ancon721Metadata {
   name: String!
   description: String!
@@ -32,6 +37,10 @@ input MetadataTransactionInput {
 
 
 
-type Mutation {
-  apply(tx: MetadataTransactionInput!): DagLink!
+type Transaction {
+  metadata(tx: MetadataTransactionInput!): Ancon721Metadata!
 }
+
+
+
+directive @focusedTransform(cid: String!, path: String!,previousValue: String!,value: String!) on QUERY | MUTATION | FIELD
