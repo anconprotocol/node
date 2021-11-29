@@ -2,8 +2,9 @@ package adapters
 
 // DagTransaction is the DAG transaction
 type DagTransaction struct {
-	SchemaCid     string
-	DataSourceCid string
-	Result        string
+	MetadataCid     string
+	ResultCid string
+	FromOwner        string
+	ToOwner string
 	Signature     string
 }

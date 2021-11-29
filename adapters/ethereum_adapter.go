@@ -111,11 +111,10 @@ type EthereumAdapter struct {
 }
 
 func (adapter *EthereumAdapter) ExecuteDagContract(
-	schemaCid string,
-	dataSourceCid string,
-	variables string,
-	contractMutation string,
-	result string,
+	metadatadCid string,
+	resultCid string,
+	fromOwner string,
+	toOwner string,
 ) (*DagTransaction, error) {
 
 	pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
@@ -127,7 +126,7 @@ func (adapter *EthereumAdapter) ExecuteDagContract(
 		return nil, fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY")
 	}
 
-	data, err := ExecuteDagContractWithProofAbiMethod().Inputs.Pack(schemaCid, dataSourceCid, variables, contractMutation, result)
+	data, err := ExecuteDagContractWithProofAbiMethod().Inputs.Pack(metadatadCid, fromOwner, resultCid, toOwner)
 	if err != nil {
 		return nil, fmt.Errorf("packing for proof generation failed")
 	}
@@ -140,9 +139,10 @@ func (adapter *EthereumAdapter) ExecuteDagContract(
 	}
 
 	return &DagTransaction{
-		SchemaCid:     schemaCid,
-		DataSourceCid: dataSourceCid,
-		Result:        result,
+		MetadataCid: metadatadCid,
+		ResultCid: resultCid,
+		FromOwner: fromOwner,
+		ToOwner: toOwner,
 		Signature:     hexutil.Encode(signature),
 	}, nil
 }

@@ -14,11 +14,10 @@ contract DagContractTrusted is Ownable {
     mapping(bytes32 => bool) executed;
     error OffchainLookup(string url, bytes prefix);
     struct DagContractRequestProof {
-        string schemaCid;
-        string dataSourceCid;
-        string variables;
-        string contractMutation;
-        string result;
+        string metadataCid;
+        address fromOwner;
+        address toOwner;
+        string resultCid;
         address toReceiverContractAddress;
         bytes32 signature;
     }
@@ -70,11 +69,10 @@ contract DagContractTrusted is Ownable {
                     "\x19Ethereum Signed Message:\n32",
                     keccak256(
                         abi.encodePacked(
-                            proof.schemaCid,
-                            proof.dataSourceCid,
-                            proof.variables,
-                            proof.contractMutation,
-                            proof.result,
+                            proof.metadataCid,
+                            proof.fromOwner,
+                            proof.resultCid,
+                            proof.toOwner,
                             toReceiverContractAddress,
                             tokenId
                         )
@@ -97,8 +95,8 @@ contract DagContractTrusted is Ownable {
                 toReceiverContractAddress,
                 address(this),
                 msg.sender,
-                proof.dataSourceCid,
-                proof.result,
+                proof.metadataCid,
+                proof.resultCid,
                 data
             );
             return true;
