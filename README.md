@@ -72,10 +72,19 @@ go build ./server.go
 ./server
 ```
 
-## Generating schemas
+## Generating schemas and Swagger
+
+### Server GraphQL schemas
 
 `~/Code/ancon-ipld-router-sync/x/anconsync/codegen$ go run github.com/99designs/gqlgen generate`
 
+### Client GraphQL schemas
+
+`go run github.com/Khan/genqlient --init`
+
+### Swagger
+
+`swag init`
 
 ## API
 

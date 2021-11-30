@@ -1,4 +1,10 @@
-scalar Ancon721Metadata
+scalar Bytes
+
+schema {
+    query: Query
+    mutation: Transaction
+}
+
 type Ancon721Metadata {
   name: String!
   description: String!
@@ -12,9 +18,29 @@ type DagLink {
   path: String!
   cid: String!
 }
+
+type DagContractTrusted {
+  data: DagLink!
+  payload: Ancon721Metadata!
+}
+
 type Query {
-  metadata: Ancon721Metadata
+  metadata(cid: String!, path: String!): Ancon721Metadata
 }
-type Mutation {
-  metadata: Ancon721Metadata
+
+input MetadataTransactionInput {
+  path: String!
+  cid: String!
+  owner: String!
+  newOwner: String!
 }
+
+
+
+type Transaction {
+  metadata(tx: MetadataTransactionInput!): DagLink!
+}
+
+
+
+directive @focusedTransform(cid: String!, path: String!,previousValue: String!,value: String!) on QUERY | MUTATION | FIELD

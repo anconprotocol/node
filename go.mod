@@ -22,6 +22,7 @@ require (
 
 require (
 	github.com/99designs/gqlgen v0.14.0
+	github.com/Yamashou/gqlgenc v0.0.2
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/buger/jsonparser v1.1.1
@@ -44,10 +45,11 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.3.3
-	github.com/swaggo/swag v1.7.6 // indirect
+	github.com/swaggo/swag v1.7.6
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/tools v0.1.7 // indirect

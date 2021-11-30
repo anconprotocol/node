@@ -1,1 +1,0 @@
-"schemacid=baguqeeraemvmroizvjx3obfubjs2e4jrfd42xkdwc7a4sgyj5lcyxqx2kipq&contractaddress=&contractid=&payloadcid=baguqeeraiawn5wl3v2cihvj7hxajvf2sezuoqvawojeavxo7to22bmwxbxga&jsonargs='{"index":0,"numb":1,"tres":"3","say":"Hola"}'"

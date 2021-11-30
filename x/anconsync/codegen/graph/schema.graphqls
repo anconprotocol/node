@@ -38,7 +38,7 @@ input MetadataTransactionInput {
 
 
 type Transaction {
-  metadata(tx: MetadataTransactionInput!): Ancon721Metadata!
+  metadata(tx: MetadataTransactionInput!): DagLink!
 }
 
 

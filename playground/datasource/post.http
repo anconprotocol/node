@@ -6,9 +6,9 @@ Content-Type: application/json
 {
   "path": "/",
   "data": {
-    "name": "XDV metadata sample",
-    "owner": "alice",
-    "description": "testing sample",
+    "name": "react metadata sample",
+    "owner": "juan",
+    "description": "juan testing sample",
     "image": "https://explore.ipld.io/#/explore/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D"
   }
 }

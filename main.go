@@ -4,16 +4,18 @@ import (
 	"context"
 	"flag"
 	"fmt"
-
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gin-gonic/gin"
+	"net/http"
 
 	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/docs"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/generated"
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/gin-gonic/gin"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/impl"
@@ -22,10 +24,26 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// Defining the JSON RPC handler
+func jsonRPCHandler(s anconsync.Storage) gin.HandlerFunc {
+
+	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
+
+	durin := handler.NewDurinService(adapters.EthereumAdapter{}, gqlcli)
+	server := rpc.NewServer()
+	server.RegisterName("durin", durin)
+
+	return func(c *gin.Context) {
+		ctx := context.WithValue(c.Request.Context(), "dag", &handler.DagContractTrustedContext{
+			Store: s,
+		})
+		rq := c.Request.WithContext(ctx)
+		server.ServeHTTP(c.Writer, rq)
+	}
+}
+
 // Defining the Graphql handler
 func graphqlHandler(s anconsync.Storage) gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the generated.go file
-	// Resolver is in the resolver.go file
 	h := gqlgenh.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
 	return func(c *gin.Context) {

@@ -1,5 +1,5 @@
-mutation  {
-  apply(input: { cid: "baguqeeralcob2l4xst23llrcwnrufvhpxd447g25avmyacglf4cxdq5zatmq", path: "/", owner: "alice", newOwner: "bob" }) {
+mutation transferOwnership($tx: MetadataTransactionInput!) {
+  metadata(tx: $tx) {
     cid
   }
 }

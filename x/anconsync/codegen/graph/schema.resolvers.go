@@ -31,7 +31,7 @@ func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (
 	return &metadata, nil
 }
 
-func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.Ancon721Metadata, error) {
+func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.DagLink, error) {
 	dag := ctx.Value("dag").(*handler.DagContractTrustedContext)
 
 	lnk, err := anconsync.ParseCidLink(tx.Cid)
@@ -74,13 +74,17 @@ func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTra
 
 	link := dag.Store.Store(ipld.LinkContext{}, n)
 
-	jsonmodel, err := anconsync.ReadFromStore(dag.Store, link.String(), "/")
-	if err != nil {
-		return nil, err
-	}
-	var metadata model.Ancon721Metadata
-	json.Unmarshal([]byte(jsonmodel), &metadata)
-	return &metadata, nil
+	// jsonmodel, err := anconsync.ReadFromStore(dag.Store, link.String(), "/")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// var metadata model.Ancon721Metadata
+	// json.Unmarshal([]byte(jsonmodel), &metadata)
+
+	return &model.DagLink{
+		Path: "/",
+		Cid:  link.String(),
+	}, nil
 }
 
 // Query returns generated.QueryResolver implementation.

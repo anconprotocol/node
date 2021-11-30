@@ -1,0 +1,15 @@
+model:
+  package: handler
+  filename: x/anconsync/handler/models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+client:
+  package: handler
+  filename: x/anconsync/handler/client.go # Where should any generated client go?
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  Date:
+    model: github.com/99designs/gqlgen/graphql.Time
+schema:
+  - "schemas/ancon721_metadata.graphqls" # Where are all the schema files located?
+query:
+  - "playground/mutation/sample.graphql" # Where are all the query files located?
