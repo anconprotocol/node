@@ -2,6 +2,8 @@ package anconsync
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,8 +41,31 @@ func NewStorage(folder string) Storage {
 	store := fsstore.Store{}
 	store.InitDefaults(DefaultNodeHome)
 	lsys := cidlink.DefaultLinkSystem()
-	lsys.SetWriteStorage(&store)
-	lsys.SetReadStorage(&store)
+	//   you just need a function that conforms to the ipld.BlockWriteOpener interface.
+	lsys.StorageWriteOpener = func(lnkCtx ipld.LinkContext) (io.Writer, ipld.BlockWriteCommitter, error) {
+		// change prefix
+		buf := bytes.Buffer{}
+		return &buf, func(lnk ipld.Link) error {
+			key := strings.Join([]string{lnk.String(), lnkCtx.LinkPath.String()}, "/")
+			wr, cb, err := store.PutStream(lnkCtx.Ctx)
+			if err != nil {
+				return fmt.Errorf("error while reading stream")
+			}
+			wr.Write(buf.Bytes())
+			cb(key)
+			return err
+		}, nil
+	}
+	lsys.StorageReadOpener = func(lnkCtx ipld.LinkContext, link ipld.Link) (io.Reader, error) {
+		key := strings.Join([]string{link.String(), lnkCtx.LinkPath.String()}, "/")
+		reader, err := store.GetStream(lnkCtx.Ctx, key)
+		if err != nil {
+			return nil, fmt.Errorf("path not found")
+		}
+		return reader, nil
+	}
+
+	lsys.TrustedStorage = true
 
 	return Storage{
 		DataStore:  store,

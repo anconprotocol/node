@@ -104,7 +104,7 @@ func main() {
 		api.POST("/file", dagHandler.FileWrite)
 		api.POST("/query", graphqlHandler(s))
 		api.GET("/query", playgroundHandler(s))
-		api.GET("/file/:cid", dagHandler.FileRead)
+		api.GET("/file/:cid/*path", dagHandler.FileRead)
 		api.GET("/dagjson/:cid/*path", dagHandler.DagJsonRead)
 		api.GET("/dagcbor/:cid/*path", dagHandler.DagCborRead)
 		api.POST("/dagjson", dagHandler.DagJsonWrite)

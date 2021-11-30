@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
@@ -55,7 +56,9 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 	}
 
 	n, err := DecodeNode(w.Bytes())
-	lnk := dagctx.Store.StoreRaw(ipld.LinkContext{}, n)
+	lnk := dagctx.Store.StoreRaw(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(strings.Join([]string{"/", file.Filename}, "/")),
+	}, n)
 
 	if err != nil {
 		c.JSON(400, gin.H{
