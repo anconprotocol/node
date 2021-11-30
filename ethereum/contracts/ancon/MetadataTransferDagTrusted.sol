@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract DagContractTrusted is Ownable {
+contract MetadataTransferDagTrusted is Ownable {
     using ECDSA for bytes32;
     using Address for address;
     string public url;

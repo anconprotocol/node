@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ancon/IDagContractTrustedReceiver.sol";
-import "./ancon/DagContractTrusted.sol";
+import "./ancon/MetadataTransferDagTrusted.sol";
 
 //  a NFT secure document
 contract XDVNFT is
@@ -19,7 +19,7 @@ contract XDVNFT is
     ERC721URIStorage,
     Ownable,
     IERC721Receiver,
-    DagContractTrusted,
+    MetadataTransferDagTrusted,
     IDagContractTrustedReceiver
 {
     using Counters for Counters.Counter;

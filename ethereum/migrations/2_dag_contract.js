@@ -6,7 +6,7 @@ const ContractImportBuilder = require('../contract-import-builder');
 
 const XDVNFT = artifacts.require('XDVNFT')
 const DAI = artifacts.require('DAI')
-const DagContractTrusted = artifacts.require("DagContractTrusted");
+const MetadataTransferDagTrusted = artifacts.require("MetadataTransferDagTrusted");
 
 const ECDSA = artifacts.require("ECDSA");
 const Address = artifacts.require("Address");
@@ -25,11 +25,11 @@ module.exports = async (deployer, network, accounts) => {
 
   // DAG Contract
   await deployer.deploy(Address);
-  await deployer.link(Address, DagContractTrusted);
+  await deployer.link(Address, MetadataTransferDagTrusted);
   await deployer.deploy(ECDSA);
-  await deployer.link(ECDSA, DagContractTrusted);
-  await deployer.deploy(DagContractTrusted);
-  const dagContract = await DagContractTrusted.deployed();
+  await deployer.link(ECDSA, MetadataTransferDagTrusted);
+  await deployer.deploy(MetadataTransferDagTrusted);
+  const dagContract = await MetadataTransferDagTrusted.deployed();
 
   // ERC20 - stablecoin
   await deployer.deploy(DAI);
@@ -51,7 +51,7 @@ module.exports = async (deployer, network, accounts) => {
 
   // Configure DAG contract
   // Set Durin Gateway endpoint
-  await dagContract.setUrl("http://localhost:7788/dagcontract");
+  await dagContract.setUrl("http://localhost:7788/rpc");
 
   // Set Trusted Signer Address
   await dagContract.setSigner("0x2a3D91a8D48C2892b391122b6c3665f52bCace23");
@@ -71,7 +71,7 @@ module.exports = async (deployer, network, accounts) => {
   );
 
   builder.addContract(
-    'DagContractTrusted',
+    'MetadataTransferDagTrusted',
     dagContract,
     dagContract.address,
     network
