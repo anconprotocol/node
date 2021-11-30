@@ -1,14 +1,18 @@
 package handler
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/codec/raw"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 )
@@ -24,13 +28,6 @@ import (
 // @Success 201 {string} cid
 // @Router /v0/file [post]
 func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
-	w, fn, err := dagctx.Store.DataStore.PutStream(c.Request.Context())
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("error while getting stream. %v", err).Error(),
-		})
-		return
-	}
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -48,7 +45,8 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 	defer src.Close()
 	// var bz []byte
 
-	_, err = io.Copy(w, src)
+	var w bytes.Buffer
+	_, err = io.Copy(&w, src)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed reading file. %v", err).Error(),
@@ -56,10 +54,8 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 		return
 	}
 
-	var bz []byte
-	bz, _ = json.Marshal(file.Header)
-
-	lnk := anconsync.CreateCidLink(bz)
+	n, err := DecodeNode(w.Bytes())
+	lnk := dagctx.Store.StoreRaw(ipld.LinkContext{}, n)
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -67,10 +63,10 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 		})
 		return
 	}
-	fn(lnk.String())
 	c.JSON(201, gin.H{
 		"cid": lnk.String(),
 	})
+	net.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer.ID, lnk)
 }
 
 // @BasePath /v0
@@ -91,7 +87,15 @@ func (dagctx *DagContractTrustedContext) FileRead(c *gin.Context) {
 		})
 		return
 	}
-	reader, err := dagctx.Store.DataStore.GetStream(c.Request.Context(), lnk.String())
+	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(c.Param("path"))}, cidlink.Link{Cid: lnk})
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%v", err),
+		})
+		return
+	}
+	bz, err := EncodeNode(n)
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -107,5 +111,22 @@ func (dagctx *DagContractTrustedContext) FileRead(c *gin.Context) {
 		//  "Content-Disposition": `attachment; filename="gopher.png"`,
 	}
 
+	reader := bytes.NewReader(bz)
 	c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
+}
+func EncodeNode(node ipld.Node) ([]byte, error) {
+	var buffer bytes.Buffer
+	err := raw.Encode(node, &buffer)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func DecodeNode(encoded []byte) (ipld.Node, error) {
+	nb := basicnode.Prototype.Any.NewBuilder()
+	if err := raw.Decode(nb, bytes.NewReader(encoded)); err != nil {
+		return nil, err
+	}
+	return nb.Build(), nil
 }

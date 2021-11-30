@@ -1,6 +1,6 @@
 
 
-POST https://ancon.did.pa/api/v0/dagjson
+POST http://localhost:7788/v0/dagjson
 Content-Type: application/json
 
 {
