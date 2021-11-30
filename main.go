@@ -8,7 +8,7 @@ import (
 
 	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/docs"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
@@ -29,7 +29,7 @@ func jsonRPCHandler(s anconsync.Storage) gin.HandlerFunc {
 
 	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
 
-	durin := handler.NewDurinService(adapters.EthereumAdapter{}, gqlcli)
+	durin := handler.NewDurinService(transfer.EthereumAdapter{}, gqlcli)
 	server := rpc.NewServer()
 	server.RegisterName("durin", durin)
 
@@ -111,6 +111,6 @@ func main() {
 		api.POST("/dagcbor", dagHandler.DagCborWrite)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
+	r.POST("/rpc", jsonRPCHandler(s))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

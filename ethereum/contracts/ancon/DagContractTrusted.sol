@@ -13,12 +13,13 @@ contract DagContractTrusted is Ownable {
     address private _signer;
     mapping(bytes32 => bool) executed;
     error OffchainLookup(string url, bytes prefix);
-    struct DagContractRequestProof {
+    struct MetadataTransferProofPacket {
         string metadataCid;
         address fromOwner;
         address toOwner;
         string resultCid;
-        address toReceiverContractAddress;
+        address toAddress;
+        uint256 tokenId;
         bytes32 signature;
     }
 
@@ -39,15 +40,15 @@ contract DagContractTrusted is Ownable {
     /**
      * @dev Requests a DAG contract offchain execution
      */
-    function request(address toReceiverContractAddress, uint256 tokenId)
+    function request(address toAddress, uint256 tokenId)
         public
         returns (bytes32)
     {
         revert OffchainLookup(
             url,
             abi.encodeWithSignature(
-                "requestWithProof(address toReceiverContractAddress, uint256 tokenId, DagContractRequestProof memory proof)",
-                toReceiverContractAddress,
+                "requestWithProof(address toAddress, uint256 tokenId, MetadataTransferProofPacket memory proof)",
+                toAddress,
                 tokenId
             )
         );
@@ -57,9 +58,9 @@ contract DagContractTrusted is Ownable {
      * @dev Requests a DAG contract offchain execution with proof
      */
     function requestWithProof(
-        address toReceiverContractAddress,
+        address toAddress,
         uint256 tokenId,
-        DagContractRequestProof memory proof
+        MetadataTransferProofPacket memory proof
     ) external returns (bool) {
         if (executed[proof.signature]) {
             return false;
@@ -73,7 +74,7 @@ contract DagContractTrusted is Ownable {
                             proof.fromOwner,
                             proof.resultCid,
                             proof.toOwner,
-                            toReceiverContractAddress,
+                            toAddress,
                             tokenId
                         )
                     )
@@ -88,11 +89,11 @@ contract DagContractTrusted is Ownable {
             );
             executed[proof.signature] = true;
             bytes memory data = abi.encodePacked(
-                toReceiverContractAddress,
+                toAddress,
                 tokenId
             );
             _onDagContractResponseReceived(
-                toReceiverContractAddress,
+                toAddress,
                 address(this),
                 msg.sender,
                 proof.metadataCid,

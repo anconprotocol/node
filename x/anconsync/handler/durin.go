@@ -6,27 +6,27 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 type DurinService struct {
-	Adapter   adapters.EthereumAdapter
+	Adapter   transfer.EthereumAdapter
 	GqlClient *Client
 }
 
-func NewDurinService(evm adapters.EthereumAdapter, gqlClient *Client) *DurinService {
+func NewDurinService(evm transfer.EthereumAdapter, gqlClient *Client) *DurinService {
 	return &DurinService{
 		Adapter:   evm,
 		GqlClient: gqlClient,
 	}
 }
 
-func (s *DurinService) MsgHandler(to string,  name string, args map[string]interface{}) (hexutil.Bytes, error) {
+func (s *DurinService) MsgHandler(to string, name string, args map[string]interface{}) (hexutil.Bytes, error) {
 	switch name {
 	default:
-		tokenId := args["tokenId"]
+		tokenId := args["tokenId"].(uint64)
 		input := MetadataTransactionInput{
 			Path:     args["path"].(string),
 			Cid:      args["cid"].(string),
@@ -45,10 +45,7 @@ func (s *DurinService) MsgHandler(to string,  name string, args map[string]inter
 			return nil, fmt.Errorf("request with proof raw tx failed")
 		}
 		return txdata, nil
-		break
 	}
-
-	return nil, nil
 }
 
 func (s *DurinService) DurinCall(params ...interface{}) hexutil.Bytes {
