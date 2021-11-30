@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/rpc"
+
 	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
@@ -14,7 +16,6 @@ import (
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/codegen/graph/generated"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gin-gonic/gin"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
@@ -29,9 +30,13 @@ func jsonRPCHandler(s anconsync.Storage) gin.HandlerFunc {
 
 	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
 
-	durin := handler.NewDurinService(transfer.EthereumAdapter{}, gqlcli)
+	durin := handler.NewDurinAPI(transfer.EthereumAdapter{}, gqlcli)
 	server := rpc.NewServer()
-	server.RegisterName("durin", durin)
+
+	err := server.RegisterName(durin.Namespace, durin.Service)
+	if err != nil {
+		panic(err)
+	}
 
 	return func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "dag", &handler.DagContractTrustedContext{

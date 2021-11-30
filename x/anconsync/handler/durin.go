@@ -1,35 +1,46 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/spf13/cast"
 )
+
+type DurinAPI struct {
+	Namespace string
+	Version   string
+	Service   *DurinService
+	Public    bool
+}
 
 type DurinService struct {
 	Adapter   transfer.EthereumAdapter
 	GqlClient *Client
 }
 
-func NewDurinService(evm transfer.EthereumAdapter, gqlClient *Client) *DurinService {
-	return &DurinService{
-		Adapter:   evm,
-		GqlClient: gqlClient,
+func NewDurinAPI(evm transfer.EthereumAdapter, gqlClient *Client) *DurinAPI {
+	return &DurinAPI{
+		Namespace: "durin",
+		Version:   "1.0",
+		Service: &DurinService{
+			Adapter:   evm,
+			GqlClient: gqlClient,
+		},
+		Public: true,
 	}
 }
 
-func (s *DurinService) MsgHandler(to string, name string, args map[string]interface{}) (hexutil.Bytes, error) {
+func (s *DurinService) msgHandler(to string, name string, args map[string]interface{}) (hexutil.Bytes, error) {
 	switch name {
 	default:
-		tokenId := args["tokenId"].(uint64)
+		tokenId := cast.ToUint64(args["tokenId"])
 		input := MetadataTransactionInput{
-			Path:     args["path"].(string),
-			Cid:      args["cid"].(string),
+			Path:     "/",
+			Cid:      args["metadataCid"].(string),
 			Owner:    args["fromOwner"].(string),
 			NewOwner: args["toOwner"].(string),
 		}
@@ -48,25 +59,19 @@ func (s *DurinService) MsgHandler(to string, name string, args map[string]interf
 	}
 }
 
-func (s *DurinService) DurinCall(params ...interface{}) hexutil.Bytes {
-	to := params[0].(string)
-	data, err := (hexutil.Decode(params[1].(string)))
-	if err != nil {
-		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("fail reading data").Error())))
-	}
-	abis := params[2].(json.RawMessage)
+func (s *DurinService) Call(to string, from string, data json.RawMessage, abis json.RawMessage) hexutil.Bytes {
 
-	// Get the function selector
-	selector := string(data)[:10]
-
-	iface, err := abi.JSON(bytes.NewReader(abis))
-
-	fn, err := iface.MethodById([]byte(selector))
+	p := []byte(data)
 	var values map[string]interface{}
-	err = iface.UnpackIntoMap(values, fn.Name, data)
-
+	err := json.Unmarshal(p, &values)
+	if err != nil {
+		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("fail unpack data").Error())))
+	}
 	// Execute graphql
-	txdata, err := s.MsgHandler(to, fn.Name, values)
+	txdata, err := s.msgHandler(to, "", values)
 
+	if err != nil {
+		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("reverted").Error())))
+	}
 	return txdata
 }
