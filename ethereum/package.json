@@ -35,9 +35,11 @@
         "fds.js": "^0.1.30",
         "ipfs-core": "^0.4.2",
         "ipfs-http-client": "^48.2.2",
+        "jayson": "^3.6.5",
         "key-did-provider-ed25519": "^1.0.0",
         "moment": "^2.29.1",
         "multiformats": "^3.0.3",
+        "node-fetch": "^3.1.0",
         "rxdb": "9.12.1",
         "rxjs": "^6.6.3",
         "xdvplatform-wallet": "^4.0.4"
