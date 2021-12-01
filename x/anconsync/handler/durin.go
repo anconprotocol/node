@@ -18,11 +18,11 @@ type DurinAPI struct {
 }
 
 type DurinService struct {
-	Adapter   transfer.EthereumAdapter
+	Adapter   transfer.OnchainAdapter
 	GqlClient *Client
 }
 
-func NewDurinAPI(evm transfer.EthereumAdapter, gqlClient *Client) *DurinAPI {
+func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *Client) *DurinAPI {
 	return &DurinAPI{
 		Namespace: "durin",
 		Version:   "1.0",
@@ -37,7 +37,7 @@ func NewDurinAPI(evm transfer.EthereumAdapter, gqlClient *Client) *DurinAPI {
 func (s *DurinService) msgHandler(to string, name string, args map[string]interface{}) (hexutil.Bytes, error) {
 	switch name {
 	default:
-		tokenId := cast.ToUint64(args["tokenId"])
+		tokenId := cast.ToString(args["tokenId"])
 		input := MetadataTransactionInput{
 			Path:     "/",
 			Cid:      args["metadataCid"].(string),

@@ -76,7 +76,13 @@ func NewStorage(folder string) Storage {
 		// change prefix
 		buf := bytes.Buffer{}
 		return &buf, func(lnk ipld.Link) error {
-			key := strings.Join([]string{lnk.String(), lnkCtx.LinkPath.String()}, "/")
+			var key string
+			if lnkCtx.LinkPath.Len() == 0 {
+				key = lnk.String()
+			} else {
+				key = strings.Join([]string{lnk.String(), lnkCtx.LinkPath.String()}, "/")
+			}
+
 			wr, cb, err := store.PutStream(lnkCtx.Ctx)
 			if err != nil {
 				return fmt.Errorf("error while reading stream")
@@ -87,7 +93,13 @@ func NewStorage(folder string) Storage {
 		}, nil
 	}
 	lsys.StorageReadOpener = func(lnkCtx ipld.LinkContext, link ipld.Link) (io.Reader, error) {
-		key := strings.Join([]string{link.String(), lnkCtx.LinkPath.String()}, "/")
+		var key string
+		if lnkCtx.LinkPath.Len() == 0 {
+			key = link.String()
+		} else {
+			key = strings.Join([]string{link.String(), lnkCtx.LinkPath.String()}, "/")
+		}
+
 		reader, err := store.GetStream(lnkCtx.Ctx, key)
 		if err != nil {
 			return nil, fmt.Errorf("path not found")

@@ -93,7 +93,7 @@ contract(
             const inputdata ={
               toAddress,
               tokenId,
-              metadataCid:'baguqeeraladfqqk4xt2ki6jx42bskhg2sqhoo7w6iydltzcmxhknohczkq4a',
+              metadataCid:'baguqeeral3u3fla2au3f3cy7ldxia63sh7br4vyl2txib7msydxlxgb2kepq',
              fromOwner: 'juan',
              toOwner: accounts[2],
             }

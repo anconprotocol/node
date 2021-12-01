@@ -61,7 +61,7 @@ func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTra
 	}
 
 	// parent update
-	n, _ = traversal.FocusedTransform(
+	n, err = traversal.FocusedTransform(
 		n,
 		datamodel.ParsePath("parent"),
 		func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
@@ -71,6 +71,10 @@ func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTra
 			nb.AssignLink(l)
 			return nb.Build(), nil
 		}, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("Focused transform error")
+	}
 
 	link := dag.Store.Store(ipld.LinkContext{}, n)
 

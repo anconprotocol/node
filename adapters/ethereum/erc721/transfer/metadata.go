@@ -19,7 +19,7 @@ type MetadataTransferProofPacket struct {
 	FromOwner   string
 	ToOwner     string
 	ToAddress   string
-	TokenId     uint64
+	TokenId     string
 	Signature   string
 }
 type MetadataTransferPacket struct {
@@ -28,7 +28,7 @@ type MetadataTransferPacket struct {
 	FromOwner   string
 	ToOwner     string
 	ToAddress   string
-	TokenId     uint64
+	TokenId     string
 }
 
 func ProofTypeAbi() abi.Type {
@@ -125,7 +125,7 @@ func ProofWithSignatureTypeAbi() abi.Type {
 // "requestWithProof(address toAddress, uint256 tokenId, MetadataTransferProofPacket memory proof)",
 func ExecuteDagContractWithProofAbiMethod() abi.Method {
 
-	uint256Type, _ := abi.NewType("uint256", "", nil)
+	// uint256Type, _ := abi.NewType("uint256", "", nil)
 	uintType, _ := abi.NewType("uint", "", nil)
 	// bytes32Type, _ := abi.NewType("bytes32", "", nil)
 	stringType, _ := abi.NewType("string", "", nil)
@@ -142,7 +142,7 @@ func ExecuteDagContractWithProofAbiMethod() abi.Method {
 			Indexed: false,
 		}, abi.Argument{
 			Name:    "tokenId",
-			Type:    uint256Type,
+			Type:    stringType,
 			Indexed: false,
 		},
 			abi.Argument{
@@ -160,7 +160,7 @@ func ExecuteDagContractWithProofAbiMethod() abi.Method {
 }
 func ExecuteDagContractWithSignedProofAbiMethod() abi.Method {
 
-	uint256Type, _ := abi.NewType("uint256", "", nil)
+	// uint256Type, _ := abi.NewType("uint256", "", nil)
 	uintType, _ := abi.NewType("uint", "", nil)
 	// bytes32Type, _ := abi.NewType("bytes32", "", nil)
 	stringType, _ := abi.NewType("string", "", nil)
@@ -177,7 +177,7 @@ func ExecuteDagContractWithSignedProofAbiMethod() abi.Method {
 			Indexed: false,
 		}, abi.Argument{
 			Name:    "tokenId",
-			Type:    uint256Type,
+			Type:    stringType,
 			Indexed: false,
 		},
 			abi.Argument{
@@ -216,7 +216,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	fromOwner string,
 	toOwner string,
 	toAddress string,
-	tokenId uint64,
+	tokenId string,
 ) (hexutil.Bytes, error) {
 	// dag := ctx.Value("dag").(*handler.AnconSyncContext)
 
@@ -236,7 +236,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 		ExecuteDagContractWithProofAbiMethod().Inputs.Pack(
 			toAddress,
 			tokenId,
-			&MetadataTransferPacket{
+			MetadataTransferPacket{
 				MetadataCid: metadataCid,
 				ResultCid:   resultCid,
 				FromOwner:   fromOwner,
