@@ -20,7 +20,7 @@ import (
 )
 
 func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (*model.Ancon721Metadata, error) {
-	dag := ctx.Value("dag").(*handler.DagContractTrustedContext)
+	dag := ctx.Value("dag").(*handler.AnconSyncContext)
 
 	jsonmodel, err := anconsync.ReadFromStore(dag.Store, cid, path)
 	if err != nil {
@@ -32,7 +32,7 @@ func (r *queryResolver) Metadata(ctx context.Context, cid string, path string) (
 }
 
 func (r *transactionResolver) Metadata(ctx context.Context, tx model.MetadataTransactionInput) (*model.DagLink, error) {
-	dag := ctx.Value("dag").(*handler.DagContractTrustedContext)
+	dag := ctx.Value("dag").(*handler.AnconSyncContext)
 
 	lnk, err := anconsync.ParseCidLink(tx.Cid)
 	if err != nil {

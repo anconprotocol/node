@@ -1,0 +1,9 @@
+
+
+POST http://localhost:7788/v0/dagcbor
+Content-Type: application/json
+
+{
+  "path": "/",
+  "data": "AA=="
+}

@@ -1,4 +1,4 @@
-package net
+package handler
 
 import (
 	"context"
@@ -183,11 +183,11 @@ var selectAll ipld.Node = func() ipld.Node {
 	).Node()
 }()
 
-func FetchBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ipld.Link) error {
+func FetchBlock(ctx context.Context, dagCtx AnconSyncContext, c ipld.Link) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	resps, errs := gs.Request(ctx, p, c, selectAll)
+	resps, errs := dagCtx.Exchange.Request(ctx, dagCtx.IPFSPeer.ID, c, selectAll)
 	for {
 		select {
 		case <-ctx.Done():
@@ -207,11 +207,11 @@ func FetchBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ip
 		}
 	}
 }
-func PushBlock(ctx context.Context, gs graphsync.GraphExchange, p peer.ID, c ipld.Link) error {
+func PushBlock(ctx context.Context, dagCtx *AnconSyncContext, c ipld.Link) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	resps, errs := gs.Request(ctx, p, c, selectAll, gsync.ExtensionData{
+	resps, errs := dagCtx.Exchange.Request(ctx, dagCtx.IPFSPeer.ID, c, selectAll, gsync.ExtensionData{
 		Name: graphsync.ExtensionMetadata,
 		Data: []byte{},
 	})

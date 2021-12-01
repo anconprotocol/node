@@ -86,7 +86,7 @@ func QueryGraphQL(s anconsync.Storage) func(*gin.Context) {
 		}
 
 		r := c.Request.WithContext(graphql.StartOperationTrace(c.Request.Context()))
-		ctx := context.WithValue(r.Context(), "dag", &anconsync.DagContractTrustedContext{
+		ctx := context.WithValue(r.Context(), "dag", &anconsync.AnconSyncContext{
 			Store: s,
 		})
 

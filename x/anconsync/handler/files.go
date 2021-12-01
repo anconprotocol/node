@@ -13,7 +13,6 @@ import (
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 )
@@ -28,7 +27,7 @@ import (
 // @Produce json
 // @Success 201 {string} cid
 // @Router /v0/file [post]
-func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
+func (dagctx *AnconSyncContext) FileWrite(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -56,7 +55,7 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 	}
 
 	n, err := DecodeNode(w.Bytes())
-	lnk := dagctx.Store.StoreRaw(ipld.LinkContext{
+	lnk := dagctx.Store.Store(ipld.LinkContext{
 		LinkPath: ipld.ParsePath(strings.Join([]string{"/", file.Filename}, "/")),
 	}, n)
 
@@ -69,7 +68,7 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": lnk.String(),
 	})
-	net.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer.ID, lnk)
+	PushBlock(c.Request.Context(), dagctx, lnk)
 }
 
 // @BasePath /v0
@@ -82,7 +81,7 @@ func (dagctx *DagContractTrustedContext) FileWrite(c *gin.Context) {
 // @Produce json
 // @Success 200
 // @Router /v0/file/{cid}/{path} [get]
-func (dagctx *DagContractTrustedContext) FileRead(c *gin.Context) {
+func (dagctx *AnconSyncContext) FileRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{

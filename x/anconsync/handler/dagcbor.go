@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
@@ -27,7 +26,7 @@ import (
 // @Produce json
 // @Success 201 {string} cid
 // @Router /v0/dagcbor [post]
-func (dagctx *DagContractTrustedContext) DagCborWrite(c *gin.Context) {
+func (dagctx *AnconSyncContext) DagCborWrite(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
@@ -57,7 +56,7 @@ func (dagctx *DagContractTrustedContext) DagCborWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	net.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer.ID, cid)
+	PushBlock(c.Request.Context(), dagctx, cid)
 }
 
 // @BasePath /v0
@@ -70,7 +69,7 @@ func (dagctx *DagContractTrustedContext) DagCborWrite(c *gin.Context) {
 // @Produce json
 // @Success 200
 // @Router /v0/dagcbor/{cid}/{path} [get]
-func (dagctx *DagContractTrustedContext) DagCborRead(c *gin.Context) {
+func (dagctx *AnconSyncContext) DagCborRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{

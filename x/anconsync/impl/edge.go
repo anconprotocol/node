@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/net"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	gsync "github.com/ipfs/go-graphsync"
@@ -61,8 +61,8 @@ func NewEdge(ctx context.Context, gsynchost host.Host, router string) string {
 	ssb := builder.NewSelectorSpecBuilder(basicnode.Prototype.Any)
 	selector := ssb.ExploreAll(ssb.Matcher()).Node()
 
-	r := &net.Receiver{
-		MessageReceived: make(chan net.ReceivedMessage),
+	r := &handler.Receiver{
+		MessageReceived: make(chan handler.ReceivedMessage),
 	}
 
 	pi, _ = peer.AddrInfoFromP2pAddr(multiaddr.StringCast(router))
@@ -72,8 +72,8 @@ func NewEdge(ctx context.Context, gsynchost host.Host, router string) string {
 		panic(err)
 	}
 	pgChan, errChan := exchange.Request(ctx, pi.ID, link, selector)
-	net.VerifyHasErrors(ctx, errChan)
-	net.PrintProgress(ctx, pgChan)
+	handler.VerifyHasErrors(ctx, errChan)
+	handler.PrintProgress(ctx, pgChan)
 	defer gsynchost.Close()
 
 	a := fmt.Sprintf("%s/p2p/%s", gsynchost.Addrs()[0].String(), gsynchost.ID().Pretty())
@@ -82,7 +82,7 @@ func NewEdge(ctx context.Context, gsynchost host.Host, router string) string {
 	var received gsmsg.GraphSyncMessage
 	var receivedBlocks []blocks.Block
 	for {
-		var message net.ReceivedMessage
+		var message handler.ReceivedMessage
 
 		sender := message.Sender
 		received = message.Message

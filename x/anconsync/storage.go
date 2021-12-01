@@ -7,8 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-graphsync/ipldutil"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/dagcbor"
 	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
@@ -28,6 +31,33 @@ const (
 type Storage struct {
 	DataStore  fsstore.Store
 	LinkSystem linking.LinkSystem
+	RootHash   cidlink.Link
+}
+
+func (s *Storage) InitGenesis(moniker []byte) {
+	key, _ := crypto.GenerateKey()
+	digest := crypto.Keccak256(moniker)
+	var buf bytes.Buffer
+	buf.WriteString(time.Now().GoString())
+	root, err := key.Sign(&buf, digest, nil)
+	if err != nil {
+		panic(err)
+	}
+	n, err := ipldutil.DecodeNode(root)
+
+	if err != nil {
+		panic(err)
+	}
+	link := s.Store(ipld.LinkContext{}, n)
+	fmt.Printf("root genesis is %v\n", link)
+}
+
+func (s *Storage) LoadGenesis(cid string) {
+	r, err := ParseCidLink(cid)
+	if err != nil {
+		panic(err)
+	}
+	s.RootHash = r
 }
 
 func NewStorage(folder string) Storage {
