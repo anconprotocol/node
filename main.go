@@ -12,6 +12,7 @@ import (
 	"github.com/99designs/keyring"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/docs"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
@@ -30,7 +31,7 @@ import (
 func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 
 	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
-	durin := handler.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.Keyring), gqlcli)
+	durin := handler.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
 	server := rpc.NewServer()
 
 	err := server.RegisterName(durin.Namespace, durin.Service)
@@ -80,22 +81,29 @@ func playgroundHandler(s anconsync.Storage) gin.HandlerFunc {
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      ancon.did.pa/api
+// @host      api.ancon.did.pa
 // @BasePath  /v0
 func main() {
 	pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
 	if !has {
 		panic(fmt.Errorf("environment key ETHEREUM_ADAPTER_KEY not found"))
 	}
-
 	ring, _ := keyring.Open(keyring.Config{
 		ServiceName: "signer",
 	})
+	key, err := ring.Get("ethereum")
+	if err == keyring.ErrKeyNotFound {
+		_ = ring.Set(keyring.Item{
+			Key:  "ethereum",
+			Data: []byte(pk),
+		})
+		key, err = ring.Get("ethereum")
+	}
 
-	_ = ring.Set(keyring.Item{
-		Key:  "ethereum",
-		Data: []byte(pk),
-	})
+	privateKey, err := crypto.HexToECDSA(string(key.Data))
+	if err != nil {
+		panic(fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY"))
+	}
 
 	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWAGyXSBPPo7Zq16WoCe6BtHDRQpFXPg9VCDQ1EPXcHWMw", "A remote peer to sync")
 	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
@@ -125,7 +133,7 @@ func main() {
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/v0"
 
-	dagHandler := handler.NewAnconSyncContext(s, exchange, ipfspeer, ring)
+	dagHandler := handler.NewAnconSyncContext(s, exchange, ipfspeer, privateKey)
 	api := r.Group("/v0")
 	{
 		api.POST("/file", dagHandler.FileWrite)

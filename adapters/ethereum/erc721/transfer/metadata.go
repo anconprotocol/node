@@ -3,11 +3,14 @@ package transfer
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
+	"math/big"
 
-	"github.com/99designs/keyring"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -32,7 +35,7 @@ type MetadataTransferPacket struct {
 }
 
 func ProofTypeAbi() abi.Type {
-	proofType, _ := abi.NewType("MetadataTransferProofPacket", "", []abi.ArgumentMarshaling{
+	proofType, _ := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name:         "metadataCid",
 			Type:         "string",
@@ -74,7 +77,7 @@ func ProofTypeAbi() abi.Type {
 }
 
 func ProofWithSignatureTypeAbi() abi.Type {
-	proofType, _ := abi.NewType("MetadataTransferProofPacket", "", []abi.ArgumentMarshaling{
+	proofType, _ := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name:         "metadataCid",
 			Type:         "string",
@@ -195,20 +198,48 @@ func ExecuteDagContractWithSignedProofAbiMethod() abi.Method {
 }
 
 type OnchainAdapter struct {
-	Keyring   keyring.Keyring
-	ChainName string
-	ChainID   int
+	PrivateKey *ecdsa.PrivateKey
+	ChainName  string
+	ChainID    int
 }
 
-func NewOnchainAdapter(keyring keyring.Keyring) OnchainAdapter {
+func NewOnchainAdapter(pk *ecdsa.PrivateKey) OnchainAdapter {
 
 	return OnchainAdapter{
-		Keyring:   keyring,
-		ChainName: "Ethereum",
-		ChainID:   5,
+		PrivateKey: pk,
+		ChainName:  "Ethereum",
+		ChainID:    5,
 	}
 }
 
+// https://gist.github.com/miguelmota/bc4304bb21a8f4cc0a37a0f9347b8bbb
+func encodePacked(input ...[]byte) []byte {
+	return bytes.Join(input, nil)
+}
+
+func encodeBytesString(v string) []byte {
+	decoded, err := hex.DecodeString(v)
+	if err != nil {
+		panic(err)
+	}
+	return decoded
+}
+
+func encodeUint256(v string) []byte {
+	bn := new(big.Int)
+	bn.SetString(v, 10)
+	return math.U256Bytes(bn)
+}
+
+func encodeUint256Array(arr []string) []byte {
+	var res [][]byte
+	for _, v := range arr {
+		b := encodeUint256(v)
+		res = append(res, b)
+	}
+
+	return bytes.Join(res, nil)
+}
 func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	ctx context.Context,
 	metadataCid string,
@@ -218,59 +249,64 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	toAddress string,
 	tokenId string,
 ) (hexutil.Bytes, error) {
-	// dag := ctx.Value("dag").(*handler.AnconSyncContext)
 
-	// pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
-	key, err := adapter.Keyring.Get("ethereum")
+	id := (tokenId)
+	unsignedProofData := encodePacked(
+		// Token Address
+		[]byte("\x19Ethereum Signed Message:\n32"),
+		// Proof
+		crypto.Keccak256(encodePacked(
+			// Current metadata cid
+			[]byte(metadataCid),
+			// Current owner (opaque)
+			[]byte(fromOwner),
+			// Updated metadata cid
+			[]byte(resultCid),
+			// New owner address
+			[]byte(toOwner),
+			// Token Address
+			[]byte(toAddress),
+			// Token Id
+			[]byte(id)),
+		))
 
-	if err != nil {
-		return nil, fmt.Errorf("environment key ETHEREUM_ADAPTER_KEY not found")
-	}
+	hash := crypto.Keccak256Hash(unsignedProofData)
 
-	privateKey, err := crypto.HexToECDSA(string(key.Data))
-	if err != nil {
-		return nil, fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY")
-	}
-
-	proofData, err :=
-		ExecuteDagContractWithProofAbiMethod().Inputs.Pack(
-			toAddress,
-			tokenId,
-			MetadataTransferPacket{
-				MetadataCid: metadataCid,
-				ResultCid:   resultCid,
-				FromOwner:   fromOwner,
-				ToOwner:     toOwner,
-				ToAddress:   toAddress,
-				TokenId:     tokenId,
-			},
-		)
-	if err != nil {
-		return nil, fmt.Errorf("packing for proof generation failed")
-	}
-
-	hash := crypto.Keccak256Hash(proofData)
-
-	signature, err := crypto.Sign(hash.Bytes(), privateKey)
+	signature, err := crypto.Sign(hash.Bytes(), adapter.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("signing failed")
 	}
 
-	signedPacket := &MetadataTransferProofPacket{
-		MetadataCid: metadataCid,
-		ResultCid:   resultCid,
-		FromOwner:   fromOwner,
-		ToOwner:     toOwner,
-		ToAddress:   toAddress,
-		TokenId:     tokenId,
-		Signature:   hexutil.Encode(signature),
-	}
+	signedProofData := encodePacked(
+		// Current metadata cid
+		[]byte(metadataCid),
+		// Current owner (opaque)
+		[]byte(fromOwner), // New owner address
+		[]byte(toOwner),
+		// Updated metadata cid
+		[]byte(resultCid),
 
-	encoded, err := ExecuteDagContractWithProofAbiMethod().Inputs.Pack(toAddress, tokenId, signedPacket)
+		// Token Address
+		[]byte(toAddress),
+		// Token Id
+		[]byte(id),
+		// Signature
+		(signature),
+	)
+
+	signedTxData := encodePacked(
+		// Token Address
+		[]byte(toAddress),
+		// Token Id
+		[]byte(id),
+		// Proof
+		signedProofData,
+	)
+
 	if err != nil {
 		return nil, fmt.Errorf("packing for signature proof generation failed")
 	}
-	return encoded, nil
+	return signedTxData, nil
 }
 
 func (adapter *OnchainAdapter) GetTransaction(ctx context.Context, signedEthereumTx []byte) (types.Transaction, error) {

@@ -80,7 +80,7 @@ contract(
     describe('when requesting a transfer ownership with proof', () => {
       it('should succeed', async () => {
         const toAddress = xdvnft.address
-        const tokenId = 1
+        const tokenId = "1"
         const iface = new ethers.utils.Interface(metadataTransferAbi.abi)
         try {
           await metadataTransferDagTrusted.request(xdvnft.address, 1)
@@ -95,7 +95,7 @@ contract(
               tokenId,
               metadataCid:'baguqeeral3u3fla2au3f3cy7ldxia63sh7br4vyl2txib7msydxlxgb2kepq',
              fromOwner: 'juan',
-             toOwner: accounts[2],
+             toOwner: 'alicia',
             }
             const body = {
               jsonrpc: '2.0',

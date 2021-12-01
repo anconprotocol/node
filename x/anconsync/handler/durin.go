@@ -7,7 +7,6 @@ import (
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/spf13/cast"
 )
 
 type DurinAPI struct {
@@ -18,7 +17,7 @@ type DurinAPI struct {
 }
 
 type DurinService struct {
-	Adapter   transfer.OnchainAdapter
+	Adapter   *transfer.OnchainAdapter
 	GqlClient *Client
 }
 
@@ -27,31 +26,38 @@ func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *Client) *DurinAPI {
 		Namespace: "durin",
 		Version:   "1.0",
 		Service: &DurinService{
-			Adapter:   evm,
+			Adapter:   &evm,
 			GqlClient: gqlClient,
 		},
 		Public: true,
 	}
 }
 
-func (s *DurinService) msgHandler(to string, name string, args map[string]interface{}) (hexutil.Bytes, error) {
+func  msgHandler(ctx *DurinService,to string, name string, args map[string]string) (hexutil.Bytes, error) {
 	switch name {
 	default:
-		tokenId := cast.ToString(args["tokenId"])
+		tokenId := args["tokenId"]
 		input := MetadataTransactionInput{
 			Path:     "/",
-			Cid:      args["metadataCid"].(string),
-			Owner:    args["fromOwner"].(string),
-			NewOwner: args["toOwner"].(string),
+			Cid:      args["metadataCid"],
+			Owner:    args["fromOwner"],
+			NewOwner: args["toOwner"],
 		}
 		// Send graphql mutation for IPLD DAG computing
-		res, err := s.GqlClient.TransferOwnership(context.Background(), input)
+		res, err := ctx.GqlClient.TransferOwnership(context.Background(), input)
 		if err != nil {
 			return nil, fmt.Errorf("transfer ownership reverted")
 		}
+		metadataCid := args["metadataCid"]
+		newCid  :=  res.Metadata.Cid
+		newOwner  := args["toOwner"]
+		fromOwner  := args["fromOwner"]
 
+		/// _, err = ctx.Adapter.ApplyRequestWithProof(context.Background(),"", "", "", "", "", "")
 		// Apply signature to create proof
-		txdata, err := s.Adapter.ApplyRequestWithProof(context.Background(), input.Cid, res.Metadata.Cid, input.Owner, input.NewOwner, to, tokenId)
+		txdata, err := ctx.Adapter.ApplyRequestWithProof(context.Background(),
+			metadataCid,
+			newCid, fromOwner, newOwner, to, tokenId)
 		if err != nil {
 			return nil, fmt.Errorf("request with proof raw tx failed")
 		}
@@ -62,13 +68,13 @@ func (s *DurinService) msgHandler(to string, name string, args map[string]interf
 func (s *DurinService) Call(to string, from string, data json.RawMessage, abis json.RawMessage) hexutil.Bytes {
 
 	p := []byte(data)
-	var values map[string]interface{}
+	var values map[string]string
 	err := json.Unmarshal(p, &values)
 	if err != nil {
 		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("fail unpack data").Error())))
 	}
 	// Execute graphql
-	txdata, err := s.msgHandler(to, "", values)
+	txdata, err := msgHandler(s,to, "", values)
 
 	if err != nil {
 		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("reverted").Error())))
