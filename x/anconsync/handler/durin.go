@@ -33,7 +33,7 @@ func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *Client) *DurinAPI {
 	}
 }
 
-func  msgHandler(ctx *DurinService,to string, name string, args map[string]string) (hexutil.Bytes, error) {
+func msgHandler(ctx *DurinService, to string, name string, args map[string]string) (hexutil.Bytes, string, error) {
 	switch name {
 	default:
 		tokenId := args["tokenId"]
@@ -46,22 +46,22 @@ func  msgHandler(ctx *DurinService,to string, name string, args map[string]strin
 		// Send graphql mutation for IPLD DAG computing
 		res, err := ctx.GqlClient.TransferOwnership(context.Background(), input)
 		if err != nil {
-			return nil, fmt.Errorf("transfer ownership reverted")
+			return nil, "", fmt.Errorf("transfer ownership reverted")
 		}
 		metadataCid := args["metadataCid"]
-		newCid  :=  res.Metadata.Cid
-		newOwner  := args["toOwner"]
-		fromOwner  := args["fromOwner"]
+		newCid := res.Metadata.Cid
+		newOwner := args["toOwner"]
+		fromOwner := args["fromOwner"]
 
 		/// _, err = ctx.Adapter.ApplyRequestWithProof(context.Background(),"", "", "", "", "", "")
 		// Apply signature to create proof
-		txdata, err := ctx.Adapter.ApplyRequestWithProof(context.Background(),
+		txdata, resultCid, err := ctx.Adapter.ApplyRequestWithProof(context.Background(),
 			metadataCid,
 			newCid, fromOwner, newOwner, to, tokenId)
 		if err != nil {
-			return nil, fmt.Errorf("request with proof raw tx failed")
+			return nil, "", fmt.Errorf("request with proof raw tx failed")
 		}
-		return txdata, nil
+		return txdata, resultCid, nil
 	}
 }
 
@@ -69,15 +69,22 @@ func (s *DurinService) Call(to string, from string, data json.RawMessage, abis j
 
 	p := []byte(data)
 	var values map[string]string
+	val := make(map[string]string, 2)
 	err := json.Unmarshal(p, &values)
 	if err != nil {
 		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("fail unpack data").Error())))
 	}
 	// Execute graphql
-	txdata, err := msgHandler(s,to, "", values)
-
+	txdata, resultCid, err := msgHandler(s, to, "", values)
 	if err != nil {
 		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("reverted").Error())))
 	}
-	return txdata
+
+	val["txdata"] = txdata.String()
+	val["resultCid"] = resultCid
+	jsonval, err := json.Marshal(val)
+	if err != nil {
+		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("reverted, json marshal").Error())))
+	}
+	return jsonval
 }

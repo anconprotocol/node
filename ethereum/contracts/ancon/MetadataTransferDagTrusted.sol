@@ -15,11 +15,11 @@ contract MetadataTransferDagTrusted is Ownable {
     error OffchainLookup(string url, bytes prefix);
     struct MetadataTransferProofPacket {
         string metadataCid;
-        address fromOwner;
-        address toOwner;
+        string fromOwner;
+        string toOwner;
         string resultCid;
-        address toAddress;
-        uint256 tokenId;
+        string toAddress;
+        string tokenId;
         bytes32 signature;
     }
 
@@ -37,6 +37,32 @@ contract MetadataTransferDagTrusted is Ownable {
         return _signer;
     }
 
+    function getDigest(
+        string memory toAddress,
+        string memory tokenId,
+        string memory metadataCid,
+        string memory fromOwner,
+        string memory toOwner,
+        string memory resultCid
+    ) public view returns (bytes32) {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n32",
+                keccak256(
+                    abi.encodePacked(
+                        metadataCid,
+                        fromOwner,
+                        resultCid,
+                        toOwner,
+                        toAddress,
+                        tokenId
+                    )
+                )
+            )
+        );
+        return digest;
+    }
+
     /**
      * @dev Requests a DAG contract offchain execution
      */
@@ -46,6 +72,7 @@ contract MetadataTransferDagTrusted is Ownable {
     {
         revert OffchainLookup(
             url,
+        
             abi.encodeWithSignature(
                 "requestWithProof(address toAddress, uint256 tokenId, MetadataTransferProofPacket memory proof)",
                 toAddress,
@@ -88,10 +115,7 @@ contract MetadataTransferDagTrusted is Ownable {
                 "Signer is not the signer of the token"
             );
             executed[proof.signature] = true;
-            bytes memory data = abi.encodePacked(
-                toAddress,
-                tokenId
-            );
+            bytes memory data = abi.encodePacked(toAddress, tokenId);
             _onDagContractResponseReceived(
                 toAddress,
                 address(this),

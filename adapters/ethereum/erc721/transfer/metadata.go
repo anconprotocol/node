@@ -248,7 +248,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	toOwner string,
 	toAddress string,
 	tokenId string,
-) (hexutil.Bytes, error) {
+) (hexutil.Bytes, string, error) {
 
 	id := (tokenId)
 	unsignedProofData := encodePacked(
@@ -274,7 +274,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 
 	signature, err := crypto.Sign(hash.Bytes(), adapter.PrivateKey)
 	if err != nil {
-		return nil, fmt.Errorf("signing failed")
+		return nil, "", fmt.Errorf("signing failed")
 	}
 
 	signedProofData := encodePacked(
@@ -294,19 +294,20 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 		(signature),
 	)
 
-	signedTxData := encodePacked(
-		// Token Address
-		[]byte(toAddress),
-		// Token Id
-		[]byte(id),
-		// Proof
-		signedProofData,
-	)
+	// signedTxData := encodePacked(
+	// 	// Token Address
+	// 	[]byte(toAddress),
+	// 	// Token Id
+	// 	[]byte(id),
+	// 	// Proof
+	// 	signedProofData,
+	// )
 
 	if err != nil {
-		return nil, fmt.Errorf("packing for signature proof generation failed")
+		return nil, "", fmt.Errorf("packing for signature proof generation failed")
 	}
-	return signedTxData, nil
+
+	return signedProofData, resultCid, nil
 }
 
 func (adapter *OnchainAdapter) GetTransaction(ctx context.Context, signedEthereumTx []byte) (types.Transaction, error) {

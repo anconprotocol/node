@@ -82,6 +82,7 @@ contract(
         const toAddress = xdvnft.address
         const tokenId = "1"
         const iface = new ethers.utils.Interface(metadataTransferAbi.abi)
+        const metadataCid = "baguqeeramhau4x5j5zihi6ffksrl7wv7qnfd2urmut2e6c7oqdbu4jj7zljq"
         try {
           await metadataTransferDagTrusted.request(xdvnft.address, 1)
         } catch (e) {
@@ -93,9 +94,9 @@ contract(
             const inputdata ={
               toAddress,
               tokenId,
-              metadataCid:'baguqeeral3u3fla2au3f3cy7ldxia63sh7br4vyl2txib7msydxlxgb2kepq',
-             fromOwner: 'juan',
-             toOwner: 'alicia',
+              metadataCid: metadataCid,
+              fromOwner: accounts[1],
+              toOwner: accounts[0]
             }
             const body = {
               jsonrpc: '2.0',
@@ -116,15 +117,41 @@ contract(
               JSON.stringify(body),
             )
             console.log(result)
-            const nonce = await provider.getTransactionCount(signer.address)
-            const signedTransaction = await signer.signTransaction({
-              nonce,
-              gasLimit: 500000,
-              gasPrice: ethers.BigNumber.from('1000000000'),
-              to: xdvnft.address,
-              data: result.result,
-            })
-            await provider.sendTransaction(signedTransaction) // const nonce = await provider.getTransactionCount(signer.address)
+            const resParse = JSON.parse(Web3.utils.hexToString(result.result))
+            // const digest = await metadataTransferDagTrusted.getDigest(toAddress, tokenId, metadataCid, accounts[1], accounts[0], resParse.resultCid)
+            
+            // assert.equal(resParse.txdata, digest)
+            
+            txDataDecoded = ethers.utils.defaultAbiCoder.decode(['string', 'string', 'string', 'string', 'string', 'string', 'bytes32'], resParse.txdata)
+            tupleEncoded = ethers.utils.AbiCoder.decode(abiCoder.encode(
+              [ "tuple(string, string, string, string, string, string, bytes32)" ],
+              [
+                txDataDecoded[0],
+                txDataDecoded[1],
+                txDataDecoded[2],
+                txDataDecoded[3],
+                txDataDecoded[4],
+                txDataDecoded[5],
+                txDataDecoded[6],
+
+              ],
+            ));
+
+            console.log("RESULT CID DECODED", resParse.resultCid)
+            
+            const resTransfer = await metadataTransferDagTrusted.requestWithProof(toAddress, tokenId, tupleEncoded)
+            console.log("TRANSFER RESULT", JSON.stringify(resTransfer))
+            
+            // const nonce = await provider.getTransactionCount(signer.address)
+            // const signedTransaction = await signer.signTransaction({
+            //   nonce,
+            //   gasLimit: 500000,
+            //   gasPrice: ethers.BigNumber.from('1000000000'),
+            //   to: xdvnft.address,
+            //   data: result.result,
+            // })
+
+            // await provider.sendTransaction(signedTransaction) // const nonce = await provider.getTransactionCount(signer.address)
             // const signedTransaction = await signer.signTransaction({
             //     nonce,
             //     gasLimit: 500000,
