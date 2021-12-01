@@ -27,11 +27,10 @@ import (
 )
 
 // Defining the JSON RPC handler
-func jsonRPCHandler(s anconsync.Storage) gin.HandlerFunc {
+func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 
 	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
-
-	durin := handler.NewDurinAPI(transfer.EthereumAdapter{}, gqlcli)
+	durin := handler.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.Keyring), gqlcli)
 	server := rpc.NewServer()
 
 	err := server.RegisterName(durin.Namespace, durin.Service)
@@ -40,9 +39,7 @@ func jsonRPCHandler(s anconsync.Storage) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), "dag", &handler.AnconSyncContext{
-			Store: s,
-		})
+		ctx := context.WithValue(c.Request.Context(), "dag", anconCtx)
 		rq := c.Request.WithContext(ctx)
 		server.ServeHTTP(c.Writer, rq)
 	}
@@ -141,6 +138,6 @@ func main() {
 		api.POST("/dagcbor", dagHandler.DagCborWrite)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", jsonRPCHandler(s))
+	r.POST("/rpc", jsonRPCHandler(*dagHandler))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

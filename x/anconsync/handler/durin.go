@@ -51,7 +51,7 @@ func (s *DurinService) msgHandler(to string, name string, args map[string]interf
 		}
 
 		// Apply signature to create proof
-		txdata, err := s.Adapter.ApplyRequestWithProof(input.Cid, res.Metadata.Cid, input.Owner, input.NewOwner, to, tokenId)
+		txdata, err := s.Adapter.ApplyRequestWithProof(context.Background(), input.Cid, res.Metadata.Cid, input.Owner, input.NewOwner, to, tokenId)
 		if err != nil {
 			return nil, fmt.Errorf("request with proof raw tx failed")
 		}

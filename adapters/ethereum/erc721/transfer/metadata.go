@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 
+	"github.com/99designs/keyring"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -194,10 +194,23 @@ func ExecuteDagContractWithSignedProofAbiMethod() abi.Method {
 	return request
 }
 
-type EthereumAdapter struct {
+type OnchainAdapter struct {
+	Keyring   keyring.Keyring
+	ChainName string
+	ChainID   int
 }
 
-func (adapter *EthereumAdapter) ApplyRequestWithProof(
+func NewOnchainAdapter(keyring keyring.Keyring) OnchainAdapter {
+
+	return OnchainAdapter{
+		Keyring:   keyring,
+		ChainName: "Ethereum",
+		ChainID:   5,
+	}
+}
+
+func (adapter *OnchainAdapter) ApplyRequestWithProof(
+	ctx context.Context,
 	metadataCid string,
 	resultCid string,
 	fromOwner string,
@@ -205,12 +218,16 @@ func (adapter *EthereumAdapter) ApplyRequestWithProof(
 	toAddress string,
 	tokenId uint64,
 ) (hexutil.Bytes, error) {
+	// dag := ctx.Value("dag").(*handler.AnconSyncContext)
 
-	pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
-	if !has {
+	// pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
+	key, err := adapter.Keyring.Get("ethereum")
+
+	if err != nil {
 		return nil, fmt.Errorf("environment key ETHEREUM_ADAPTER_KEY not found")
 	}
-	privateKey, err := crypto.HexToECDSA(pk)
+
+	privateKey, err := crypto.HexToECDSA(string(key.Data))
 	if err != nil {
 		return nil, fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY")
 	}
@@ -256,7 +273,7 @@ func (adapter *EthereumAdapter) ApplyRequestWithProof(
 	return encoded, nil
 }
 
-func (adapter *EthereumAdapter) GetTransaction(ctx context.Context, signedEthereumTx []byte) (types.Transaction, error) {
+func (adapter *OnchainAdapter) GetTransaction(ctx context.Context, signedEthereumTx []byte) (types.Transaction, error) {
 	tx := types.Transaction{}
 	buff := bytes.NewReader(signedEthereumTx)
 	streamInstance := rlp.NewStream(buff, 100000)
