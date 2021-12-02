@@ -1,4 +1,4 @@
-package handler
+package durin
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler/graphql"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -18,10 +19,10 @@ type DurinAPI struct {
 
 type DurinService struct {
 	Adapter   *transfer.OnchainAdapter
-	GqlClient *Client
+	GqlClient *graphql.Client
 }
 
-func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *Client) *DurinAPI {
+func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *graphql.Client) *DurinAPI {
 	return &DurinAPI{
 		Namespace: "durin",
 		Version:   "1.0",
@@ -37,7 +38,7 @@ func msgHandler(ctx *DurinService, to string, name string, args map[string]strin
 	switch name {
 	default:
 		tokenId := args["tokenId"]
-		input := MetadataTransactionInput{
+		input := graphql.MetadataTransactionInput{
 			Path:     "/",
 			Cid:      args["metadataCid"],
 			Owner:    args["fromOwner"],

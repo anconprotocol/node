@@ -21,6 +21,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
+	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler/durin"
+	graphqlclient "github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler/graphql"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/impl"
 
 	swaggerfiles "github.com/swaggo/files"
@@ -30,8 +32,8 @@ import (
 // Defining the JSON RPC handler
 func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 
-	gqlcli := handler.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
-	durin := handler.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
+	gqlcli := graphqlclient.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
+	durin := durin.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
 	server := rpc.NewServer()
 
 	err := server.RegisterName(durin.Namespace, durin.Service)
@@ -144,7 +146,11 @@ func main() {
 		api.GET("/dagcbor/:cid/*path", dagHandler.DagCborRead)
 		api.POST("/dagjson", dagHandler.DagJsonWrite)
 		api.POST("/dagcbor", dagHandler.DagCborWrite)
+		api.POST("/did/key", dagHandler.CreateDidKey)
+		api.POST("/did/web", dagHandler.CreateDidWeb)
+		api.GET("/did/:did", dagHandler.ReadDid)
 	}
+	r.GET("/user/:did/did.json", dagHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.POST("/rpc", jsonRPCHandler(*dagHandler))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
