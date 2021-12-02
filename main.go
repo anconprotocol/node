@@ -9,7 +9,6 @@ import (
 
 	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/99designs/keyring"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
 	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/docs"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -90,19 +89,22 @@ func main() {
 	if !has {
 		panic(fmt.Errorf("environment key ETHEREUM_ADAPTER_KEY not found"))
 	}
-	ring, _ := keyring.Open(keyring.Config{
-		ServiceName: "signer",
-	})
-	key, err := ring.Get("ethereum")
-	if err == keyring.ErrKeyNotFound {
-		_ = ring.Set(keyring.Item{
-			Key:  "ethereum",
-			Data: []byte(pk),
-		})
-		key, err = ring.Get("ethereum")
-	}
+	// ring, _ := keyring.Open(keyring.Config{
+	// 	AllowedBackends: []keyring.BackendType{
+	// 		keyring.FileBackend,
+	// 	},
+	// 	ServiceName: "signer",
+	// })
+	// key, err := ring.Get("ethereum")
+	// if err == keyring.ErrKeyNotFound {
+	// 	_ = ring.Set(keyring.Item{
+	// 		Key:  "ethereum",
+	// 		Data: []byte(pk),
+	// 	})
+	// 	key, err = ring.Get("ethereum")
+	// }
 
-	privateKey, err := crypto.HexToECDSA(string(key.Data))
+	privateKey, err := crypto.HexToECDSA(pk)
 	if err != nil {
 		panic(fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY"))
 	}
