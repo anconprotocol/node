@@ -52,12 +52,17 @@ func msgHandler(ctx *DurinService, to string, name string, args map[string]strin
 		newCid := res.Metadata.Cid
 		newOwner := args["toOwner"]
 		fromOwner := args["fromOwner"]
+		prefix := args["prefix"]
 
-		/// _, err = ctx.Adapter.ApplyRequestWithProof(context.Background(),"", "", "", "", "", "")
 		// Apply signature to create proof
 		txdata, resultCid, err := ctx.Adapter.ApplyRequestWithProof(context.Background(),
 			metadataCid,
-			newCid, fromOwner, newOwner, to, tokenId)
+			newCid,
+			fromOwner,
+			newOwner,
+			to,
+			tokenId,
+			prefix)
 		if err != nil {
 			return nil, "", fmt.Errorf("request with proof raw tx failed")
 		}

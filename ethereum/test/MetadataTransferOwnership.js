@@ -42,6 +42,7 @@ function parseEthError(ethErr, iface) {
   }
 }
 
+
 contract(
   'ancon protocol - dag contract with trusted gateway integration',
   (accounts) => {
@@ -81,14 +82,15 @@ contract(
       it('should succeed', async () => {
         const toAddress = xdvnft.address
         const tokenId = "1"
-        const iface = new ethers.utils.Interface(metadataTransferAbi.abi)
+        const iface = new ethers.utils.Interface(xdvnft.abi)
         const metadataCid = "baguqeeramhau4x5j5zihi6ffksrl7wv7qnfd2urmut2e6c7oqdbu4jj7zljq"
-        try {
-          await metadataTransferDagTrusted.request(xdvnft.address, 1)
+        try 
+        {
+          await xdvnft.request(xdvnft.address, 1)
         } catch (e) {
-          const hasError = parseEthError(e, iface)
-          if (hasError) {
-            const url = 'http://localhost:7788/rpc'
+          const response = parseEthError(e, iface)
+          if (response) {
+            const url = response.url;
 
             const fromAddress = accounts[0]
             const inputdata ={
@@ -96,8 +98,10 @@ contract(
               tokenId,
               metadataCid: metadataCid,
               fromOwner: accounts[1],
-              toOwner: accounts[0]
-            }
+              toOwner: accounts[0],
+              prefix: response.prefix,
+            };
+
             const body = {
               jsonrpc: '2.0',
               method: 'durin_call',
@@ -122,26 +126,15 @@ contract(
             
             // assert.equal(resParse.txdata, digest)
             
-            txDataDecoded = ethers.utils.defaultAbiCoder.decode(['string', 'string', 'string', 'string', 'string', 'string', 'bytes32'], resParse.txdata)
-            tupleEncoded = ethers.utils.AbiCoder.decode(abiCoder.encode(
-              [ "tuple(string, string, string, string, string, string, bytes32)" ],
-              [
-                txDataDecoded[0],
-                txDataDecoded[1],
-                txDataDecoded[2],
-                txDataDecoded[3],
-                txDataDecoded[4],
-                txDataDecoded[5],
-                txDataDecoded[6],
-
-              ],
-            ));
-
-            console.log("RESULT CID DECODED", resParse.resultCid)
+            let txDataDecoded = ethers.utils.defaultAbiCoder.decode(['bytes', 'bytes', 'bytes', 'bytes', 'bytes', 'bytes', 'bytes'], ethers.utils.arrayify(resParse.txdata))
             
-            const resTransfer = await metadataTransferDagTrusted.requestWithProof(toAddress, tokenId, tupleEncoded)
+            console.log("RESULT CID DECODED", resParse.txdata )
+            
+            const resTransfer = await xdvnft.requestWithProof(toAddress, tokenId, ethers.utils.arrayify(resParse.txdata),{
+              from: accounts[0]
+            })
             console.log("TRANSFER RESULT", JSON.stringify(resTransfer))
-            
+                
             // const nonce = await provider.getTransactionCount(signer.address)
             // const signedTransaction = await signer.signTransaction({
             //   nonce,

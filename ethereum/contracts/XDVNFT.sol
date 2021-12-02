@@ -43,10 +43,8 @@ contract XDVNFT is
     constructor(
         string memory name,
         string memory symbol,
-        address tokenERC20,
-        address _dagContractOperator
+        address tokenERC20
     ) ERC721(name, symbol) {
-        dagContractOperator = _dagContractOperator;
         stablecoin = IERC20(tokenERC20);
     }
 
@@ -99,19 +97,28 @@ contract XDVNFT is
         string memory newCid,
         bytes calldata data
     ) external returns (bytes4) {
-        (address _tokenAddress, uint256 _tokenId) = abi.decode(
-            data,
-            (address, uint256)
-        );
+        (
+            bytes memory metadataCid,
+            bytes memory fromOwner,
+            ,
+            bytes memory toOwner,
+            bytes memory toAddress,
+            bytes memory tokenId,
+            ,
+
+        ) = abi.decode(
+                data,
+                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
+            );
         // Verify operator
-        require(operator == dagContractOperator, "Invalid operator");
-        
+        require(operator == address(this), "Invalid operator");
+
         // Verify owner owns token id
-        address owned = ownerOf(_tokenId);
+        address owned = ownerOf(uint(bytes32(tokenId)));
         require(owned == from, "Invalid token id owner");
-        
+
         // set metadata URI
-        _setTokenURI(_tokenId, newCid);
+        _setTokenURI(uint(bytes32(tokenId)), string(newCid));
         return this.onDagContractResponseReceived.selector;
     }
 

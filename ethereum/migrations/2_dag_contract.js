@@ -38,7 +38,7 @@ module.exports = async (deployer, network, accounts) => {
  
 
   // NFT - ERC721
-  await deployer.deploy(XDVNFT, "XDVNFT", "XDVNFT", stableCoinAddress, dagContract.address);
+  await deployer.deploy(XDVNFT, "XDVNFT", "XDVNFT", stableCoinAddress );
 
   const xdvnft = await XDVNFT.deployed();
   await xdvnft.setServiceFeeForContract(new BigNumber(1 * 1e18));
@@ -51,10 +51,10 @@ module.exports = async (deployer, network, accounts) => {
 
   // Configure DAG contract
   // Set Durin Gateway endpoint
-  await dagContract.setUrl("http://localhost:7788/rpc");
+  await xdvnft.setUrl("http://localhost:7788/rpc");
 
   // Set Trusted Signer Address
-  await dagContract.setSigner("0x2a3D91a8D48C2892b391122b6c3665f52bCace23");
+  await xdvnft.setSigner("0x2a3D91a8D48C2892b391122b6c3665f52bCace23");
 
   builder.addContract(
     'XDVNFT',

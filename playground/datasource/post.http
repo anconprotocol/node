@@ -7,7 +7,7 @@ Content-Type: application/json
   "path": "/",
   "data": {
     "name": "bee swarm metadata sample",
-    "owner": "juan",
+    "owner": "0x2a3D91a8D48C2892b391122b6c3665f52bCace23p",
     "description": "swarm testing sample",
     "image": "helloworld.jpg"
   }

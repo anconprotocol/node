@@ -20,6 +20,7 @@ contract MetadataTransferDagTrusted is Ownable {
         string resultCid;
         string toAddress;
         string tokenId;
+        string prefix;
         bytes32 signature;
     }
 
@@ -37,42 +38,15 @@ contract MetadataTransferDagTrusted is Ownable {
         return _signer;
     }
 
-    function getDigest(
-        string memory toAddress,
-        string memory tokenId,
-        string memory metadataCid,
-        string memory fromOwner,
-        string memory toOwner,
-        string memory resultCid
-    ) public view returns (bytes32) {
-        bytes32 digest = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                keccak256(
-                    abi.encodePacked(
-                        metadataCid,
-                        fromOwner,
-                        resultCid,
-                        toOwner,
-                        toAddress,
-                        tokenId
-                    )
-                )
-            )
-        );
-        return digest;
-    }
-
     /**
      * @dev Requests a DAG contract offchain execution
      */
     function request(address toAddress, uint256 tokenId)
-        public
+        external    
         returns (bytes32)
     {
         revert OffchainLookup(
             url,
-        
             abi.encodeWithSignature(
                 "requestWithProof(address toAddress, uint256 tokenId, MetadataTransferProofPacket memory proof)",
                 toAddress,
@@ -85,11 +59,26 @@ contract MetadataTransferDagTrusted is Ownable {
      * @dev Requests a DAG contract offchain execution with proof
      */
     function requestWithProof(
-        address toAddress,
-        uint256 tokenId,
-        MetadataTransferProofPacket memory proof
+        string memory toAddress,
+        string memory tokenId,
+        bytes memory proof
     ) external returns (bool) {
-        if (executed[proof.signature]) {
+        (
+            bytes memory metadataCid,
+            bytes memory fromOwner,
+            bytes memory resultCid,
+            bytes memory toOwner,
+            ,
+            ,
+            bytes memory prefix,
+            bytes memory signature
+        ) = abi.decode(
+                proof,
+                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
+            );
+
+        if (executed[bytes32(signature)]) {
+            revert("metadata dag transfer:  invalid proof");
             return false;
         } else {
             bytes32 digest = keccak256(
@@ -97,37 +86,53 @@ contract MetadataTransferDagTrusted is Ownable {
                     "\x19Ethereum Signed Message:\n32",
                     keccak256(
                         abi.encodePacked(
-                            proof.metadataCid,
-                            proof.fromOwner,
-                            proof.resultCid,
-                            proof.toOwner,
+                            metadataCid,
+                            fromOwner,
+                            resultCid,
+                            toOwner,
                             toAddress,
-                            tokenId
+                            tokenId,
+                            prefix
                         )
                     )
                 )
             );
 
-            address recovered = digest.recover(digest, proof.signature);
-
             require(
-                _signer == recovered,
+                _signer == isValidProof(digest,  signature),
                 "Signer is not the signer of the token"
             );
-            executed[proof.signature] = true;
-            bytes memory data = abi.encodePacked(toAddress, tokenId);
-            _onDagContractResponseReceived(
-                toAddress,
-                address(this),
-                msg.sender,
-                proof.metadataCid,
-                proof.resultCid,
-                data
-            );
+            {
+                executed[bytes32(signature)] = true;
+                _onDagContractResponseReceived(
+                    address(bytes20(bytes(toAddress))),
+                    address(this),
+                    msg.sender,
+                    string(metadataCid),
+                    (string(resultCid)),
+                    proof
+                );
+            }
             return true;
         }
     }
 
+    function isValidProof(bytes32 digest,bytes  memory   signature) internal returns (address){
+
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            // ecrecover takes the signature parameters, and the only way to get them
+            // currently is to use assembly.
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            }
+
+            return digest.recover((v + 27), r, s);
+
+    }
     /**
      * @dev Receives the DAG contract execution result
      */
@@ -166,11 +171,13 @@ contract MetadataTransferDagTrusted is Ownable {
                         .selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert("DagContractTrusted: invalid receiver implementer");
+                    revert(
+                        "metadata dag transfer: invalid receiver implementer"
+                    );
                 } else {
                     assembly {
                         revert(add(32, reason), mload(reason))
-                    }
+                    }   
                 }
             }
         } else {

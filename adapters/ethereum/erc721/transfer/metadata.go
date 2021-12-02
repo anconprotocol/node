@@ -11,126 +11,14 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type MetadataTransferProofPacket struct {
-	MetadataCid string
-	ResultCid   string
-	FromOwner   string
-	ToOwner     string
-	ToAddress   string
-	TokenId     string
-	Signature   string
-}
-type MetadataTransferPacket struct {
-	MetadataCid string
-	ResultCid   string
-	FromOwner   string
-	ToOwner     string
-	ToAddress   string
-	TokenId     string
-}
-
-func ProofTypeAbi() abi.Type {
-	proofType, _ := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{
-			Name:         "metadataCid",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "fromOwner",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "resultCid",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "toOwner",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "toAddress",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-	})
-
-	return proofType
-}
-
-func ProofWithSignatureTypeAbi() abi.Type {
-	proofType, _ := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{
-			Name:         "metadataCid",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "fromOwner",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "resultCid",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "toOwner",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "toAddress",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-		{
-			Name:         "signature",
-			Type:         "string",
-			InternalType: "",
-			Components:   []abi.ArgumentMarshaling{},
-			Indexed:      false,
-		},
-	})
-
-	return proofType
-}
-
-// "requestWithProof(address toAddress, uint256 tokenId, MetadataTransferProofPacket memory proof)",
-func ExecuteDagContractWithProofAbiMethod() abi.Method {
+func SignedProofAbiMethod() abi.Method {
 
 	// uint256Type, _ := abi.NewType("uint256", "", nil)
 	uintType, _ := abi.NewType("uint", "", nil)
-	// bytes32Type, _ := abi.NewType("bytes32", "", nil)
+	bytesType, _ := abi.NewType("bytes", "", nil)
 	stringType, _ := abi.NewType("string", "", nil)
 	request := abi.NewMethod(
 		"requestWithProof",
@@ -139,53 +27,44 @@ func ExecuteDagContractWithProofAbiMethod() abi.Method {
 		"nonpayable",
 		false,
 		false,
-		abi.Arguments{abi.Argument{
-			Name:    "toAddress",
-			Type:    stringType,
-			Indexed: false,
-		}, abi.Argument{
-			Name:    "tokenId",
+		abi.Arguments{{
+			Name:    "metadataCid",
 			Type:    stringType,
 			Indexed: false,
 		},
-			abi.Argument{
-				Name:    "proof",
-				Type:    ProofTypeAbi(),
+			{
+				Name:    "fromOwner",
+				Type:    stringType,
 				Indexed: false,
 			},
-		},
-		abi.Arguments{abi.Argument{
-			Type: uintType,
-		}},
-	)
-
-	return request
-}
-func ExecuteDagContractWithSignedProofAbiMethod() abi.Method {
-
-	// uint256Type, _ := abi.NewType("uint256", "", nil)
-	uintType, _ := abi.NewType("uint", "", nil)
-	// bytes32Type, _ := abi.NewType("bytes32", "", nil)
-	stringType, _ := abi.NewType("string", "", nil)
-	request := abi.NewMethod(
-		"requestWithProof",
-		"requestWithProof",
-		abi.Function,
-		"nonpayable",
-		false,
-		false,
-		abi.Arguments{abi.Argument{
-			Name:    "toAddress",
-			Type:    stringType,
-			Indexed: false,
-		}, abi.Argument{
-			Name:    "tokenId",
-			Type:    stringType,
-			Indexed: false,
-		},
-			abi.Argument{
-				Name:    "proof",
-				Type:    ProofWithSignatureTypeAbi(),
+			{
+				Name:    "resultCid",
+				Type:    stringType,
+				Indexed: false,
+			},
+			{
+				Name:    "toOwner",
+				Type:    stringType,
+				Indexed: false,
+			},
+			{
+				Name:    "toAddress",
+				Type:    stringType,
+				Indexed: false,
+			},
+			{
+				Name:    "tokenId",
+				Type:    stringType,
+				Indexed: false,
+			},
+			{
+				Name:    "prefix",
+				Type:    stringType,
+				Indexed: false,
+			},
+			{
+				Name:    "signature",
+				Type:    bytesType,
 				Indexed: false,
 			},
 		},
@@ -248,11 +127,11 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	toOwner string,
 	toAddress string,
 	tokenId string,
+	prefix string,
 ) (hexutil.Bytes, string, error) {
 
 	id := (tokenId)
 	unsignedProofData := encodePacked(
-		// Token Address
 		[]byte("\x19Ethereum Signed Message:\n32"),
 		// Proof
 		crypto.Keccak256(encodePacked(
@@ -267,7 +146,9 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 			// Token Address
 			[]byte(toAddress),
 			// Token Id
-			[]byte(id)),
+			[]byte(id),
+			// Contract Prefix
+			[]byte(prefix)),
 		))
 
 	hash := crypto.Keccak256Hash(unsignedProofData)
@@ -277,43 +158,12 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 		return nil, "", fmt.Errorf("signing failed")
 	}
 
-	signedProofData := encodePacked(
-		// Current metadata cid
-		[]byte(metadataCid),
-		// Current owner (opaque)
-		[]byte(fromOwner), // New owner address
-		[]byte(toOwner),
-		// Updated metadata cid
-		[]byte(resultCid),
-
-		// Token Address
-		[]byte(toAddress),
-		// Token Id
-		[]byte(id),
-		// Signature
-		(signature),
-	)
-
-	// signedTxData := encodePacked(
-	// 	// Token Address
-	// 	[]byte(toAddress),
-	// 	// Token Id
-	// 	[]byte(id),
-	// 	// Proof
-	// 	signedProofData,
-	// )
+	signedProofData, err := SignedProofAbiMethod().Inputs.Pack(
+		metadataCid, fromOwner, resultCid, toOwner, toAddress, id, prefix, signature)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("packing for signature proof generation failed")
 	}
 
 	return signedProofData, resultCid, nil
-}
-
-func (adapter *OnchainAdapter) GetTransaction(ctx context.Context, signedEthereumTx []byte) (types.Transaction, error) {
-	tx := types.Transaction{}
-	buff := bytes.NewReader(signedEthereumTx)
-	streamInstance := rlp.NewStream(buff, 100000)
-	err := tx.DecodeRLP(streamInstance)
-	return tx, err
 }
