@@ -22,7 +22,6 @@ require (
 
 require (
 	github.com/99designs/gqlgen v0.14.0
-	github.com/99designs/keyring v1.1.6
 	github.com/Yamashou/gqlgenc v0.0.2
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/buger/jsonparser v1.1.1

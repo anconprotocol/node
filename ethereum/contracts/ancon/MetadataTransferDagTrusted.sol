@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract MetadataTransferDagTrusted is Ownable {
+abstract contract MetadataTransferDagTrusted is Ownable {
     using ECDSA for bytes32;
     using Address for address;
     string public url;
@@ -23,6 +23,11 @@ contract MetadataTransferDagTrusted is Ownable {
         string prefix;
         bytes32 signature;
     }
+
+    event ProofAccepted(
+        address sender,
+        bytes32 signatureHash
+    );
 
     constructor() {}
 
@@ -104,14 +109,7 @@ contract MetadataTransferDagTrusted is Ownable {
             );
             {
                 executed[bytes32(signature)] = true;
-                _onDagContractResponseReceived(
-                    address(bytes20(bytes(toAddress))),
-                    address(this),
-                    msg.sender,
-                    string(metadataCid),
-                    (string(resultCid)),
-                    proof
-                );
+                emit ProofAccepted(msg.sender, bytes32(signature));
             }
             return true;
         }
@@ -133,55 +131,6 @@ contract MetadataTransferDagTrusted is Ownable {
             return digest.recover((v + 27), r, s);
 
     }
-    /**
-     * @dev Receives the DAG contract execution result
-     */
-    // function onDagContractResponseReceived(
-    //     address operator,
-    //     address from,
-    //     string memory parentCid,
-    //     string memory newCid,
-    //     bytes calldata data
-    // ) external returns (bytes4) {
-    //     return IDagContractTrustedReceiver.onDagContractResponseReceived.selector;
-    // }
 
-    function _onDagContractResponseReceived(
-        address to,
-        address operator,
-        address from,
-        string memory parentCid,
-        string memory newCid,
-        bytes memory _data
-    ) private returns (bool) {
-        if (to.isContract()) {
-            try
-                IDagContractTrustedReceiver(to).onDagContractResponseReceived(
-                    operator,
-                    from,
-                    parentCid,
-                    newCid,
-                    _data
-                )
-            returns (bytes4 retval) {
-                return
-                    retval ==
-                    IDagContractTrustedReceiver
-                        .onDagContractResponseReceived
-                        .selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert(
-                        "metadata dag transfer: invalid receiver implementer"
-                    );
-                } else {
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }   
-                }
-            }
-        } else {
-            return true;
-        }
-    }
+    
 }

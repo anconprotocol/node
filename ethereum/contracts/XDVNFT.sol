@@ -70,6 +70,27 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Transfer a XDV Data Token URI with proof
+     */
+    function transferURIWithProof(
+        string memory toAddress,
+        string memory tokenId,
+        bytes memory proof
+        ) public returns (uint256) {
+        
+        (bool proofRef, bytes memory metadataCid) = requestWithProof(toAddress,tokenId,proof);
+
+        require(proofRef, "Invalid proof"); 
+
+        uint256 newItemId = _tokenIds.current();
+        _setTokenURI(newItemId, _tokenUri);
+        //send the method name
+        //make set token uri work
+        return newItemId;
+    }
+
+
+    /**
      * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
      * by `operator` from `from`, this function is called.
      *
@@ -85,41 +106,6 @@ contract XDVNFT is
         bytes calldata data
     ) external returns (bytes4) {
         return this.onERC721Received.selector;
-    }
-
-    /**
-     * @dev Receives the DAG contract execution result
-     */
-    function onDagContractResponseReceived(
-        address operator,
-        address from,
-        string memory parentCid,
-        string memory newCid,
-        bytes calldata data
-    ) external returns (bytes4) {
-        (
-            bytes memory metadataCid,
-            bytes memory fromOwner,
-            ,
-            bytes memory toOwner,
-            bytes memory toAddress,
-            bytes memory tokenId,
-            ,
-
-        ) = abi.decode(
-                data,
-                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
-            );
-        // Verify operator
-        require(operator == address(this), "Invalid operator");
-
-        // Verify owner owns token id
-        address owned = ownerOf(uint(bytes32(tokenId)));
-        require(owned == from, "Invalid token id owner");
-
-        // set metadata URI
-        _setTokenURI(uint(bytes32(tokenId)), string(newCid));
-        return this.onDagContractResponseReceived.selector;
     }
 
     /**
