@@ -212,7 +212,6 @@ func (dagctx *AnconSyncContext) CreateDidKey(c *gin.Context) {
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
-	return
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
