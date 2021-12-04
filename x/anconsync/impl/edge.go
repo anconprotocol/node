@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler"
+	"github.com/anconprotocol/node/x/anconsync/handler"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	gsync "github.com/ipfs/go-graphsync"

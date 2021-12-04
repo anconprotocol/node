@@ -3,7 +3,7 @@ package handler
 import (
 	"crypto/ecdsa"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/anconprotocol/node/x/anconsync"
 	"github.com/ipfs/go-graphsync"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

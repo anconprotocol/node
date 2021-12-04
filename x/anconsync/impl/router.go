@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/anconprotocol/node/x/anconsync"
 	gsync "github.com/ipfs/go-graphsync"
 	graphsync "github.com/ipfs/go-graphsync/impl"
 	gsnet "github.com/ipfs/go-graphsync/network"

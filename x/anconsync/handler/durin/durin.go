@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/adapters/ethereum/erc721/transfer"
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync/handler/graphql"
+	"github.com/anconprotocol/node/adapters/ethereum/erc721/transfer"
+	"github.com/anconprotocol/node/x/anconsync/handler/graphql"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

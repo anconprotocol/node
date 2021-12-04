@@ -7,7 +7,7 @@ import (
 
 	"github.com/buger/jsonparser"
 
-	"github.com/Electronic-Signatures-Industries/ancon-ipld-router-sync/x/anconsync"
+	"github.com/anconprotocol/node/x/anconsync"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
