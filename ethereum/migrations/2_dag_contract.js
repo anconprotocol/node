@@ -6,7 +6,7 @@ const ContractImportBuilder = require('../contract-import-builder');
 
 const XDVNFT = artifacts.require('XDVNFT')
 const DAI = artifacts.require('DAI')
-const MetadataTransferDagTrusted = artifacts.require("MetadataTransferDagTrusted");
+const TrustedOffchainHelper = artifacts.require("TrustedOffchainHelper");
 
 const ECDSA = artifacts.require("ECDSA");
 const Address = artifacts.require("Address");
@@ -25,11 +25,9 @@ module.exports = async (deployer, network, accounts) => {
 
   // DAG Contract
   await deployer.deploy(Address);
-  await deployer.link(Address, MetadataTransferDagTrusted);
+  await deployer.link(Address, XDVNFT);
   await deployer.deploy(ECDSA);
-  await deployer.link(ECDSA, MetadataTransferDagTrusted);
-  await deployer.deploy(MetadataTransferDagTrusted);
-  const dagContract = await MetadataTransferDagTrusted.deployed();
+  await deployer.link(ECDSA, XDVNFT);
 
   // ERC20 - stablecoin
   await deployer.deploy(DAI);
@@ -67,13 +65,6 @@ module.exports = async (deployer, network, accounts) => {
     'DAI',
     dai,
     dai.address,
-    network
-  );
-
-  builder.addContract(
-    'MetadataTransferDagTrusted',
-    dagContract,
-    dagContract.address,
     network
   );
 };

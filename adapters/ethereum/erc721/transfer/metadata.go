@@ -21,8 +21,8 @@ func SignedProofAbiMethod() abi.Method {
 	bytesType, _ := abi.NewType("bytes", "", nil)
 	stringType, _ := abi.NewType("string", "", nil)
 	request := abi.NewMethod(
-		"requestWithProof",
-		"requestWithProof",
+		"transferURIWithProof",
+		"transferURIWithProof",
 		abi.Function,
 		"nonpayable",
 		false,

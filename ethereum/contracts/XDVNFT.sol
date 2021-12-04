@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./ancon/IDagContractTrustedReceiver.sol";
-import "./ancon/MetadataTransferDagTrusted.sol";
+import "./ancon/TrustedOffchainHelper.sol";
 
 //  a NFT secure document
 contract XDVNFT is
@@ -19,8 +18,7 @@ contract XDVNFT is
     ERC721URIStorage,
     Ownable,
     IERC721Receiver,
-    MetadataTransferDagTrusted,
-    IDagContractTrustedReceiver
+    TrustedOffchainHelper
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -57,6 +55,109 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Requests a DAG contract offchain execution
+     */
+    function transferURI(address toAddress, uint256 tokenId)
+        external
+        returns (bytes32)
+    {
+        revert OffchainLookup(
+            url,
+            abi.encodeWithSignature(
+                "transferURIWithProof(address toAddress, uint256 tokenId, bytes memory proof)",
+                toAddress,
+                tokenId
+            )
+        );
+    }
+
+    /**
+     * @dev Transfer a XDV Data Token URI with proof
+     */
+    function transferURIWithProof(
+        string memory toAddress,
+        string memory tokenId,
+        bytes memory proof
+    ) public returns (uint256) {
+        bool proofRef = _requestWithProof(toAddress, tokenId, proof);
+                                    
+        require(proofRef, "Invalid proof");
+        (
+            bytes memory metadataCid,
+            bytes memory fromOwner,
+            bytes memory resultCid,
+            bytes memory toOwner,
+            ,
+            ,
+            bytes memory prefix,
+            bytes memory signature
+        ) = abi.decode(
+                proof,
+                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
+            );
+        uint256 newItemId = _tokenIds.current();
+        _setTokenURI(newItemId, string(metadataCid));
+        //       _transfer()
+        //send the method name
+        //make set token uri work
+        return newItemId;
+    }
+
+    /**
+     * @dev Requests a DAG contract offchain execution with proof
+     */
+    function _requestWithProof(
+        string memory toAddress,
+        string memory tokenId,
+        bytes memory proof
+    ) internal returns (bool) {
+        (
+            bytes memory metadataCid,
+            bytes memory fromOwner,
+            bytes memory resultCid,
+            bytes memory toOwner,
+            ,
+            ,
+            bytes memory prefix,
+            bytes memory signature
+        ) = abi.decode(
+                proof,
+                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
+            );
+
+        if (executed[bytes32(signature)]) {
+            revert("metadata dag transfer:  invalid proof");
+        } else {
+            bytes32 digest = keccak256(
+                abi.encodePacked(
+                    "\x19Ethereum Signed Message:\n32",
+                    keccak256(
+                        abi.encodePacked(
+                            metadataCid,
+                            fromOwner,
+                            resultCid,
+                            toOwner,
+                            toAddress,
+                            tokenId,
+                            prefix
+                        )
+                    )
+                )
+            );
+
+            require(
+                isValidProof(digest, signature),
+                "Signer is not the signer of the token"
+            );
+            {
+                executed[bytes32(signature)] = true;
+                emit ProofAccepted(msg.sender, bytes32(signature));
+            }
+            return (true);
+        }
+    }
+
+    /**
      * @dev Mints a XDV Data Token
      */
     function mint(address user, string memory uri) public returns (uint256) {
@@ -68,27 +169,6 @@ contract XDVNFT is
 
         return newItemId;
     }
-
-    /**
-     * @dev Transfer a XDV Data Token URI with proof
-     */
-    function transferURIWithProof(
-        string memory toAddress,
-        string memory tokenId,
-        bytes memory proof
-        ) public returns (uint256) {
-        
-        (bool proofRef, bytes memory metadataCid) = requestWithProof(toAddress,tokenId,proof);
-
-        require(proofRef, "Invalid proof"); 
-
-        uint256 newItemId = _tokenIds.current();
-        _setTokenURI(newItemId, _tokenUri);
-        //send the method name
-        //make set token uri work
-        return newItemId;
-    }
-
 
     /**
      * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
