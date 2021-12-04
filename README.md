@@ -1,4 +1,4 @@
-# Ancon IPLD Router Sync (beta / testnet)
+# Ancon Protocol Node (beta / testnet)
 
 ## Initial Beta Release
 
