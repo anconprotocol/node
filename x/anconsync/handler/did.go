@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/anconprotocol/node/x/anconsync"
+	"github.com/anconprotocol/node/x/anconsync/impl"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
@@ -215,7 +216,7 @@ func (dagctx *AnconSyncContext) CreateDidKey(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	PushBlock(c.Request.Context(), dagctx, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid) 
 }
 
 func (dagctx *AnconSyncContext) CreateDidWeb(c *gin.Context) {
@@ -246,7 +247,7 @@ func (dagctx *AnconSyncContext) CreateDidWeb(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	PushBlock(c.Request.Context(), dagctx, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid) 
 }
 
 func (dagctx *AnconSyncContext) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, error) {

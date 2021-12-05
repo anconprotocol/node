@@ -183,7 +183,6 @@ func main() {
 	subgraph.CosmosAppHash = *flag.String("cosmos-app-hash", "", "app hash")
 	subgraph.CosmosHeight = *flag.Int("cosmos-height", 1, "height")
 	subgraph.CosmosPrimaryAddress = *flag.String("cosmos-primary", "", "primary")
-	subgraph.CosmosWitnessAddress = *flag.String("cosmos-witness", "", "witness")
 	subgraph.EvmAddress = *flag.String("evm-node-address", "", "remote node address")
 	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain idd")
 	subgraph.CosmosMoniker = *flag.String("cosmos-moniker", "my-graph", "cosmos-moniker")
@@ -202,15 +201,12 @@ func main() {
 		subgraph.CosmosHeight = cast.ToInt(os.Getenv("COSMOS_HEIGHT"))
 		subgraph.CosmosPrimaryAddress = os.Getenv("COSMOS_PRIMARY_ADDRESS")
 		subgraph.CosmosProxyAddress = os.Getenv("COSMOS_PROXY_ADDRESS")
-		subgraph.CosmosWitnessAddress = os.Getenv("COSMOS_WITNESS_ADDRESS")
 		subgraph.EnableDagcosmos = cast.ToBool(os.Getenv("ENABLE_DAGCOSMOS"))
 
 		s.LoadGenesis(root)
 	}
 	ctx := context.Background()
-	host := handler.NewPeer(ctx, *addr)
-	// peerhost := "/ip4/192.168.50.138/tcp/7702/p2p/12D3KooWA7vRHFLC8buiEP2xYwUN5kdCgzEtQRozMtnCPDi4n4HM"
-	// "/ip4/190.34.226.207/tcp/29557/p2p/12D3KooWGd9mLtWx7WGEd9mnWPbCsr1tFCxtEi7RkgsJYxAZmZgi"
+	host := impl.NewPeer(ctx, *addr)
 
 	exchange, ipfspeer := impl.NewRouter(ctx, host, s, *peerAddr)
 	fmt.Println(ipfspeer.ID)

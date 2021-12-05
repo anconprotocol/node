@@ -8,6 +8,7 @@ import (
 	"github.com/buger/jsonparser"
 
 	"github.com/anconprotocol/node/x/anconsync"
+	"github.com/anconprotocol/node/x/anconsync/impl"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
@@ -63,7 +64,7 @@ func (dagctx *AnconSyncContext) DagJsonWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	PushBlock(c.Request.Context(), dagctx, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
 // @BasePath /v0
