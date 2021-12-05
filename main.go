@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/anconprotocol/node/adapters/ethereum/erc721/transfer"
 	"github.com/anconprotocol/node/docs"
+	dagcosmos "github.com/anconprotocol/node/subgraphs/cosmos"
 	"github.com/anconprotocol/node/x/anconsync"
 	"github.com/anconprotocol/node/x/anconsync/codegen/graph"
 	"github.com/anconprotocol/node/x/anconsync/codegen/graph/generated"
@@ -233,10 +234,11 @@ func main() {
 	}
 	if subgraph.EnableDagcosmos {
 
-		// ctx := context.WithValue(context.Background(), "dag", dagHandler)
-		// dagcosmos.New(ctx, subgraph.CosmosMoniker, "/home/rogelio/.gaia/config/genesis.json", "2f06b3c739b43721aed2e0fced0c16f603bf1753@localhost:26657", "", 0)
+		ctx := context.WithValue(context.Background(), "dag", dagHandler)
+		indexer := dagcosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
+		r.GET("/indexer/cosmos/tip", indexer.TipEvent)
+		indexer.Subscribe(ctx, dagcosmos.NewBlock)
 
-		////dagcosmos.Listen(ctx, p.Client)
 	}
 	r.GET("/user/:did/did.json", dagHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
