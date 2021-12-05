@@ -1,4 +1,3 @@
-
 module github.com/anconprotocol/node
 
 go 1.16
