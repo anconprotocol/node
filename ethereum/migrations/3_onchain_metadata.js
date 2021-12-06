@@ -20,16 +20,6 @@ module.exports = async function (deployer) {
     })
     console.log('Contract deployed at address: ', newContractInstance.options.address)
   } catch (e) {
-
-
-
-
-
-
-
-
-
-
     console.log(e)
   }
 }

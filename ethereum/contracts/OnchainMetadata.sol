@@ -16,7 +16,7 @@ contract OnchainMetadata {
 
   }
 
-  function setAddOnchainMetadata(
+  function setOnchainMetadata(
     string memory name, 
     string memory description, 
     string memory image, 
