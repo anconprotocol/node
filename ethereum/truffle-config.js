@@ -56,9 +56,14 @@ module.exports = {
     ancon: {
       provider: () =>
         new HDWalletProvider(process.env.MNEMONIC, process.env.ANCON),
-      network_id: '9000',
+      network_id: '*',
       gas: 7000000,
-      gasPrice: 30000000,
+      gasPrice: 11,
+      confirmations: 1,
+      timeoutBlocks: 9,
+      ///gas: 5000000,
+      // gasPrice: 135000000000,
+      skipDryRun: true
     },
     rinkeby: {
       provider: () =>

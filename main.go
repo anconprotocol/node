@@ -171,7 +171,7 @@ func main() {
 		panic(fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY"))
 	}
 
-	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWAGyXSBPPo7Zq16WoCe6BtHDRQpFXPg9VCDQ1EPXcHWMw", "A remote peer to sync")
+	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/34075/p2p/16Uiu2HAmAihQ3QDNyNxfYiN8qAvaBZKzqosmudoG9KYFMhW2YDXd", "A remote peer to sync")
 	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
 	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
 	dataFolder := flag.String("data", ".ancon", "Data directory")
