@@ -12,6 +12,11 @@ contract OnchainMetadata {
     bytes sources
     );
 
+  event EncodeDagJson(
+    string types,
+    string values
+  );
+
   constructor() {
 
   }
@@ -29,6 +34,16 @@ contract OnchainMetadata {
 
     emit AddOnchainMetadata(name, description, image, owner, parent, sources);
 
+  }
+
+  function encodeDagjsonBlock(
+    string memory types,
+    string memory values
+  ) public returns (bool) {
+
+    emit EncodeDagJson(types, values);
+
+    return true;
   }
   //emit AddOnchainMetadata()
 }
