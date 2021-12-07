@@ -13,8 +13,13 @@ contract OnchainMetadata {
     );
 
   event EncodeDagJson(
-    string types,
-    string values
+    string path, 
+    string hexdata
+  );
+
+  event EncodeDagCbor(
+    string path, 
+    string hexdata
   );
 
   constructor() {
@@ -37,11 +42,11 @@ contract OnchainMetadata {
   }
 
   function encodeDagjsonBlock(
-    string memory types,
-    string memory values
+    string memory path,
+    string memory hexdata
   ) public returns (bool) {
 
-    emit EncodeDagJson(types, values);
+    emit EncodeDagJson(path, hexdata);
 
     return true;
   }
