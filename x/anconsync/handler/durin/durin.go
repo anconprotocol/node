@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/anconprotocol/node/adapters/ethereum/erc721/transfer"
-	"github.com/anconprotocol/node/x/anconsync/handler/graphql"
+	graphql "github.com/anconprotocol/node/contracts/graphql/client"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 

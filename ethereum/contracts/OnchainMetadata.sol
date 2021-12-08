@@ -41,6 +41,9 @@ contract OnchainMetadata {
 
   }
 
+function sum(uint x, uint y) public pure returns (uint){
+  return 0;
+}
   function encodeDagjsonBlock(
     string memory path,
     string memory hexdata
