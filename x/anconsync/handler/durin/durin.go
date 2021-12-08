@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/anconprotocol/node/adapters/ethereum/erc721/transfer"
-	graphql "github.com/anconprotocol/node/contracts/graphql/client"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/anconprotocol/contracts/adapters/ethereum/erc721/transfer"
+	graphqlclient "github.com/anconprotocol/contracts/graphql/client"
+	"github.com/anconprotocol/contracts/hexutil"
 )
 
 type DurinAPI struct {
@@ -19,10 +19,10 @@ type DurinAPI struct {
 
 type DurinService struct {
 	Adapter   *transfer.OnchainAdapter
-	GqlClient *graphql.Client
+	GqlClient *graphqlclient.Client
 }
 
-func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *graphql.Client) *DurinAPI {
+func NewDurinAPI(evm transfer.OnchainAdapter, gqlClient *graphqlclient.Client) *DurinAPI {
 	return &DurinAPI{
 		Namespace: "durin",
 		Version:   "1.0",
@@ -38,7 +38,7 @@ func msgHandler(ctx *DurinService, to string, name string, args map[string]strin
 	switch name {
 	default:
 		tokenId := args["tokenId"]
-		input := graphql.MetadataTransactionInput{
+		input := graphqlclient.MetadataTransactionInput{
 			Path:     "/",
 			Cid:      args["metadataCid"],
 			Owner:    args["fromOwner"],
