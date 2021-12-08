@@ -17,7 +17,7 @@ describe("Onchain Metadata Contract", (deployer) => {
     console.log("Metadata", OnChainMetaJSON);
     const OnchainMetaContract = new web3.eth.Contract(OnChainMetaJSON.abi);
 
-    onChainMetaDeploy = await OnchainMetaContract.deploy({
+    return OnchainMetaContract.deploy({
       data: OnChainMetaJSON.bytecode,
       arguments: [],
     })
@@ -38,6 +38,8 @@ describe("Onchain Metadata Contract", (deployer) => {
 
   describe("when requesting to add metadata onchain", () => {
     it("should return true and emit event", async () => {
+      const toBytes = Web3.utils.fromUtf8
+
       try {
         const res = await OnchainContractInstance.methods.setOnchainMetadata(
           "",
@@ -45,8 +47,12 @@ describe("Onchain Metadata Contract", (deployer) => {
           "",
           "",
           "",
-          ""
-        );
+          toBytes(" ")
+        ).send({
+          from: "0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6",
+          gas: 1500000,
+          gasPrice: "30000000000",
+        });
         console.log("\n\n\n\n Result",res);
       } catch (e) {
         console.log(e);
