@@ -1,9 +1,9 @@
 model:
-  package: graphql
-  filename: x/anconsync/handler/graphql/model.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+  package: graphqlclient
+  filename: contracts/graphql/client/model.go
 client:
-  package: graphql
-  filename: x/anconsync/handler/graphql/client.go # Where should any generated client go?
+  package: graphqlclient
+  filename: contracts/graphql/client/client.go
 models:
   Int:
     model: github.com/99designs/gqlgen/graphql.Int64

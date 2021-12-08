@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/anconprotocol/node/contracts/graphql/server/graph/generated"
+	"github.com/anconprotocol/node/contracts/graphql/server/graph/model"
 	"github.com/anconprotocol/node/x/anconsync"
-	"github.com/anconprotocol/node/x/anconsync/codegen/graph/generated"
-	"github.com/anconprotocol/node/x/anconsync/codegen/graph/model"
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	ipld "github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
