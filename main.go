@@ -21,8 +21,10 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/anconprotocol/node/x/anconsync/handler/durin"
+	"github.com/anconprotocol/node/x/anconsync/handler/proofsignature"
 	"github.com/anconprotocol/node/x/anconsync/impl"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -45,6 +47,9 @@ type SubgraphConfig struct {
 // Defining the dageth RPC handler
 func dagethRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 
+	db := dbm.NewMemDB()
+
+	proofs, _ := proofsignature.NewIavlAPI(anconCtx.Store, anconCtx.Exchange, db, 2000, 0)
 	gqlcli := graphqlclient.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
 	durin := durin.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
 	server := rpc.NewServer()
@@ -54,41 +59,17 @@ func dagethRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 		panic(err)
 	}
 
+	err = server.RegisterName(proofs.Namespace, proofs.Service)
+
+	if err != nil {
+		panic(err)
+	}
 	return func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "dag", anconCtx)
 		rq := c.Request.WithContext(ctx)
 		server.ServeHTTP(c.Writer, rq)
 	}
 }
-
-// // Defining the dagcosmos RPC handler
-// func dagcosmosRPCHandler(anconCtx handler.AnconSyncContext, cfg SubgraphConfig) gin.HandlerFunc {
-
-// 	ctx := context.WithValue(context.Background(), "dag", anconCtx)
-// 	p := dagcosmos.New(ctx, cfg.CosmosMoniker, cfg.CosmosPrimaryAddress, cfg.CosmosWitnessAddress, cfg.CosmosProxyAddress, cfg.CosmosAppHash, int(cfg.CosmosHeight))
-
-// 	// 1) Register regular routes.
-// 	r := proxy.RPCRoutes(p.Client)
-// 	rpcserver.RegisterRPCFuncs(http.DefaultServeMux, r, p.Logger)
-
-// 	// 2) Allow websocket connections.
-// 	wmLogger := p.Logger.With("protocol", "websocket")
-// 	wm := rpcserver.NewWebsocketManager(r,
-// 		rpcserver.OnDisconnect(func(remoteAddr string) {
-// 			err := p.Client.UnsubscribeAll(context.Background(), remoteAddr)
-// 			if err != nil && err != tmpubsub.ErrSubscriptionNotFound {
-// 				wmLogger.Error("Failed to unsubscribe addr from events", "addr", remoteAddr, "err", err)
-// 			}
-// 		}),
-// 		rpcserver.ReadLimit(p.Config.MaxBodyBytes),
-// 	)
-// 	return func(c *gin.Context) {
-// 		rq := c.Request.WithContext(ctx)
-
-// 		wm.SetLogger(wmLogger)
-// 		wm.WebsocketHandler(c.Writer, rq)
-// 	}
-// }
 
 // Defining the JSON RPC handler
 func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
@@ -238,6 +219,6 @@ func main() {
 	}
 	r.GET("/user/:did/did.json", dagHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", jsonRPCHandler(*dagHandler))
+	r.POST("/rpc", dagethRPCHandler(*dagHandler))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

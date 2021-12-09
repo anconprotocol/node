@@ -21,7 +21,7 @@ require (
 	github.com/99designs/gqlgen v0.14.0
 	github.com/anconprotocol/contracts v0.0.0-20211208185347-8e34268b1ba0
 	github.com/buger/jsonparser v1.1.1
-	github.com/confio/ics23-iavl v0.6.0
+	github.com/confio/ics23/go v0.6.6
 	github.com/cosmos/iavl v0.17.3
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/gin-gonic/gin v1.7.4
