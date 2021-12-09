@@ -296,6 +296,12 @@ func (s *IavlProofService) Set(key []byte, value []byte) (hexutil.Bytes, error) 
 
 	var res map[string]interface{}
 	res["updated"] = s.tree.Set(key, value)
+	//TODO
+	//emits a graphsync event kv commited
+	//the message propagates through the graphsync network & gets stored
+	//Get proof with graphsync, verify if the proof is replicated elsewhere
+	//that proof wil be validated with
+	//will be necessary to make 2 or 3 extension data & 2 agents
 
 	hexres, err := ToHex(res)
 	if err != nil {
