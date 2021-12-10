@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/anconprotocol/node/x/anconsync"
-	"github.com/anconprotocol/node/x/anconsync/impl"
+	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
@@ -33,8 +33,12 @@ const (
 	documentPath = "/did.json"
 )
 
+type Did struct {
+	*sdk.AnconSyncContext
+}
+
 // BuildDidWeb ....
-func (dagctx *AnconSyncContext) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, error) {
+func (dagctx *Did) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, error) {
 	ti := time.Now()
 	// did web
 	base := append([]byte("did:web:ipfs:user:"), []byte(vanityName)...)
@@ -72,7 +76,7 @@ func (dagctx *AnconSyncContext) BuildDidWeb(vanityName string, pubkey []byte) (*
 }
 
 // BuildDidKey ....
-func (dagctx *AnconSyncContext) BuildDidKey() (*did.Doc, error) {
+func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 
 	pubKey, _, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -114,7 +118,7 @@ func (dagctx *AnconSyncContext) BuildDidKey() (*did.Doc, error) {
 	doc.ID = string(base)
 	return doc, nil
 }
-func (dagctx *AnconSyncContext) ReadDidWebUrl(c *gin.Context) {
+func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 
 	path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
@@ -127,7 +131,7 @@ func (dagctx *AnconSyncContext) ReadDidWebUrl(c *gin.Context) {
 		return
 	}
 
-	lnk, err := anconsync.ParseCidLink(string(value))
+	lnk, err := sdk.ParseCidLink(string(value))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid hash %v", err),
@@ -142,7 +146,7 @@ func (dagctx *AnconSyncContext) ReadDidWebUrl(c *gin.Context) {
 		})
 		return
 	}
-	data, err := anconsync.Encode(n)
+	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed encoding %v", err),
@@ -152,7 +156,7 @@ func (dagctx *AnconSyncContext) ReadDidWebUrl(c *gin.Context) {
 	c.JSON(200, data)
 
 }
-func (dagctx *AnconSyncContext) ReadDid(c *gin.Context) {
+func (dagctx *Did) ReadDid(c *gin.Context) {
 	did := c.Param("did")
 	// address, _, err := dagctx.ParseDIDWeb(did, true)
 	// if err != nil {
@@ -169,7 +173,7 @@ func (dagctx *AnconSyncContext) ReadDid(c *gin.Context) {
 		return
 	}
 
-	lnk, err := anconsync.ParseCidLink(string(value))
+	lnk, err := sdk.ParseCidLink(string(value))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid hash %v", err),
@@ -184,7 +188,7 @@ func (dagctx *AnconSyncContext) ReadDid(c *gin.Context) {
 		})
 		return
 	}
-	data, err := anconsync.Encode(n)
+	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed encoding %v", err),
@@ -194,7 +198,7 @@ func (dagctx *AnconSyncContext) ReadDid(c *gin.Context) {
 	c.JSON(200, data)
 }
 
-func (dagctx *AnconSyncContext) CreateDidKey(c *gin.Context) {
+func (dagctx *Did) CreateDidKey(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
@@ -216,10 +220,10 @@ func (dagctx *AnconSyncContext) CreateDidKey(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid) 
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
-func (dagctx *AnconSyncContext) CreateDidWeb(c *gin.Context) {
+func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
@@ -247,10 +251,10 @@ func (dagctx *AnconSyncContext) CreateDidWeb(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid) 
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
-func (dagctx *AnconSyncContext) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, error) {
+func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, error) {
 
 	var didDoc *did.Doc
 	var err error
@@ -281,7 +285,7 @@ func (dagctx *AnconSyncContext) AddDid(didType AvailableDid, domainName string, 
 		return nil, fmt.Errorf("Must create a did")
 	}
 	bz, err := didDoc.JSONBytes()
-	n, err := anconsync.Decode(basicnode.Prototype.Any, string(bz))
+	n, err := sdk.Decode(basicnode.Prototype.Any, string(bz))
 	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
 	if err != nil {
 		return nil, err
@@ -292,7 +296,7 @@ func (dagctx *AnconSyncContext) AddDid(didType AvailableDid, domainName string, 
 	return lnk, nil
 }
 
-func (dagctx *AnconSyncContext) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {
+func (dagctx *Did) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {
 	var address, host string
 
 	parsedDID, err := did.Parse(id)

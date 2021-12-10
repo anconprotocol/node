@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/anconprotocol/node/x/anconsync/impl"
+	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
@@ -17,6 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 )
+
+type FileHandler struct {
+	*sdk.AnconSyncContext
+}
 
 // @BasePath /v0
 // FileWrite godoc
@@ -28,7 +33,7 @@ import (
 // @Produce json
 // @Success 201 {string} cid
 // @Router /v0/file [post]
-func (dagctx *AnconSyncContext) FileWrite(c *gin.Context) {
+func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -82,7 +87,7 @@ func (dagctx *AnconSyncContext) FileWrite(c *gin.Context) {
 // @Produce json
 // @Success 200
 // @Router /v0/file/{cid}/{path} [get]
-func (dagctx *AnconSyncContext) FileRead(c *gin.Context) {
+func (dagctx *FileHandler) FileRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{

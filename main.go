@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ethereum/go-ethereum/rpc"
+
 	gqlgenh "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/anconprotocol/contracts/adapters/ethereum/erc721/transfer"
@@ -14,18 +16,17 @@ import (
 	"github.com/anconprotocol/contracts/graphql/server/graph"
 	"github.com/anconprotocol/contracts/graphql/server/graph/generated"
 	"github.com/anconprotocol/node/docs"
-	dagcosmos "github.com/anconprotocol/node/subgraphs/cosmos"
-	"github.com/anconprotocol/node/x/anconsync"
+	"github.com/anconprotocol/node/subgraphs/cosmos"
 	"github.com/anconprotocol/node/x/anconsync/handler"
+	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
+	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/anconprotocol/node/x/anconsync/handler/durin"
-	"github.com/anconprotocol/node/x/anconsync/handler/proofsignature"
-	"github.com/anconprotocol/node/x/anconsync/impl"
+	"github.com/anconprotocol/contracts/sdk/durin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -45,12 +46,12 @@ type SubgraphConfig struct {
 }
 
 // Defining the dageth RPC handler
-func dagethRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
+func dagethRPCHandler(anconCtx sdk.AnconSyncContext, gqlAddress string) gin.HandlerFunc {
 
 	db := dbm.NewMemDB()
 
 	proofs, _ := proofsignature.NewIavlAPI(anconCtx.Store, anconCtx.Exchange, db, 2000, 0)
-	gqlcli := graphqlclient.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
+	gqlcli := graphqlclient.NewClient(http.DefaultClient, gqlAddress)
 	durin := durin.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
 	server := rpc.NewServer()
 
@@ -72,9 +73,9 @@ func dagethRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 }
 
 // Defining the JSON RPC handler
-func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
+func jsonRPCHandler(anconCtx sdk.AnconSyncContext, gqlAddress string) gin.HandlerFunc {
 
-	gqlcli := graphqlclient.NewClient(http.DefaultClient, "http://localhost:7788/v0/query")
+	gqlcli := graphqlclient.NewClient(http.DefaultClient, gqlAddress)
 	durin := durin.NewDurinAPI(transfer.NewOnchainAdapter(anconCtx.PrivateKey), gqlcli)
 	server := rpc.NewServer()
 
@@ -91,11 +92,11 @@ func jsonRPCHandler(anconCtx handler.AnconSyncContext) gin.HandlerFunc {
 }
 
 // Defining the Graphql handler
-func graphqlHandler(s anconsync.Storage) gin.HandlerFunc {
+func graphqlHandler(s sdk.Storage) gin.HandlerFunc {
 	h := gqlgenh.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
 	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), "dag", &handler.AnconSyncContext{
+		ctx := context.WithValue(c.Request.Context(), "dag", &sdk.AnconSyncContext{
 			Store: s,
 		})
 		rq := c.Request.WithContext(ctx)
@@ -105,11 +106,11 @@ func graphqlHandler(s anconsync.Storage) gin.HandlerFunc {
 }
 
 // Defining the Playground handler
-func playgroundHandler(s anconsync.Storage) gin.HandlerFunc {
+func playgroundHandler(s sdk.Storage) gin.HandlerFunc {
 	h := playground.Handler("GraphQL", "/query")
 
 	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), "dag", &handler.AnconSyncContext{
+		ctx := context.WithValue(c.Request.Context(), "dag", &sdk.AnconSyncContext{
 			Store: s,
 		})
 		rq := c.Request.WithContext(ctx)
@@ -161,27 +162,21 @@ func main() {
 	init := flag.Bool("init", false, "genesis")
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
 	subgraph.EnableDagcosmos = *flag.Bool("enable-dagcosmos", false, "enable Cosmos subgraph")
-	subgraph.CosmosAppHash = *flag.String("cosmos-app-hash", "", "app hash")
-	subgraph.CosmosHeight = *flag.Int("cosmos-height", 1, "height")
 	subgraph.CosmosPrimaryAddress = *flag.String("cosmos-primary", "", "primary")
 	subgraph.EvmAddress = *flag.String("evm-node-address", "", "remote node address")
 	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain idd")
-	subgraph.CosmosMoniker = *flag.String("cosmos-moniker", "my-graph", "cosmos-moniker")
 	moniker := flag.String("moniker", "my-graph", "moniker")
 	flag.Parse()
 
-	s := anconsync.NewStorage(*dataFolder)
+	gqlAddress := fmt.Sprintf("%s/v0/query", apiAddr)
+	s := sdk.NewStorage(*dataFolder)
 
 	if *init {
 		s.InitGenesis([]byte(*moniker))
 		return
 	} else {
 		root := os.Getenv("ROOTHASH")
-		subgraph.CosmosMoniker = os.Getenv("COSMOS_MONIKER")
-		subgraph.CosmosAppHash = os.Getenv("COSMOS_APP_HASH")
-		subgraph.CosmosHeight = cast.ToInt(os.Getenv("COSMOS_HEIGHT"))
 		subgraph.CosmosPrimaryAddress = os.Getenv("COSMOS_PRIMARY_ADDRESS")
-		subgraph.CosmosProxyAddress = os.Getenv("COSMOS_PROXY_ADDRESS")
 		subgraph.EnableDagcosmos = cast.ToBool(os.Getenv("ENABLE_DAGCOSMOS"))
 
 		s.LoadGenesis(root)
@@ -189,36 +184,47 @@ func main() {
 	ctx := context.Background()
 	host := impl.NewPeer(ctx, *addr)
 
-	exchange, ipfspeer := impl.NewRouter(ctx, host, s, *peerAddr)
+	exchange, ipfspeer := impl.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
 	fmt.Println(ipfspeer.ID)
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/v0"
 
-	dagHandler := handler.NewAnconSyncContext(s, exchange, ipfspeer, privateKey)
+	dagHandler := sdk.NewAnconSyncContext(s, exchange, ipfspeer, privateKey)
+	didHandler := handler.Did{
+		AnconSyncContext: dagHandler,
+	}
+
+	dagJsonHandler := handler.DagJsonHandler{
+		AnconSyncContext: dagHandler,
+	}
+	dagCborHandler := handler.DagCborHandler{
+		AnconSyncContext: dagHandler,
+	}
+	fileHandler := handler.FileHandler{
+		AnconSyncContext: dagHandler,
+	}
 	api := r.Group("/v0")
 	{
-		api.POST("/file", dagHandler.FileWrite)
+		api.POST("/file", fileHandler.FileWrite)
 		api.POST("/query", graphqlHandler(s))
 		api.GET("/query", playgroundHandler(s))
-		api.GET("/file/:cid/*path", dagHandler.FileRead)
-		api.GET("/dagjson/:cid/*path", dagHandler.DagJsonRead)
-		api.GET("/dagcbor/:cid/*path", dagHandler.DagCborRead)
-		api.POST("/dagjson", dagHandler.DagJsonWrite)
-		api.POST("/dagcbor", dagHandler.DagCborWrite)
-		api.POST("/did/key", dagHandler.CreateDidKey)
-		api.POST("/did/web", dagHandler.CreateDidWeb)
-		api.GET("/did/:did", dagHandler.ReadDid)
+		api.GET("/file/:cid/*path", fileHandler.FileRead)
+		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
+		api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
+		api.POST("/dagjson", dagJsonHandler.DagJsonWrite)
+		api.POST("/dagcbor", dagCborHandler.DagCborWrite)
+		api.POST("/did/key", didHandler.CreateDidKey)
+		api.POST("/did/web", didHandler.CreateDidWeb)
+		api.GET("/did/:did", didHandler.ReadDid)
 	}
 	if subgraph.EnableDagcosmos {
-
 		ctx := context.WithValue(context.Background(), "dag", dagHandler)
-		indexer := dagcosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
+		indexer := cosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
 		r.GET("/indexer/cosmos/tip", indexer.TipEvent)
-		indexer.Subscribe(ctx, dagcosmos.NewBlock)
-
+		indexer.Subscribe(ctx, cosmos.NewBlock)
 	}
-	r.GET("/user/:did/did.json", dagHandler.ReadDidWebUrl)
+	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", dagethRPCHandler(*dagHandler))
+	r.POST("/rpc", dagethRPCHandler(*dagHandler, gqlAddress))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

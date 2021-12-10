@@ -5,16 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
 	"github.com/buger/jsonparser"
-
-	"github.com/anconprotocol/node/x/anconsync"
-	"github.com/anconprotocol/node/x/anconsync/impl"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
+
+type DagJsonHandler struct {
+	*sdk.AnconSyncContext
+}
 
 // @BasePath /v0
 // DagJsonWrite godoc
@@ -26,7 +29,7 @@ import (
 // @Produce json
 // @Success 201 {string} cid
 // @Router /v0/dagjson [post]
-func (dagctx *AnconSyncContext) DagJsonWrite(c *gin.Context) {
+func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	v, _ := c.GetRawData()
 
@@ -52,7 +55,7 @@ func (dagctx *AnconSyncContext) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	n, err := anconsync.Decode(basicnode.Prototype.Any, string(data))
+	n, err := sdk.Decode(basicnode.Prototype.Any, string(data))
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -77,7 +80,7 @@ func (dagctx *AnconSyncContext) DagJsonWrite(c *gin.Context) {
 // @Produce json
 // @Success 200
 // @Router /v0/dagjson/{cid}/{path} [get]
-func (dagctx *AnconSyncContext) DagJsonRead(c *gin.Context) {
+func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -93,7 +96,7 @@ func (dagctx *AnconSyncContext) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	data, err := anconsync.Encode(n)
+	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),

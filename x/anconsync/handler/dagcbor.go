@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/anconprotocol/node/x/anconsync"
-	"github.com/anconprotocol/node/x/anconsync/impl"
+	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
@@ -15,6 +15,10 @@ import (
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
 )
+
+type DagCborHandler struct {
+	*sdk.AnconSyncContext
+}
 
 // @BasePath /v0
 
@@ -27,7 +31,7 @@ import (
 // @Produce json
 // @Success 201 {string} cid
 // @Router /v0/dagcbor [post]
-func (dagctx *AnconSyncContext) DagCborWrite(c *gin.Context) {
+func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
@@ -46,7 +50,7 @@ func (dagctx *AnconSyncContext) DagCborWrite(c *gin.Context) {
 
 	buff, _ := base64.StdEncoding.DecodeString(v["data"])
 
-	n, err := anconsync.DecodeCBOR(basicnode.Prototype.Any, buff)
+	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, buff)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),
@@ -57,6 +61,7 @@ func (dagctx *AnconSyncContext) DagCborWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
+
 	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
@@ -70,7 +75,7 @@ func (dagctx *AnconSyncContext) DagCborWrite(c *gin.Context) {
 // @Produce json
 // @Success 200
 // @Router /v0/dagcbor/{cid}/{path} [get]
-func (dagctx *AnconSyncContext) DagCborRead(c *gin.Context) {
+func (dagctx *DagCborHandler) DagCborRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -85,7 +90,7 @@ func (dagctx *AnconSyncContext) DagCborRead(c *gin.Context) {
 		})
 		return
 	}
-	data, err := anconsync.EncodeCBOR(n)
+	data, err := sdk.EncodeCBOR(n)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),

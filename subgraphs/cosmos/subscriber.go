@@ -1,11 +1,10 @@
-package dagcosmos
+package cosmos
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/anconprotocol/node/x/anconsync"
-	"github.com/anconprotocol/node/x/anconsync/handler"
+	"github.com/anconprotocol/sdk"
 	"github.com/gin-gonic/gin"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
@@ -23,7 +22,7 @@ const (
 )
 
 type CosmosIndexer struct {
-	AnconSyncContext *handler.AnconSyncContext
+	AnconSyncContext *sdk.AnconSyncContext
 	Client           *rpcclient.WSClient
 	LastLinkNode     datamodel.Node
 	LastLink         datamodel.Link
@@ -51,7 +50,7 @@ func (i *CosmosIndexer) TipEvent(c *gin.Context) {
 
 func New(ctx context.Context, tmRPCAddr, tmEndpoint string) *CosmosIndexer {
 	tmWsClient, err := rpcclient.NewWS(tmRPCAddr, tmEndpoint)
-	dag := ctx.Value("dag").(*handler.AnconSyncContext)
+	dag := ctx.Value("dag").(*sdk.AnconSyncContext)
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +66,7 @@ func New(ctx context.Context, tmRPCAddr, tmEndpoint string) *CosmosIndexer {
 				return
 			case res, ok := <-i.Client.ResponsesCh:
 				if ok {
-					block, err := anconsync.Decode(basicnode.Prototype.Any, string(res.Result))
+					block, err := sdk.Decode(basicnode.Prototype.Any, string(res.Result))
 					if err != nil {
 						fmt.Errorf("invalid json %v", err)
 					}
