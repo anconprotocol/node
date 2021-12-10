@@ -55,7 +55,7 @@ describe("Onchain Metadata Contract", (deployer) => {
           gas: 1500000,
           gasPrice: "30000000000",
         });
-        console.log("\n\n\n\n Result",res);
+        console.log("\n\n\n\n Result",res.events["0"]);
       } catch (e) {
         console.log(e);
       }
