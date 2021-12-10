@@ -38,8 +38,10 @@ describe("Onchain Metadata Contract", (deployer) => {
 
   describe("when requesting to add metadata onchain", () => {
     it("should return true and emit event", async () => {
-      const toBytes = Web3.utils.fromUtf8
-
+      const toBytes= Web3.utils.fromUtf8
+      let sources = {
+        "mylink" : "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D"
+      }
       try {
         const res = await OnchainContractInstance.methods.setOnchainMetadata(
           "",
@@ -47,7 +49,7 @@ describe("Onchain Metadata Contract", (deployer) => {
           "",
           "",
           "",
-          toBytes(" ")
+          toBytes(JSON.stringify(sources))
         ).send({
           from: "0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6",
           gas: 1500000,

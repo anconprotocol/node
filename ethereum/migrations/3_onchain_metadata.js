@@ -1,5 +1,5 @@
 const fs = require("fs");
-var truffleContract = require("@truffle/contract");
+// var truffleContract = require("@truffle/contract");
 // const Web3 = require('web3')
 
 const metadata = require("../build/contracts/OnchainMetadata.json");

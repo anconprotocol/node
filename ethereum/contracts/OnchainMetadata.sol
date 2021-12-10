@@ -6,7 +6,7 @@ contract OnchainMetadata {
   event AddOnchainMetadata(
     string name, 
     string description, 
-    string indexed image, 
+    string image, 
     string owner, 
     string parent, 
     bytes sources
