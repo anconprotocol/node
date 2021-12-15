@@ -158,10 +158,11 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/alexkohler/prealloc v1.0.0/go.mod h1:VetnK3dIgFBBKmg0YnD9F9x6Icjd+9cvfHR56wJVlKE=
 github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156/go.mod h1:Cb/ax3seSYIx7SuZdm2G2xzfwmv3TPSk2ucNfQESPXM=
-github.com/anconprotocol/contracts v0.1.1 h1:NCTKLUFrTl7uoz5v5bzHXkRKKXPw0e2hFzD+5ounkds=
-github.com/anconprotocol/contracts v0.1.1/go.mod h1:cL7OTXGCdYAbZuPzEJFpYwJfJmsSwyrV/hp0t7HcckE=
-github.com/anconprotocol/sdk v0.1.0 h1:Soj4LEOp9dC8QVS22D0D+9aPoS/kvPBKTH3935WIooA=
+github.com/anconprotocol/contracts v0.1.2 h1:8PU5iXLZQk4x+mZO/C43zOn6PG3gUZbFkT9+9PplXEk=
+github.com/anconprotocol/contracts v0.1.2/go.mod h1:HYCZ4R1FN95LAn6RhkDMrqr9Fp2GZcOxs9fPmVwwPF4=
 github.com/anconprotocol/sdk v0.1.0/go.mod h1:4iWN68MJMmKwbc4IMr69G/Y0p2aRzlfECJJ7QNzla8I=
+github.com/anconprotocol/sdk v0.1.1 h1:PPCMM/E90fYCOh7sQGonWa4IsJZ0zhLr2XSxM1FIjrE=
+github.com/anconprotocol/sdk v0.1.1/go.mod h1:4iWN68MJMmKwbc4IMr69G/Y0p2aRzlfECJJ7QNzla8I=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883 h1:bvNMNQO63//z+xNgfBlViaCIJKLlCJ6/fmUseuG0wVQ=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
 github.com/andybalholm/brotli v1.0.2/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
@@ -1693,6 +1694,8 @@ github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa h1:0U2s5loxr
 github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa/go.mod h1:F73l+cr82YSh10GxyRI6qZiCgK64VaZjwesgfQ1/iLM=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/seccomp/libseccomp-golang v0.9.1/go.mod h1:GbW5+tmTXfcxTToHLXlScSlAvWlF4P2Ca7zGrPiEpWo=
+github.com/second-state/WasmEdge-go v0.9.0 h1:CapdsNNP5HG8nIeX8qmRteie8SZC/+BkmNXq+IoQlKE=
+github.com/second-state/WasmEdge-go v0.9.0/go.mod h1:Q3h79fwQs7GUSOm3ZzHXK+j4cKmCFP3SKpGfFNDtqD8=
 github.com/securego/gosec/v2 v2.9.1/go.mod h1:oDcDLcatOJxkCGaCaq8lua1jTnYf6Sou4wdiJ1n4iHc=
 github.com/segmentio/kafka-go v0.1.0/go.mod h1:X6itGqS9L4jDletMsxZ7Dz+JFWxM6JHfPOCvTvk+EJo=
 github.com/segmentio/kafka-go v0.2.0/go.mod h1:X6itGqS9L4jDletMsxZ7Dz+JFWxM6JHfPOCvTvk+EJo=
@@ -1914,6 +1917,7 @@ github.com/warpfork/go-wish v0.0.0-20180510122957-5ad1f5abf436/go.mod h1:x6AKhvS
 github.com/warpfork/go-wish v0.0.0-20190328234359-8b3e70f8e830/go.mod h1:x6AKhvSSexNrVSrViXSHUEbICjmGXhtgABaHIySUSGw=
 github.com/warpfork/go-wish v0.0.0-20200122115046-b9ea61034e4a h1:G++j5e0OC488te356JvdhaM8YS6nMsjLAYF7JxCv07w=
 github.com/warpfork/go-wish v0.0.0-20200122115046-b9ea61034e4a/go.mod h1:x6AKhvSSexNrVSrViXSHUEbICjmGXhtgABaHIySUSGw=
+github.com/wasmerio/wasmer-go v1.0.4 h1:MnqHoOGfiQ8MMq2RF6wyCeebKOe84G88h5yv+vmxJgs=
 github.com/wasmerio/wasmer-go v1.0.4/go.mod h1:0gzVdSfg6pysA6QVp6iVRPTagC6Wq9pOE8J86WKb2Fk=
 github.com/whyrusleeping/cbor v0.0.0-20171005072247-63513f603b11 h1:5HZfQkwe0mIfyDmc1Em5GqlNRzcdtlv4HTNmdpt7XH0=
 github.com/whyrusleeping/cbor v0.0.0-20171005072247-63513f603b11/go.mod h1:Wlo/SzPmxVp6vXpGt/zaXhHH0fn4IxgqZc82aKg6bpQ=

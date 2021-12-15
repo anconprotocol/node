@@ -3,8 +3,8 @@ module github.com/anconprotocol/node
 go 1.16
 
 require (
-	github.com/anconprotocol/contracts v0.1.1
-	github.com/anconprotocol/sdk v0.1.0
+	github.com/anconprotocol/contracts v0.1.2
+	github.com/anconprotocol/sdk v0.1.1
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipld/go-ipld-prime v0.14.0
 )
@@ -15,8 +15,10 @@ require (
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/gin-gonic/gin v1.7.4
 	github.com/hyperledger/aries-framework-go v0.1.7
+	github.com/ipfs/go-ipld-cbor v0.0.5
 	github.com/multiformats/go-multibase v0.0.3
 	github.com/multiformats/go-multicodec v0.3.0
+	github.com/second-state/WasmEdge-go v0.9.0
 	github.com/spf13/cast v1.4.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.3.3
