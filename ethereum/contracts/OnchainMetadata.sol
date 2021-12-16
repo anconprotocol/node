@@ -35,8 +35,6 @@ contract OnchainMetadata {
     bytes memory sources
   ) public{
 
-
-
     emit AddOnchainMetadata(name, description, image, owner, parent, sources);
 
   }
