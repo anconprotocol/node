@@ -4,12 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"strings"
 
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/subgraphs/cosmos"
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	swaggerfiles "github.com/swaggo/files"
@@ -42,6 +44,8 @@ func main() {
 	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
 	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
 	dataFolder := flag.String("data", ".ancon", "Data directory")
+	enableCors := flag.Bool("cors", false, "Allow CORS")
+	allowOrigins := flag.String("origins", "*", "Must send a delimited string by commas")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -51,6 +55,13 @@ func main() {
 	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain idd")
 
 	flag.Parse()
+	r := gin.Default()
+	config := cors.DefaultConfig()
+
+	if *enableCors {
+		config.AllowOrigins = strings.Split(*allowOrigins, ",")
+		r.Use(cors.New(config))
+	}
 
 	gqlAddress := fmt.Sprintf("%s/v0/query", apiAddr)
 	s := sdk.NewStorage(*dataFolder)
@@ -60,7 +71,7 @@ func main() {
 
 	exchange, ipfspeer := impl.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
 	fmt.Println(ipfspeer.ID)
-	r := gin.Default()
+
 	docs.SwaggerInfo.BasePath = "/v0"
 
 	dagHandler := sdk.NewAnconSyncContext(s, exchange, ipfspeer)

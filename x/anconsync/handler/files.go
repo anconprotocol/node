@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/impl"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
@@ -74,7 +73,7 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": lnk.String(),
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, lnk)
+	// impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, lnk)
 }
 
 // @BasePath /v0

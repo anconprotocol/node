@@ -13,6 +13,7 @@ require (
 	github.com/99designs/gqlgen v0.14.0
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/ethereum/go-ethereum v1.10.13
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/hyperledger/aries-framework-go v0.1.7
 	github.com/ipfs/go-ipld-cbor v0.0.5
