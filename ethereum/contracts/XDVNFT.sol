@@ -72,6 +72,22 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Requests a DAG contract offchain execution
+     */
+    function transferMetadataOwnership(string memory metadataUri, address transferTo, uint256 tokenId)
+        external
+        returns (bytes32)
+    {
+        revert OffchainLookup(
+            url,
+            abi.encodeWithSignature(
+                "transferMetadataOwnershipWithProof(string metadataUri, address transferTo, uint256 tokenId, bytes memory proof)",
+                transferTo,
+                tokenId
+            )
+        );
+    }
+    /**
      * @dev Transfer a XDV Data Token URI with proof
      */
     function transferURIWithProof(

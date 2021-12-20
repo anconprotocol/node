@@ -53,6 +53,12 @@ module.exports = {
       port: 8545,
       network_id: '*', // Match any network id
     },
+    developmentSecondary: {
+      from: '0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6',
+      host: 'localhost',
+      port: 8546,
+      network_id: '*', // Match any network id
+    },    
     ancon: {
       provider: () =>
         new HDWalletProvider(process.env.MNEMONIC, process.env.ANCON),
