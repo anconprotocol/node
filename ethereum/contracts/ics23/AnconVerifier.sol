@@ -13,12 +13,14 @@ contract AnconVerifier is ICS23 {
     constructor(address onlyOwner) public {
         owner = onlyOwner;
     }
+
     function convertProof(
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
         uint256[] memory _leafOpUint,
-        bytes[][] memory _innerOp,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix,
         uint256 existenceProofInnerOpHash
     ) public pure returns (ExistenceProof memory) {
         LeafOp memory leafOp = LeafOp(
@@ -31,17 +33,14 @@ contract AnconVerifier is ICS23 {
         );
 
         // // innerOpArr
-        InnerOp[] memory innerOpArr = new InnerOp[](_innerOp.length);
+        InnerOp[] memory innerOpArr = new InnerOp[](1);
 
-        for (uint256 i = 0; i < _innerOp.length; i++) {
-            bytes[] memory temp = _innerOp[i];
-            innerOpArr[i] = InnerOp({
-                valid: true,
-                hash: HashOp(existenceProofInnerOpHash),
-                prefix: temp[0],
-                suffix: temp[1]
-            });
-        }
+        innerOpArr[0] = InnerOp({
+            valid: true,
+            hash: HashOp(existenceProofInnerOpHash),
+            prefix: _innerOpPrefix,
+            suffix: _innerOpSuffix
+        });
         ExistenceProof memory proof = ExistenceProof({
             valid: true,
             key: key,
@@ -53,43 +52,31 @@ contract AnconVerifier is ICS23 {
         return proof;
     }
 
-    function queryRootCalculation(
-        uint256[] memory leafOpUint,
-        bytes memory prefix,
-        bytes[][] memory existenceProofInnerOp,
-        uint256 existenceProofInnerOpHash,
-        bytes memory existenceProofKey,
-        bytes memory existenceProofValue
-    ) public view returns (bytes memory) {
-        ExistenceProof memory proof = convertProof(
-            existenceProofKey,
-            existenceProofValue,
-            prefix,
-            leafOpUint,
-            existenceProofInnerOp,
-            existenceProofInnerOpHash
-        );
-        return bytes(calculate(proof));
-    }
-
     function verifyProof(
         uint256[] memory leafOpUint,
-        bytes memory prefix,
-        bytes[][] memory existenceProofInnerOp,
-        uint256 existenceProofInnerOpHash,
-        bytes memory existenceProofKey,
-        bytes memory existenceProofValue,
+        bytes memory existenceProof,
         bytes memory root,
         bytes memory key,
         bytes memory value
     ) public pure returns (bool) {
+        revert();
+        (
+            bytes memory prefix,
+            bytes memory existenceProofInnerOpPrefix,
+            bytes memory existenceProofInnerOpSuffix,
+            uint256 existenceProofInnerOpHash
+        ) = abi.decode(
+                existenceProof,
+                (bytes, bytes, bytes, uint256)
+            );
         // todo: verify not empty
         ExistenceProof memory proof = convertProof(
-            existenceProofKey,
-            existenceProofValue,
+            key,
+            value,
             prefix,
             leafOpUint,
-            existenceProofInnerOp,
+            existenceProofInnerOpPrefix,
+            existenceProofInnerOpSuffix,
             existenceProofInnerOpHash
         );
 

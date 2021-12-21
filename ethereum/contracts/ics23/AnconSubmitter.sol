@@ -40,21 +40,21 @@ contract AnconSubmitter {
             bytes32(value) == keccak256(packet),
             "bad packet: packet hash is different from ics23 value"
         );
-        bytes memory calculatedHash = verifier.queryRootCalculation(
-            leafOpUint,
-            prefix,
-            existenceProofInnerOp,
-            existenceProofInnerOpHash,
-            key,
-            value
-        );
-        require(
-            keccak256(relayNetworkHash) == keccak256(calculatedHash),
-            "invalid proof for key"
-        );
-        proofs[key] = packet;
-        // 2. Submit event
-        emit ProofPacketSubmitted();
+        // bytes memory calculatedHash = verifier.queryRootCalculation(
+        //     leafOpUint,
+        //     prefix,
+        //     existenceProofInnerOp,
+        //     existenceProofInnerOpHash,
+        //     key,
+        //     value
+        // );
+        // require(
+        //     keccak256(relayNetworkHash) == keccak256(calculatedHash),
+        //     "invalid proof for key"
+        // );
+        // proofs[key] = packet;
+        // // 2. Submit event
+        // emit ProofPacketSubmitted();
 
         return true;
     }
