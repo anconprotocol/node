@@ -10,15 +10,19 @@ require (
 )
 
 require (
+	github.com/0xPolygon/polygon-sdk v0.0.0-20211207172349-a9ee5ed12815
 	github.com/99designs/gqlgen v0.14.0
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
+	github.com/cosmos/iavl v0.17.3
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/hyperledger/aries-framework-go v0.1.7
 	github.com/ipfs/go-ipld-cbor v0.0.5
+	github.com/libp2p/go-libp2p-core v0.8.6
 	github.com/multiformats/go-multibase v0.0.3
 	github.com/multiformats/go-multicodec v0.3.0
+	github.com/pkg/errors v0.9.1
 	github.com/second-state/WasmEdge-go v0.9.0
 	github.com/spf13/cast v1.4.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2

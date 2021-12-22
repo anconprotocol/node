@@ -46,6 +46,8 @@ func main() {
 	dataFolder := flag.String("data", ".ancon", "Data directory")
 	enableCors := flag.Bool("cors", false, "Allow CORS")
 	allowOrigins := flag.String("origins", "*", "Must send a delimited string by commas")
+	// init := flag.Bool("init", false, "Initialize merkle tree storage")
+	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -55,6 +57,18 @@ func main() {
 	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain idd")
 
 	flag.Parse()
+	if true {
+		result, err := handler.InitGenesis(*hostName)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(result)
+		return
+	}
+
 	r := gin.Default()
 	config := cors.DefaultConfig()
 

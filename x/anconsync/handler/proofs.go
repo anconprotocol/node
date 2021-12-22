@@ -1,17 +1,27 @@
 package handler
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
+	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/buger/jsonparser"
+	"github.com/cosmos/iavl"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/pkg/errors"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/proofsignature"
 )
+
+var GENESISKEY = "anconprotocol/"
 
 type ProofHandler struct {
 	*sdk.AnconSyncContext
@@ -19,7 +29,7 @@ type ProofHandler struct {
 	proofs proofsignature.IavlProofService
 }
 
-func NewProofHandler(ctx *sdk.AnconSyncContext, dbPath string) *ProofHandler {
+func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -33,6 +43,98 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, dbPath string) *ProofHandler {
 	proofs, _ := proofsignature.NewIavlAPI(ctx.Store, ctx.Exchange, db, 2000, 0)
 	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service}
 
+}
+
+func InitGenesis(hostName string) (string, error) {
+	userHomeDir, err := os.UserHomeDir()
+	version := 0
+	if err != nil {
+		panic(err)
+	}
+
+	folder := filepath.Join(userHomeDir, dbPath)
+	db, err := dbm.NewGoLevelDB(dbName, folder)
+	if err != nil {
+		panic(err)
+	}
+
+	tree, err := iavl.NewMutableTree(db, int(2000))
+	if err != nil {
+		return " ", errors.Wrap(err, "unable to create iavl tree")
+	}
+
+	if _, err = tree.LoadVersion(int64(version)); err != nil {
+		return " ", errors.Wrapf(err, "unable to load version %d", version)
+	}
+
+	// Set your own keypair
+	priv, _, err := crypto.GenerateKeyPair(
+		crypto.Secp256k1,
+		-1,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	dateHostname := strings.Join([]string{
+		hostName,
+		time.Now().String(),
+	}, "_")
+
+	var digest []byte
+
+	keccak.Keccak256(digest, []byte(dateHostname))
+	signed, err := priv.Sign(digest)
+
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to sign")
+	}
+
+	cidlink := sdk.CreateCidLink(signed)
+
+	key := fmt.Sprintf("%s%s", GENESISKEY, cidlink.String())
+	value := fmt.Sprintf(
+		`{
+		data: "%s",
+		signature: "%s",
+		}`,
+		dateHostname, signed,
+	)
+
+	tree.DeleteVersion(int64(version))
+	tree.SetInitialVersion(uint64(version))
+	tree.Set([]byte(key), []byte(value))
+
+	_, proof, err := tree.GetWithProof([]byte(key))
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to get with proof")
+	}
+	var proofData []byte
+	proofData, err = proof.ToProto().Marshal()
+	// err = proto.Unmarshal(proofData, )
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to marshal")
+	}
+
+	hash := tree.Hash()
+	rawKey, err := priv.Raw()
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to get rawkey")
+	}
+	stringRawKey := hexutil.Encode(rawKey)
+
+	message := fmt.Sprintf(
+		`Ancon protocol node initialize with: 
+		*Sep256k1 private key: %s
+		*Genesis value: %s
+		*Genesis key: %s
+		*Proof: %s
+		*Last header hash: %s
+		`, stringRawKey, hex.EncodeToString([]byte(value)), key, hex.EncodeToString(proofData), hex.EncodeToString(hash),
+	)
+
+	return message, nil
 }
 
 // @BasePath /v0
