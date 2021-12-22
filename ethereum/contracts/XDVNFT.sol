@@ -87,6 +87,40 @@ contract XDVNFT is
             )
         );
     }
+
+    function submitPacketWithProof(
+        // -- existence proof payload
+        uint256[] memory leafOpUint,
+        bytes memory prefix,
+        bytes[][] memory existenceProofInnerOp,
+        uint256 existenceProofInnerOpHash,
+        bytes memory key,
+        bytes memory value,
+        bytes memory packet
+    ) public pure returns (bool) {
+        // 1. Verify
+        require(
+            bytes32(value) == keccak256(packet),
+            "bad packet: packet hash is different from ics23 value"
+        );
+        // bytes memory calculatedHash = verifier.queryRootCalculation(
+        //     leafOpUint,
+        //     prefix,
+        //     existenceProofInnerOp,
+        //     existenceProofInnerOpHash,
+        //     key,
+        //     value
+        // );
+        // require(
+        //     keccak256(relayNetworkHash) == keccak256(calculatedHash),
+        //     "invalid proof for key"
+        // );
+        // proofs[key] = packet;
+        // // 2. Submit event
+        // emit ProofPacketSubmitted();
+        return true;
+    }
+
     /**
      * @dev Transfer a XDV Data Token URI with proof
      */
@@ -95,7 +129,7 @@ contract XDVNFT is
         string memory tokenId,
         bytes memory proof
     ) public returns (uint256) {
-        bool proofRef = _requestWithProof(toAddress, tokenId, proof);
+        bool proofRef = submitPacketWithProof(toAddress, tokenId, proof);
                                     
         require(proofRef, "Invalid proof");
         (

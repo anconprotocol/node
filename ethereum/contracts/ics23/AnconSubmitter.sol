@@ -16,7 +16,7 @@ contract AnconSubmitter {
         verifier = AnconVerifier(verifier);
     }
 
-    function updateRelayHeader(bytes memory rootHash)
+    function updateProtocolHeader(bytes memory rootHash)
         public
         returns (bool)
     {
@@ -34,7 +34,7 @@ contract AnconSubmitter {
         bytes memory key,
         bytes memory value,
         bytes memory packet
-    ) public payable returns (bool) {
+    ) public pure returns (bool) {
         // 1. Verify
         require(
             bytes32(value) == keccak256(packet),

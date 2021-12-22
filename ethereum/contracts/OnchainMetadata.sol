@@ -2,55 +2,51 @@
 pragma solidity ^0.8.7;
 
 contract OnchainMetadata {
-
-  event AddOnchainMetadata(
-    string name, 
-    string description, 
-    string image, 
-    string owner, 
-    string parent, 
-    bytes sources
+    event AddOnchainMetadata(
+        string name,
+        string description,
+        string image,
+        string owner,
+        string parent,
+        bytes sources
     );
 
-  event EncodeDagJson(
-    string path, 
-    string hexdata
-  );
+    event EncodeDagJson(string path, string hexdata);
 
-  event EncodeDagCbor(
-    string path, 
-    string hexdata
-  );
+    event EncodeDagCbor(string path, string hexdata);
 
-  constructor() {
+    constructor() {}
 
-  }
+// register L2 ACCOUNT
+    function setOnchainMetadata(
+        string memory proofKey,
+        string memory proofValue,
+        string memory metadataUri
+    ) public {}
 
-  function setOnchainMetadata(
-    string memory name, 
-    string memory description, 
-    string memory image, 
-    string memory owner, 
-    string memory parent, 
-    bytes memory sources
-  ) public{
+    function registerL2Account(
+        string memory didAddress,
+        bytes memory key,
+        bytes memory value,
+        bytes memory _prefix,
+        uint256[] memory _leafOpUint,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix,
+        uint256 existenceProofInnerOpHash
+    ) public payable returns (bool) {}
 
-    emit AddOnchainMetadata(name, description, image, owner, parent, sources);
 
-  }
+    function sum(uint256 x, uint256 y) public pure returns (uint256) {
+        return 0;
+    }
 
-function sum(uint x, uint y) public pure returns (uint){
-  return 0;
+    function encodeDagjsonBlock(string memory path, string memory hexdata)
+        public
+        returns (bool)
+    {
+        emit EncodeDagJson(path, hexdata);
+
+        return true;
+    }
+    //emit AddOnchainMetadata()
 }
-  function encodeDagjsonBlock(
-    string memory path,
-    string memory hexdata
-  ) public returns (bool) {
-
-    emit EncodeDagJson(path, hexdata);
-
-    return true;
-  }
-  //emit AddOnchainMetadata()
-}
-
