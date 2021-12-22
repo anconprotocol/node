@@ -28,7 +28,8 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.link(Memory, Bytes);
   
   await deployer.deploy(Bytes);
-  await deployer.link(Bytes, AnconVerifier);
+  await deployer.link(Bytes, ICS23, AnconVerifier, AnconSubmitter);
+
   
   await deployer.deploy(AnconVerifier, accounts[0]);
   const verifier = await AnconVerifier.deployed();

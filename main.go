@@ -46,7 +46,7 @@ func main() {
 	dataFolder := flag.String("data", ".ancon", "Data directory")
 	enableCors := flag.Bool("cors", false, "Allow CORS")
 	allowOrigins := flag.String("origins", "*", "Must send a delimited string by commas")
-	// init := flag.Bool("init", false, "Initialize merkle tree storage")
+	init := flag.Bool("init", false, "Initialize merkle tree storage")
 	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
 
 	subgraph := SubgraphConfig{}
@@ -54,10 +54,10 @@ func main() {
 	subgraph.EnableDagcosmos = *flag.Bool("enable-dagcosmos", false, "enable Cosmos subgraph")
 	subgraph.CosmosPrimaryAddress = *flag.String("cosmos-primary", "", "primary")
 	subgraph.EvmAddress = *flag.String("evm-node-address", "", "remote node address")
-	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain idd")
+	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain id")
 
 	flag.Parse()
-	if true {
+	if *init {
 		result, err := handler.InitGenesis(*hostName)
 
 		if err != nil {

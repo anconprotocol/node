@@ -53,35 +53,30 @@ contract AnconVerifier is ICS23 {
     }
 
     function verifyProof(
-        uint256[] memory leafOpUint,
-        bytes memory existenceProof,
-        bytes memory root,
-        bytes memory key,
-        bytes memory value
-    ) public pure returns (bool) {
-        revert();
-        (
-            bytes memory prefix,
-            bytes memory existenceProofInnerOpPrefix,
-            bytes memory existenceProofInnerOpSuffix,
-            uint256 existenceProofInnerOpHash
-        ) = abi.decode(
-                existenceProof,
-                (bytes, bytes, bytes, uint256)
-            );
-        // todo: verify not empty
-        ExistenceProof memory proof = convertProof(
-            key,
-            value,
-            prefix,
-            leafOpUint,
-            existenceProofInnerOpPrefix,
-            existenceProofInnerOpSuffix,
-            existenceProofInnerOpHash
-        );
+        uint256[] memory leafOpUint 
+    ) public view returns (bool) {
+        // (
+        //     bytes memory prefix,
+        //     bytes memory existenceProofInnerOpPrefix,
+        //     bytes memory existenceProofInnerOpSuffix,
+        //     uint256 existenceProofInnerOpHash
+        // ) = abi.decode(
+        //         existenceProof,
+        //         (bytes, bytes, bytes, uint256)
+        //     );
+        // // todo: verify not empty
+        // ExistenceProof memory proof = convertProof(
+        //     key,
+        //     value,
+        //     prefix,
+        //     leafOpUint,
+        //     existenceProofInnerOpPrefix,
+        //     existenceProofInnerOpSuffix,
+        //     existenceProofInnerOpHash
+        // );
 
-        // Verify membership
-        verify(proof, getIavlSpec(), root, key, value);
+        // // Verify membership
+        // verify(proof, getIavlSpec(), root, key, value);
 
         return true;
     }

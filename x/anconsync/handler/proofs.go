@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/buger/jsonparser"
@@ -62,7 +62,6 @@ func InitGenesis(hostName string) (string, error) {
 	if err != nil {
 		return " ", errors.Wrap(err, "unable to create iavl tree")
 	}
-
 	if _, err = tree.LoadVersion(int64(version)); err != nil {
 		return " ", errors.Wrapf(err, "unable to load version %d", version)
 	}
@@ -76,10 +75,11 @@ func InitGenesis(hostName string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
+	p, err := rand.Prime(rand.Reader, 1024)
 
 	dateHostname := strings.Join([]string{
 		hostName,
-		time.Now().String(),
+		p.String(),
 	}, "_")
 
 	var digest []byte
@@ -102,8 +102,6 @@ func InitGenesis(hostName string) (string, error) {
 		dateHostname, signed,
 	)
 
-	tree.DeleteVersion(int64(version))
-	tree.SetInitialVersion(uint64(version))
 	tree.Set([]byte(key), []byte(value))
 
 	_, proof, err := tree.GetWithProof([]byte(key))
