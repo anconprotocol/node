@@ -118,6 +118,26 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 	doc.ID = string(base)
 	return doc, nil
 }
+
+func GetDidDocument(cidString string, s *sdk.Storage) (*did.Doc, error) {
+
+	lnk, err := sdk.ParseCidLink(cidString)
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := s.Load(ipld.LinkContext{}, cidlink.Link{Cid: lnk.Cid})
+	if err != nil {
+		return nil, err
+	}
+	data, err := sdk.Encode(n)
+	if err != nil {
+		return nil, err
+	}
+	return did.ParseDocument([]byte(data))
+
+}
+
 func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 
@@ -139,7 +159,7 @@ func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 		return
 	}
 
-	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(c.Param("path"))}, cidlink.Link{Cid: lnk.Cid})
+	n, err := dagctx.Store.Load(ipld.LinkContext{}, cidlink.Link{Cid: lnk.Cid})
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("block not found%v", err),
@@ -181,7 +201,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 		return
 	}
 
-	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(c.Param("path"))}, cidlink.Link{Cid: lnk.Cid})
+	n, err := dagctx.Store.Load(ipld.LinkContext{}, cidlink.Link{Cid: lnk.Cid})
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("block not found%v", err),

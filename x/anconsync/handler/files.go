@@ -8,11 +8,14 @@ import (
 	"strings"
 
 	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/impl"
+	"github.com/buger/jsonparser"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
+	"github.com/square/go-jose/v3"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
@@ -136,4 +139,96 @@ func DecodeNode(encoded []byte) (ipld.Node, error) {
 		return nil, err
 	}
 	return nb.Build(), nil
+}
+
+// @BasePath /v0
+// UploadContract godoc
+// @Summary Upload hybrid smartcontracts
+// @Schemes
+// @Description Execute library smartcontracts.
+// @Tags file
+// @Accept json
+// @Produce json
+// @Success 201 {string} cid
+// @Router /v0/code [post]
+func (dagctx *FileHandler) UploadContract(c *gin.Context) {
+
+	v, _ := c.GetRawData()
+
+	code, err := jsonparser.GetString(v, "code")
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("error in code %v", err).Error(),
+		})
+		return
+	}
+
+	from, err := jsonparser.GetString(v, "from")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("error in from %v", err).Error(),
+		})
+		return
+	}
+
+	signature, err := jsonparser.GetString(v, "signature")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("error in signature %v", err).Error(),
+		})
+		return
+	}
+
+	didCid, err := dagctx.Store.DataStore.Get(c.Request.Context(), from)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("did not found %v", err),
+		})
+		return
+	}
+
+	didDoc, err := GetDidDocument(string(didCid), &dagctx.Store)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("error in did Document %v", err).Error(),
+		})
+		return
+	}
+
+	jsonWebKey := didDoc.VerificationMethod[0].JSONWebKey()
+	// jsonWebKey.
+
+	// Instantiate a signer using ECDSA with SHA-384.
+
+	jWebSigner, err := jose.ParseSigned(signature)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("Error parsing signer %v", err),
+		})
+		return
+	}
+
+	verified, err := jWebSigner.Verify(jsonWebKey)
+	if (err != nil) || (verified == nil) {
+		c.JSON(401, gin.H{
+			"error": fmt.Errorf("Unauthorized user %v", err),
+		})
+		return
+	}
+
+	n, err := sdk.Decode(basicnode.Prototype.Any, code)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("decode Error %v", err).Error(),
+		})
+		return
+	}
+
+	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
+	c.JSON(201, gin.H{
+		"address": cid,
+	})
+
+	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }

@@ -21,7 +21,7 @@ import (
 	"github.com/anconprotocol/sdk/proofsignature"
 )
 
-var GENESISKEY = "anconprotocol/"
+var GENESISKEY = "/anconprotocol/"
 
 type ProofHandler struct {
 	*sdk.AnconSyncContext
@@ -103,6 +103,12 @@ func InitGenesis(hostName string) (string, error) {
 	)
 
 	tree.Set([]byte(key), []byte(value))
+
+	_, _, err = tree.SaveVersion()
+
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to commit")
+	}
 
 	_, proof, err := tree.GetWithProof([]byte(key))
 	if err != nil {

@@ -57,7 +57,7 @@ func main() {
 	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain id")
 
 	flag.Parse()
-	if *init {
+	if *init == true {
 		result, err := handler.InitGenesis(*hostName)
 
 		if err != nil {
@@ -72,7 +72,7 @@ func main() {
 	r := gin.Default()
 	config := cors.DefaultConfig()
 
-	if *enableCors {
+	if *enableCors == true {
 		config.AllowOrigins = strings.Split(*allowOrigins, ",")
 		r.Use(cors.New(config))
 	}
@@ -109,6 +109,7 @@ func main() {
 	api := r.Group("/v0")
 	{
 		api.POST("/file", fileHandler.FileWrite)
+		api.POST("/code", fileHandler.UploadContract)
 		api.POST("/query", handler.GraphqlHandler(s))
 		api.GET("/query", handler.PlaygroundHandler(s))
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
