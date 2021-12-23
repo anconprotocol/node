@@ -60,7 +60,7 @@ func main() {
 
 	flag.Parse()
 	if *genKeys == true {
-		result, err := handler.InitGenesis(*hostName)
+		result, err := handler.GenerateKeys()
 
 		if err != nil {
 			fmt.Println(err)
