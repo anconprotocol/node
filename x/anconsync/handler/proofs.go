@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/errors"
 	dbm "github.com/tendermint/tm-db"
 
@@ -136,6 +137,39 @@ func InitGenesis(hostName string) (string, error) {
 		*Proof: %s
 		*Last header hash: %s
 		`, stringRawKey, hex.EncodeToString([]byte(value)), key, hex.EncodeToString(proofData), hex.EncodeToString(hash),
+	)
+
+	return message, nil
+}
+
+func GenerateKeys() (string, error) {
+	// Set your own keypair
+	priv, _, err := crypto.GenerateKeyPair(
+		crypto.Secp256k1,
+		-1,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	rawKey, err := priv.Raw()
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to get private key")
+	}
+	pub, err := priv.GetPublic().Raw()
+	if err != nil {
+		return " ", errors.Wrap(err, "Unable to get public key")
+	}
+	stringRawKey := hexutil.Encode(rawKey)
+	publicKeyBase58 := base58.Encode(pub)
+	pubhex := hexutil.Encode(pub)
+	message := fmt.Sprintf(
+		`Generated keys
+		Sep256k1 private key (hex): %s
+		Sep256k1 public key (hex): %s
+		Sep256k1 public key (base58): %s`,
+		stringRawKey, pubhex, publicKeyBase58,
 	)
 
 	return message, nil
