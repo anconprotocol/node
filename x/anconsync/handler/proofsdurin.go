@@ -10,6 +10,8 @@ import (
 
 	"github.com/anconprotocol/contracts/adapters/ethereum/erc721/transfer"
 	graphqlclient "github.com/anconprotocol/contracts/graphql/client"
+	"github.com/anconprotocol/node/x/anconsync/handler/protocol"
+	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 
 	"github.com/anconprotocol/contracts/sdk/durin"
 
@@ -23,6 +25,46 @@ var (
 	dbName string = "proofs-db"
 	dbPath string = ".ancon/db/proofs"
 )
+
+// Defining the dageth RPC handler
+func SmartContractHandler(anconCtx sdk.AnconSyncContext, 
+	adapter *ethereum.OnchainAdapter) gin.HandlerFunc {
+
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	folder := filepath.Join(userHomeDir, dbPath)
+	db, err := dbm.NewGoLevelDB(dbName, folder)
+	if err != nil {
+		panic(err)
+	}
+
+	proofs, err := proofsignature.NewIavlAPI(anconCtx.Store, anconCtx.Exchange, db, 2000, 0)
+
+	if err != nil {
+		panic(err)
+	}
+
+	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
+	server := rpc.NewServer()
+
+	// err = server.RegisterName(proofs.Namespace, proofs.Service)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	err = server.RegisterName(api.Namespace, api.Service)
+
+	if err != nil {
+		panic(err)
+	}
+	return func(c *gin.Context) {
+		ctx := context.WithValue(c.Request.Context(), "dag", anconCtx)
+		rq := c.Request.WithContext(ctx)
+		server.ServeHTTP(c.Writer, rq)
+	}
+}
 
 // Defining the dageth RPC handler
 func RPCHandler(anconCtx sdk.AnconSyncContext, gqlAddress string) gin.HandlerFunc {

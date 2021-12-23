@@ -9,6 +9,7 @@ import (
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/subgraphs/cosmos"
 	"github.com/anconprotocol/node/x/anconsync/handler"
+	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-contrib/cors"
@@ -77,7 +78,6 @@ func main() {
 		r.Use(cors.New(config))
 	}
 
-	gqlAddress := fmt.Sprintf("%s/v0/query", apiAddr)
 	s := sdk.NewStorage(*dataFolder)
 
 	ctx := context.Background()
@@ -105,13 +105,14 @@ func main() {
 	proofHandler := handler.ProofHandler{
 		AnconSyncContext: dagHandler,
 	}
+	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
 
 	api := r.Group("/v0")
 	{
 		api.POST("/file", fileHandler.FileWrite)
 		api.POST("/code", fileHandler.UploadContract)
-		api.POST("/query", handler.GraphqlHandler(s))
-		api.GET("/query", handler.PlaygroundHandler(s))
+		// api.POST("/query", handler.GraphqlHandler(s))
+		// api.GET("/query", handler.PlaygroundHandler(s))
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
 		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
@@ -132,6 +133,6 @@ func main() {
 	}
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", handler.RPCHandler(*dagHandler, gqlAddress))
+	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
