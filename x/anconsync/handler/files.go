@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -156,7 +157,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 	v, _ := c.GetRawData()
 
 	code, err := jsonparser.GetString(v, "code")
-
+	contract, err := base64.RawStdEncoding.DecodeString(code)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in code %v", err).Error(),
@@ -217,7 +218,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	n, err := sdk.Decode(basicnode.Prototype.Any, code)
+	n, err := sdk.Decode(basicnode.Prototype.Any, base64.RawStdEncoding.EncodeToString(contract))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("decode Error %v", err).Error(),

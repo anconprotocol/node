@@ -1,3 +1,4 @@
+
 *.wasm
 
 # Binaries for programs and plugins
@@ -15,7 +16,7 @@
 main
 vue/node_modules
 flow/atlantico/node_modules
-flow/node_modules
+**/node_modules
 vue/dist
 secret.yml
 .idea/
