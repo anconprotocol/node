@@ -119,11 +119,6 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 	return doc, nil
 }
 
-func GetDidDocument(data string, s *sdk.Storage) (*did.Doc, error) {
-	return did.ParseDocument([]byte(data))
-
-}
-
 func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 

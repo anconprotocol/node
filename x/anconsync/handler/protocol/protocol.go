@@ -1,14 +1,17 @@
 package protocol
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/proofsignature"
+	"github.com/buger/jsonparser"
 	"github.com/ipld/go-ipld-prime/linking"
 	"github.com/second-state/WasmEdge-go/wasmedge"
 )
@@ -51,7 +54,7 @@ func NewProtocolAPI(adapter *ethereum.OnchainAdapter, storage *sdk.Storage, proo
 	vm.RegisterImport(host.GetImports())
 
 	return &ProtocolAPI{
-		Namespace: "Protocol",
+		Namespace: "ancon",
 		Version:   "1.0",
 		Service: &ProtocolService{
 			Adapter: adapter,
@@ -64,44 +67,47 @@ func NewProtocolAPI(adapter *ethereum.OnchainAdapter, storage *sdk.Storage, proo
 	}
 }
 
-func (s *ProtocolService) Call(to string, from string, data string) hexutil.Bytes {
+func (s *ProtocolService) Call(to string, from string, sig []byte, data string) string {
 
-	val := make(map[string]string, 2)
-
-	payload, err := hexutil.Decode(data)
-
-	if err != nil {
-		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("fail unpack data").Error())))
-	}
-	// Execute graphql
 	toClink, err := sdk.ParseCidLink(to)
 	if err != nil {
-
+		return (hexutil.Encode([]byte(fmt.Errorf("invalid cid link").Error())))
 	}
-
 	dataNode, err := s.Storage.Load(linking.LinkContext{}, toClink)
 	if err != nil {
-
+		return (hexutil.Encode([]byte(fmt.Errorf("no contract cid found").Error())))
 	}
 	dataDecoded, _ := sdk.Encode(dataNode)
-	err = s.wasm.LoadWasmBuffer([]byte(dataDecoded))
-	if err != nil {
+	code, _ := jsonparser.GetString([]byte(dataDecoded), "code")
+	buf, err := hexutil.Decode(code)
 
+	if err != nil {
+		return (hexutil.Encode([]byte(fmt.Errorf("invalid wasm contract, must be base64 encoded").Error())))
+	}
+	err = s.wasm.LoadWasmBuffer(buf)
+	if err != nil {
+		return (hexutil.Encode([]byte(fmt.Errorf("invalid wasm contract, error while loading").Error())))
 	}
 	//TODO Validate user signature
+	didCid, err := s.Storage.DataStore.Get(context.Background(), from)
+	if err != nil {
+		return (hexutil.Encode([]byte(fmt.Errorf("invalid signature").Error())))
+	}
+
+	didDoc, err := types.GetDidDocument(string(didCid), s.Storage)
+	hash := crypto.Keccak256([]byte(data))
+	ok, err := types.Authenticate(didDoc, hash, sig)
+	if ok {
+		return (hexutil.Encode([]byte(fmt.Errorf("user must registered as a did").Error())))
+	}
 	s.wasm.Validate()
 	s.wasm.Instantiate()
-	res, err := s.wasm.ExecuteBindgen("execute", wasmedge.Bindgen_return_array, payload)
+	res, err := s.wasm.ExecuteBindgen("execute", wasmedge.Bindgen_return_array, []byte(data))
 	if err != nil {
-
+		return (hexutil.Encode([]byte(fmt.Errorf("reverted, json marshal").Error())))
 	}
 
-	s.wasm.Cleanup()
+	defer s.wasm.Cleanup()
 
-	val["result"] = string(res.([]byte))
-	jsonval, err := json.Marshal(val)
-	if err != nil {
-		return hexutil.Bytes(hexutil.Encode([]byte(fmt.Errorf("reverted, json marshal").Error())))
-	}
-	return jsonval
+	return hexutil.Encode(res.([]byte))
 }

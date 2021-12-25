@@ -2,18 +2,16 @@ package handler
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
-	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/buger/jsonparser"
-	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
@@ -193,7 +191,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	didDoc, err := GetDidDocument(string(didCid), &dagctx.Store)
+	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in did Document %v", err).Error(),
@@ -201,22 +199,17 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	jsonWebKey := didDoc.VerificationMethods()
-	id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
-	pub, _ := did.LookupPublicKey(id, didDoc)
 	hash := fmt.Sprintf(`%s%s`, code, from)
-	bz := crypto.Keccak256([]byte(hash))
+	ok, err := types.Authenticate(didDoc, []byte(hash), sig)
 
-	ok, err := crypto.Ecrecover(bz, sig)
-
-	if !(hexutil.Encode(ok) == hexutil.Encode(pub.Value)) {
+	if !ok || err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("Error parsing signer %v", err),
 		})
 		return
 	}
 
-	js := fmt.Sprintf(`{"code": "%s"}`, base64.RawStdEncoding.EncodeToString(contract))
+	js := fmt.Sprintf(`{"code": "%s"}`, hexutil.Encode(contract))
 	n, err := sdk.Decode(basicnode.Prototype.Any, js)
 	if err != nil {
 		c.JSON(400, gin.H{

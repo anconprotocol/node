@@ -54,7 +54,7 @@ func SmartContractHandler(anconCtx sdk.AnconSyncContext,
 	// if err != nil {
 	// 	panic(err)
 	// }
-	err = server.RegisterName(api.Namespace, api.Service)
+	err = server.RegisterName("ancon", api.Service)
 
 	if err != nil {
 		panic(err)
