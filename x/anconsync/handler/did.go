@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"net/url"
 	"strings"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
@@ -84,7 +84,7 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 	}
 
 	ti := time.Now()
-	multi := append([]byte(multicodec.Secp256k1Pub.String()), pubKey...)
+	multi := append([]byte(multicodec.Ed25519Pub.String()), pubKey...)
 	code, _ := multibase.Encode(multibase.Base58BTC, multi)
 	// did key
 	base := append([]byte("did:key:"), code...)
@@ -119,21 +119,7 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 	return doc, nil
 }
 
-func GetDidDocument(cidString string, s *sdk.Storage) (*did.Doc, error) {
-
-	lnk, err := sdk.ParseCidLink(cidString)
-	if err != nil {
-		return nil, err
-	}
-
-	n, err := s.Load(ipld.LinkContext{}, cidlink.Link{Cid: lnk.Cid})
-	if err != nil {
-		return nil, err
-	}
-	data, err := sdk.Encode(n)
-	if err != nil {
-		return nil, err
-	}
+func GetDidDocument(data string, s *sdk.Storage) (*did.Doc, error) {
 	return did.ParseDocument([]byte(data))
 
 }
@@ -261,7 +247,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	}
 
 	domainName := v["domainName"]
-	pub, err := hex.DecodeString((v["pub"]))
+	pub := base58.Decode(v["pub"])
 	cid, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{

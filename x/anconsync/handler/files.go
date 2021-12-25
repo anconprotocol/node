@@ -8,15 +8,18 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/0xPolygon/polygon-sdk/crypto"
+	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/buger/jsonparser"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
+
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
-	"github.com/square/go-jose/v3"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
@@ -156,8 +159,8 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 
 	v, _ := c.GetRawData()
 
-	code, err := jsonparser.GetString(v, "code")
-	contract, err := base64.RawStdEncoding.DecodeString(code)
+	code, err := jsonparser.GetString(v, "body", "code")
+	contract, err := hexutil.Decode(code)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in code %v", err).Error(),
@@ -165,7 +168,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	from, err := jsonparser.GetString(v, "from")
+	from, err := jsonparser.GetString(v, "body", "from")
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in from %v", err).Error(),
@@ -173,7 +176,8 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	signature, err := jsonparser.GetString(v, "signature")
+	signature, err := jsonparser.GetString(v, "body", "signature")
+	sig := hexutil.MustDecode(signature)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in signature %v", err).Error(),
@@ -197,28 +201,23 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	jsonWebKey := didDoc.VerificationMethod[0].JSONWebKey()
-	// jsonWebKey.
+	jsonWebKey := didDoc.VerificationMethods()
+	id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
+	pub, _ := did.LookupPublicKey(id, didDoc)
+	hash := fmt.Sprintf(`%s%s`, code, from)
+	bz := crypto.Keccak256([]byte(hash))
 
-	// Instantiate a signer using ECDSA with SHA-384.
+	ok, err := crypto.Ecrecover(bz, sig)
 
-	jWebSigner, err := jose.ParseSigned(signature)
-	if err != nil {
+	if !(hexutil.Encode(ok) == hexutil.Encode(pub.Value)) {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("Error parsing signer %v", err),
 		})
 		return
 	}
 
-	verified, err := jWebSigner.Verify(jsonWebKey)
-	if (err != nil) || (verified == nil) {
-		c.JSON(401, gin.H{
-			"error": fmt.Errorf("Unauthorized user %v", err),
-		})
-		return
-	}
-
-	n, err := sdk.Decode(basicnode.Prototype.Any, base64.RawStdEncoding.EncodeToString(contract))
+	js := fmt.Sprintf(`{"code": "%s"}`, base64.RawStdEncoding.EncodeToString(contract))
+	n, err := sdk.Decode(basicnode.Prototype.Any, js)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("decode Error %v", err).Error(),

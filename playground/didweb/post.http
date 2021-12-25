@@ -4,6 +4,6 @@ POST http://localhost:7788/v0/did/web
 Content-Type: application/json
 
 {
-  "domainName": "cerroancon",
-  "pub": "03661fbcbe8ba7bd1b26392772cc289177ef07c8da71e646c35dd4b17df2cbc787"
+  "domainName": "cerroancon-4",
+  "pub": "SCqcujhpdXvHhVo3FfLHc5nToKiLc5yukj5MqSgLSbU3cZmwtoko2qSNizphk4wAZvvcSV3htWYy3tvnPiBacpki"
 }

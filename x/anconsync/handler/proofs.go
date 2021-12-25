@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/buger/jsonparser"
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
-	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/errors"
 	dbm "github.com/tendermint/tm-db"
@@ -68,11 +68,7 @@ func InitGenesis(hostName string) (string, error) {
 	}
 
 	// Set your own keypair
-	priv, _, err := crypto.GenerateKeyPair(
-		crypto.Secp256k1,
-		-1,
-	)
-
+	priv, err := crypto.GenerateKey()
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +82,7 @@ func InitGenesis(hostName string) (string, error) {
 	var digest []byte
 
 	keccak.Keccak256(digest, []byte(dateHostname))
-	signed, err := priv.Sign(digest)
+	signed, err := priv.Sign(rand.Reader, digest, nil)
 
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to sign")
@@ -123,7 +119,8 @@ func InitGenesis(hostName string) (string, error) {
 	}
 
 	hash := tree.Hash()
-	rawKey, err := priv.Raw()
+	rawKey, err := crypto.MarshalPrivateKey(priv)
+
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to get rawkey")
 	}
@@ -144,20 +141,16 @@ func InitGenesis(hostName string) (string, error) {
 
 func GenerateKeys() (string, error) {
 	// Set your own keypair
-	priv, _, err := crypto.GenerateKeyPair(
-		crypto.Secp256k1,
-		-1,
-	)
-
+	priv, err := crypto.GenerateKey()
 	if err != nil {
 		panic(err)
 	}
 
-	rawKey, err := priv.Raw()
+	rawKey, err := crypto.MarshalPrivateKey(priv)
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to get private key")
 	}
-	pub, err := priv.GetPublic().Raw()
+	pub:= crypto.MarshalPublicKey(&priv.PublicKey)
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to get public key")
 	}
