@@ -30,6 +30,10 @@ type ProofHandler struct {
 	proofs proofsignature.IavlProofService
 }
 
+func (h *ProofHandler) GetProofService() *proofsignature.IavlProofService {
+	return &h.proofs
+
+}
 func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -150,7 +154,7 @@ func GenerateKeys() (string, error) {
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to get private key")
 	}
-	pub:= crypto.MarshalPublicKey(&priv.PublicKey)
+	pub := crypto.MarshalPublicKey(&priv.PublicKey)
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to get public key")
 	}

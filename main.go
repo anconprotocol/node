@@ -50,6 +50,8 @@ func main() {
 	init := flag.Bool("init", false, "Initialize merkle tree storage")
 	genKeys := flag.Bool("keys", false, "Generate keys")
 	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
+	rootHash := flag.String("roothash", "", "root hash")
+
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -82,6 +84,17 @@ func main() {
 		return
 	}
 
+	if *rootHash != "" {
+		result, err := handler.ValidateGenesis(*rootHash)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(result)
+		
+	}
 	r := gin.Default()
 	config := cors.DefaultConfig()
 
@@ -105,19 +118,22 @@ func main() {
 		AnconSyncContext: dagHandler,
 	}
 
-	dagJsonHandler := handler.DagJsonHandler{
-		AnconSyncContext: dagHandler,
-	}
-	dagCborHandler := handler.DagCborHandler{
-		AnconSyncContext: dagHandler,
-	}
-	fileHandler := handler.FileHandler{
-		AnconSyncContext: dagHandler,
-	}
 	proofHandler := handler.ProofHandler{
 		AnconSyncContext: dagHandler,
 	}
 	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
+	dagJsonHandler := handler.DagJsonHandler{
+		AnconSyncContext: dagHandler,
+		Proof:            proofHandler.GetProofService(),
+	}
+	dagCborHandler := handler.DagCborHandler{
+		AnconSyncContext: dagHandler,
+		Proof:            proofHandler.GetProofService(),
+
+	}
+	fileHandler := handler.FileHandler{
+		AnconSyncContext: dagHandler,
+	}
 
 	api := r.Group("/v0")
 	{

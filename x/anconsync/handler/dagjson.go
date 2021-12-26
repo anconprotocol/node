@@ -2,11 +2,17 @@ package handler
 
 import (
 	"bytes"
+
+	"github.com/0xPolygon/polygon-sdk/crypto"
+
+	"context"
 	"encoding/json"
 	"fmt"
 
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
@@ -17,6 +23,7 @@ import (
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
+	Proof *proofsignature.IavlProofService
 }
 
 // @BasePath /v0
@@ -32,12 +39,19 @@ type DagJsonHandler struct {
 func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	v, _ := c.GetRawData()
+	from, _ := jsonparser.GetString(v, "from")
 
-	path, _ := jsonparser.GetString(v, "path")
-
-	if path == "" {
+	if from == "" {
 		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing path").Error(),
+			"error": fmt.Errorf("missing from").Error(),
+		})
+		return
+	}
+	signature, _ := jsonparser.GetString(v, "signature")
+
+	if signature == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing signature").Error(),
 		})
 		return
 	}
@@ -51,6 +65,32 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing payload data source").Error(),
+		})
+		return
+	}
+	didCid, err := dagctx.Store.DataStore.Get(context.Background(), from)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing did").Error(),
+		})
+		return
+	}
+
+	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
+	hash := crypto.Keccak256([]byte(data))
+	sig := []byte(signature)
+	ok, err := types.Authenticate(didDoc, hash, sig)
+	if ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
+		})
+		return
+	}
+	path, _ := jsonparser.GetString(v, "path")
+
+	if path == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing path").Error(),
 		})
 		return
 	}

@@ -2,12 +2,16 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
 
+	"github.com/0xPolygon/polygon-sdk/crypto"
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
@@ -18,6 +22,7 @@ import (
 
 type DagCborHandler struct {
 	*sdk.AnconSyncContext
+	Proof *proofsignature.IavlProofService
 }
 
 // @BasePath /v0
@@ -41,6 +46,18 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		})
 		return
 	}
+	if v["from"] == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing from").Error(),
+		})
+		return
+	}
+	if v["signature"] == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing signature").Error(),
+		})
+		return
+	}
 	if v["data"] == "" {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing payload data source").Error(),
@@ -48,9 +65,27 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	buff, _ := base64.StdEncoding.DecodeString(v["data"])
+	data, _ := base64.StdEncoding.DecodeString(v["data"])
+	didCid, err := dagctx.Store.DataStore.Get(context.Background(), v["from"])
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing did").Error(),
+		})
+		return
+	}
 
-	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, buff)
+	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
+	hash := crypto.Keccak256([]byte(data))
+	sig := []byte(v["signature"])
+	ok, err := types.Authenticate(didDoc, hash, sig)
+	if ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
+		})
+		return
+	}
+
+	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, data)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),
