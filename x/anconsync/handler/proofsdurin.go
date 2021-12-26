@@ -27,26 +27,8 @@ var (
 )
 
 // Defining the dageth RPC handler
-func SmartContractHandler(anconCtx sdk.AnconSyncContext, 
-	adapter *ethereum.OnchainAdapter) gin.HandlerFunc {
-
-	userHomeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	folder := filepath.Join(userHomeDir, dbPath)
-	db, err := dbm.NewGoLevelDB(dbName, folder)
-	if err != nil {
-		panic(err)
-	}
-
-	proofs, err := proofsignature.NewIavlAPI(anconCtx.Store, anconCtx.Exchange, db, 2000, 0)
-
-	if err != nil {
-		panic(err)
-	}
-
+func SmartContractHandler(anconCtx sdk.AnconSyncContext,
+	adapter *ethereum.OnchainAdapter, proofs *proofsignature.IavlProofAPI) gin.HandlerFunc {
 	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
 	server := rpc.NewServer()
 
@@ -54,7 +36,7 @@ func SmartContractHandler(anconCtx sdk.AnconSyncContext,
 	// if err != nil {
 	// 	panic(err)
 	// }
-	err = server.RegisterName("ancon", api.Service)
+	err := server.RegisterName("ancon", api.Service)
 
 	if err != nil {
 		panic(err)

@@ -26,12 +26,19 @@ var GENESISKEY = "/anconprotocol/"
 
 type ProofHandler struct {
 	*sdk.AnconSyncContext
-	db     dbm.DB
+	db dbm.DB
+
+	api    proofsignature.IavlProofAPI
 	proofs proofsignature.IavlProofService
 }
 
 func (h *ProofHandler) GetProofService() *proofsignature.IavlProofService {
 	return &h.proofs
+
+}
+
+func (h *ProofHandler) GetProofAPI() *proofsignature.IavlProofAPI {
+	return &h.api
 
 }
 func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
@@ -46,8 +53,32 @@ func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 		panic(err)
 	}
 	proofs, _ := proofsignature.NewIavlAPI(ctx.Store, ctx.Exchange, db, 2000, 0)
-	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service}
+	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs}
 
+}
+func (h *ProofHandler) VerifyGenesis(root, key string) error {
+
+	version := 0
+	tree, err := iavl.NewMutableTree(h.db, int(2000))
+	if err != nil {
+		return errors.Wrap(err, "unable to create iavl tree")
+	}
+	if _, err = tree.LoadVersion(int64(version)); err != nil {
+		return errors.Wrapf(err, "unable to load version %d", version)
+	}
+
+	_, v, err := tree.GetWithProof([]byte(key))
+	if err != nil {
+		return errors.Wrap(err, "Unable to get with proof")
+	}
+
+	bz, err := hex.DecodeString(root)
+	err = v.Verify(bz)
+	if err != nil {
+		return errors.Wrap(err, "Unable to get rawkey")
+	}
+
+	return nil
 }
 
 func InitGenesis(hostName string) (string, error) {
@@ -76,7 +107,7 @@ func InitGenesis(hostName string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	p, err := rand.Prime(rand.Reader, 1024)
+	p, err := rand.Prime(rand.Reader, 256)
 
 	dateHostname := strings.Join([]string{
 		hostName,

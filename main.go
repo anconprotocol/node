@@ -51,7 +51,7 @@ func main() {
 	genKeys := flag.Bool("keys", false, "Generate keys")
 	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
 	rootHash := flag.String("roothash", "", "root hash")
-
+	rootkey := flag.String("rootkey", "", "root key")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -84,17 +84,6 @@ func main() {
 		return
 	}
 
-	if *rootHash != "" {
-		result, err := handler.ValidateGenesis(*rootHash)
-
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Println(result)
-		
-	}
 	r := gin.Default()
 	config := cors.DefaultConfig()
 
@@ -118,8 +107,18 @@ func main() {
 		AnconSyncContext: dagHandler,
 	}
 
-	proofHandler := handler.ProofHandler{
-		AnconSyncContext: dagHandler,
+	proofHandler := handler.NewProofHandler(dagHandler)
+
+	if *rootHash != "" {
+		err := proofHandler.VerifyGenesis(*rootHash, *rootkey)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println("valid root hash: ", *rootHash)
+
 	}
 	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
 	dagJsonHandler := handler.DagJsonHandler{
@@ -129,7 +128,6 @@ func main() {
 	dagCborHandler := handler.DagCborHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-
 	}
 	fileHandler := handler.FileHandler{
 		AnconSyncContext: dagHandler,
@@ -161,6 +159,6 @@ func main() {
 	}
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter))
+	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter,proofHandler.GetProofAPI()))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
