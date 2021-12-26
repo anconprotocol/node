@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
@@ -107,23 +106,16 @@ func InitGenesis(hostName string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	p, err := rand.Prime(rand.Reader, 256)
-
-	dateHostname := strings.Join([]string{
-		hostName,
-		p.String(),
-	}, "_")
-
 	var digest []byte
 
-	keccak.Keccak256(digest, []byte(dateHostname))
+	keccak.Keccak256(digest, []byte(hostName))
 	signed, err := priv.Sign(rand.Reader, digest, nil)
 
 	if err != nil {
 		return " ", errors.Wrap(err, "Unable to sign")
 	}
 
-	cidlink := sdk.CreateCidLink(signed)
+	cidlink := sdk.CreateCidLink(signed[0:32])
 
 	key := fmt.Sprintf("%s%s", GENESISKEY, cidlink.String())
 	value := fmt.Sprintf(
@@ -131,7 +123,7 @@ func InitGenesis(hostName string) (string, error) {
 		data: "%s",
 		signature: "%s",
 		}`,
-		dateHostname, signed,
+		hostName, signed,
 	)
 
 	tree.Set([]byte(key), []byte(value))

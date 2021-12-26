@@ -18,11 +18,13 @@ import (
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type DagCborHandler struct {
 	*sdk.AnconSyncContext
-	Proof *proofsignature.IavlProofService
+	Proof    *proofsignature.IavlProofService
+	RootHash string
 }
 
 // @BasePath /v0
@@ -85,6 +87,8 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
+	p := fmt.Sprintf("%s/%s/%s", dagctx.RootHash, "user", didCid)
+
 	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, data)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -92,7 +96,10 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		})
 		return
 	}
-	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(v["path"])}, n)
+	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	dagctx.Proof.Set([]byte(p), data)
+	dagctx.Proof.SaveVersion(&emptypb.Empty{})
+
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})

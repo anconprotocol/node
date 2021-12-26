@@ -124,10 +124,12 @@ func main() {
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
+		RootHash:         *rootHash,
 	}
 	dagCborHandler := handler.DagCborHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
+		RootHash:         *rootHash,
 	}
 	fileHandler := handler.FileHandler{
 		AnconSyncContext: dagHandler,
@@ -159,6 +161,6 @@ func main() {
 	}
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter,proofHandler.GetProofAPI()))
+	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))
 	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

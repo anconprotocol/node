@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"context"
 	"encoding/json"
@@ -23,7 +24,8 @@ import (
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof *proofsignature.IavlProofService
+	Proof    *proofsignature.IavlProofService
+	RootHash string
 }
 
 // @BasePath /v0
@@ -76,6 +78,8 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
+	p := fmt.Sprintf("%s/%s/%s", dagctx.RootHash, "user", didCid)
+
 	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
 	hash := crypto.Keccak256([]byte(data))
 	sig := []byte(signature)
@@ -103,7 +107,9 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(path)}, n)
+	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	dagctx.Proof.Set([]byte(p), data)
+	dagctx.Proof.SaveVersion(&emptypb.Empty{})
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
