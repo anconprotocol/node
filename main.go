@@ -14,6 +14,9 @@ import (
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	gsync "github.com/ipfs/go-graphsync"
+	peer "github.com/libp2p/go-libp2p-core/peer"
+	multiaddr "github.com/multiformats/go-multiaddr"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -52,6 +55,8 @@ func main() {
 	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
 	rootHash := flag.String("roothash", "", "root hash")
 	rootkey := flag.String("rootkey", "", "root key")
+	sync := flag.Bool("sync", false, "Syncronizes remote dag storage")
+	seedPeers := flag.String("peers", "", "Array of peer addresses ")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -63,17 +68,6 @@ func main() {
 	flag.Parse()
 	if *genKeys == true {
 		result, err := handler.GenerateKeys()
-
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Println(result)
-		return
-	}
-	if *init == true {
-		result, err := handler.InitGenesis(*hostName)
 
 		if err != nil {
 			fmt.Println(err)
@@ -107,6 +101,25 @@ func main() {
 		AnconSyncContext: dagHandler,
 	}
 
+	if *init == true {
+		result, key, err := handler.InitGenesis(*hostName)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		err = dagHandler.Store.DataStore.Put(ctx, key, []byte(key))
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(result)
+		return
+	}
+
 	proofHandler := handler.NewProofHandler(dagHandler)
 
 	if *rootHash != "" {
@@ -120,6 +133,32 @@ func main() {
 		fmt.Println("valid root hash: ", *rootHash)
 
 	}
+
+	splitPeers := strings.Split(*seedPeers, ",")
+
+	if *sync && len(splitPeers) > 0 {
+		items := make([]peer.AddrInfo, len(splitPeers))
+		for i, value := range splitPeers {
+
+			multiCast := multiaddr.StringCast(value)
+			currentAddrInfo, err := peer.AddrInfoFromP2pAddr(multiCast)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			items[i] = *currentAddrInfo
+
+		}
+		rootKeyLink, err := sdk.ParseCidLink(*rootkey)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
+	}
+
 	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
