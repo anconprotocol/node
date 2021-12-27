@@ -65,6 +65,7 @@ func (h *ProofHandler) VerifyGenesis(root, key string) error {
 	if _, err = tree.LoadVersion(int64(version)); err != nil {
 		return errors.Wrapf(err, "unable to load version %d", version)
 	}
+	key = fmt.Sprintf("%s%s", GENESISKEY, key)
 
 	_, v, err := tree.GetWithProof([]byte(key))
 	if err != nil {
@@ -80,7 +81,7 @@ func (h *ProofHandler) VerifyGenesis(root, key string) error {
 	return nil
 }
 
-func InitGenesis(hostName string) (string, error) {
+func InitGenesis(hostName string) (string, string, error) {
 	userHomeDir, err := os.UserHomeDir()
 	version := 0
 	if err != nil {
@@ -95,10 +96,10 @@ func InitGenesis(hostName string) (string, error) {
 
 	tree, err := iavl.NewMutableTree(db, int(2000))
 	if err != nil {
-		return " ", errors.Wrap(err, "unable to create iavl tree")
+		return " ", " ", errors.Wrap(err, "unable to create iavl tree")
 	}
 	if _, err = tree.LoadVersion(int64(version)); err != nil {
-		return " ", errors.Wrapf(err, "unable to load version %d", version)
+		return " ", " ", errors.Wrapf(err, "unable to load version %d", version)
 	}
 
 	// Set your own keypair
@@ -112,7 +113,7 @@ func InitGenesis(hostName string) (string, error) {
 	signed, err := priv.Sign(rand.Reader, digest, nil)
 
 	if err != nil {
-		return " ", errors.Wrap(err, "Unable to sign")
+		return " ", " ", errors.Wrap(err, "Unable to sign")
 	}
 
 	cidlink := sdk.CreateCidLink(signed[0:32])
@@ -131,25 +132,25 @@ func InitGenesis(hostName string) (string, error) {
 	_, _, err = tree.SaveVersion()
 
 	if err != nil {
-		return " ", errors.Wrap(err, "Unable to commit")
+		return " ", " ", errors.Wrap(err, "Unable to commit")
 	}
 
 	_, proof, err := tree.GetWithProof([]byte(key))
 	if err != nil {
-		return " ", errors.Wrap(err, "Unable to get with proof")
+		return " ", " ", errors.Wrap(err, "Unable to get with proof")
 	}
 	var proofData []byte
 	proofData, err = proof.ToProto().Marshal()
 	// err = proto.Unmarshal(proofData, )
 	if err != nil {
-		return " ", errors.Wrap(err, "Unable to marshal")
+		return " ", " ", errors.Wrap(err, "Unable to marshal")
 	}
 
 	hash := tree.Hash()
 	rawKey, err := crypto.MarshalPrivateKey(priv)
 
 	if err != nil {
-		return " ", errors.Wrap(err, "Unable to get rawkey")
+		return " ", " ", errors.Wrap(err, "Unable to get rawkey")
 	}
 	stringRawKey := hexutil.Encode(rawKey)
 
@@ -160,10 +161,10 @@ func InitGenesis(hostName string) (string, error) {
 		*Genesis key: %s
 		*Proof: %s
 		*Last header hash: %s
-		`, stringRawKey, hex.EncodeToString([]byte(value)), key, hex.EncodeToString(proofData), hex.EncodeToString(hash),
+		`, stringRawKey, hex.EncodeToString([]byte(value)), cidlink.String(), hex.EncodeToString(proofData), hex.EncodeToString(hash),
 	)
 
-	return message, nil
+	return message, key, nil
 }
 
 func GenerateKeys() (string, error) {
