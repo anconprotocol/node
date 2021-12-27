@@ -1,9 +1,11 @@
 {
     "scripts": {
         "ganache": "ganache-cli -i 10",
-        "truffle": "truffle"
+        "truffle": "truffle",
+        "generate": "typechain --target ethers-v5 'build/contracts/*.json'"
     },
     "devDependencies": {
+        "@typechain/ethers-v5": "^8.0.5",
         "bignumber.js": "^9.0.1",
         "bluebird": "^3.7.2",
         "chai": "^4.2.0",
@@ -15,6 +17,7 @@
         "truffle-typings": "^1.0.8",
         "ts-mocha": "^8.0.0",
         "ts-node-dev": "^1.1.1",
+        "typechain": "^6.1.0",
         "typescript": "^4.1.3"
     },
     "dependencies": {

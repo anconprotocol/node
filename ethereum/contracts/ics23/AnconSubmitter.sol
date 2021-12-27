@@ -22,6 +22,7 @@ contract AnconSubmitter {
     {
         require(msg.sender == owner);
         relayNetworkHash = rootHash;
+        verifier.setRootHash(relayNetworkHash);
         return true;
     }
 

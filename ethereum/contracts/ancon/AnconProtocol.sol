@@ -1,21 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
+import "../ics23/ics23.sol";
 
-import "./ics23.sol";
-
-/// @title A title that should describe the contract/interface
-/// @author The name of the author
-/// @notice Explain to an end user what this does
-/// @dev Explain to a developer any extra details
-contract AnconVerifier is ICS23 {
+contract AnconProtocol is ICS23 {
     address public owner;
-    bytes relayNetworkHash;
+    bytes public relayNetworkHash;
+    
+    mapping(string => ExistenceProof) public accountProofs;
+    mapping(address => ExistenceProof) public accountByAddrProofs;
+    mapping(bytes => ExistenceProof) public proofs;
 
-    constructor(address onlyOwner) public {
-        owner = onlyOwner;
+    event ProofPacketSubmitted(bytes key, bytes packet);
+
+    constructor(address _onlyOwner) public {
+        owner = _onlyOwner;
     }
 
-    function setRootHash(bytes memory rootHash)
+    function enrollL2Account(string memory did, ExistenceProof memory proof)
+        public
+        payable
+        returns (bool)
+    {
+        accountProofs[did] = proof;
+        accountByAddrProofs[msg.sender] = proof;
+        return true;
+    }
+
+    function updateProtocolHeader(bytes memory rootHash)
         public
         returns (bool)
     {
@@ -23,6 +34,27 @@ contract AnconVerifier is ICS23 {
         relayNetworkHash = rootHash;
         return true;
     }
+
+    function submitPacketWithProof(
+        ExistenceProof memory proof,
+        bytes memory packet,
+        bytes memory key
+    ) public payable returns (bool) {
+        // 1. Verify
+        require(
+            keccak256(proof.value) == keccak256(packet),
+            "bad packet: packet hash is different from ics23 value"
+        );
+        verify(proof, getIavlSpec(), relayNetworkHash, key, proof.value);
+
+        proofs[key] = proof;
+
+        // 2. Submit event
+        emit ProofPacketSubmitted(key, packet);
+
+        return true;
+    }
+
     function convertProof(
         bytes memory key,
         bytes memory value,

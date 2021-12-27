@@ -31,7 +31,7 @@ abstract contract TrustedOffchainHelper is Ownable {
 
     function isValidProof(bytes32 digest, bytes memory signature)
         internal
-        returns (bool           )
+        returns (bool)
     {
         bytes32 r;
         bytes32 s;

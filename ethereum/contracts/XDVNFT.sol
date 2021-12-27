@@ -121,37 +121,37 @@ contract XDVNFT is
         return true;
     }
 
-    /**
-     * @dev Transfer a XDV Data Token URI with proof
-     */
-    function transferURIWithProof(
-        string memory toAddress,
-        string memory tokenId,
-        bytes memory proof
-    ) public returns (uint256) {
-        bool proofRef = submitPacketWithProof(toAddress, tokenId, proof);
+    // /**
+    //  * @dev Transfer a XDV Data Token URI with proof
+    //  */
+    // function transferURIWithProof(
+    //     string memory toAddress,
+    //     string memory tokenId,
+    //     bytes memory proof
+    // ) public returns (uint256) {
+    //     bool proofRef = submitPacketWithProof(toAddress, tokenId, proof);
                                     
-        require(proofRef, "Invalid proof");
-        (
-            bytes memory metadataCid,
-            bytes memory fromOwner,
-            bytes memory resultCid,
-            bytes memory toOwner,
-            ,
-            ,
-            bytes memory prefix,
-            bytes memory signature
-        ) = abi.decode(
-                proof,
-                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
-            );
-        uint256 newItemId = _tokenIds.current();
-        _setTokenURI(newItemId, string(metadataCid));
-        //       _transfer()
-        //send the method name
-        //make set token uri work
-        return newItemId;
-    }
+    //     require(proofRef, "Invalid proof");
+    //     (
+    //         bytes memory metadataCid,
+    //         bytes memory fromOwner,
+    //         bytes memory resultCid,
+    //         bytes memory toOwner,
+    //         ,
+    //         ,
+    //         bytes memory prefix,
+    //         bytes memory signature
+    //     ) = abi.decode(
+    //             proof,
+    //             (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
+    //         );
+    //     uint256 newItemId = _tokenIds.current();
+    //     _setTokenURI(newItemId, string(metadataCid));
+    //     //       _transfer()
+    //     //send the method name
+    //     //make set token uri work
+    //     return newItemId;
+    // }
 
     /**
      * @dev Requests a DAG contract offchain execution with proof
