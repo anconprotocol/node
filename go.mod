@@ -3,7 +3,7 @@ module github.com/anconprotocol/node
 go 1.17
 
 require (
-	github.com/anconprotocol/sdk v0.1.3
+	github.com/anconprotocol/sdk v0.1.4
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipld/go-ipld-prime v0.14.0
 	github.com/tendermint/tendermint v0.35.0
@@ -11,8 +11,6 @@ require (
 
 require (
 	github.com/0xPolygon/polygon-sdk v0.0.0-20211207172349-a9ee5ed12815
-	github.com/99designs/gqlgen v0.14.0
-	github.com/anconprotocol/contracts v0.1.2
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/confio/ics23/go v0.6.6
@@ -22,7 +20,9 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/hyperledger/aries-framework-go v0.1.7
 	github.com/ipfs/go-graphsync v0.9.3
+	github.com/libp2p/go-libp2p-core v0.8.6
 	github.com/mr-tron/base58 v1.2.0
+	github.com/multiformats/go-multiaddr v0.3.3
 	github.com/multiformats/go-multibase v0.0.3
 	github.com/multiformats/go-multicodec v0.3.0
 	github.com/pkg/errors v0.9.1
@@ -42,8 +42,6 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
-	github.com/Yamashou/gqlgenc v0.0.2 // indirect
-	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -138,7 +136,6 @@ require (
 	github.com/libp2p/go-libp2p-blankhost v0.2.0 // indirect
 	github.com/libp2p/go-libp2p-circuit v0.4.0 // indirect
 	github.com/libp2p/go-libp2p-connmgr v0.2.4 // indirect
-	github.com/libp2p/go-libp2p-core v0.8.6 // indirect
 	github.com/libp2p/go-libp2p-discovery v0.5.0 // indirect
 	github.com/libp2p/go-libp2p-kad-dht v0.13.1 // indirect
 	github.com/libp2p/go-libp2p-kbucket v0.4.7 // indirect
@@ -182,7 +179,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/multiformats/go-base32 v0.0.3 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
-	github.com/multiformats/go-multiaddr v0.3.3 // indirect
 	github.com/multiformats/go-multiaddr-dns v0.3.1 // indirect
 	github.com/multiformats/go-multiaddr-fmt v0.1.0 // indirect
 	github.com/multiformats/go-multihash v0.1.0 // indirect
@@ -222,7 +218,6 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/umbracle/fastrlp v0.0.0-20210128110402-41364ca56ca8 // indirect
 	github.com/valyala/fastjson v1.6.3 // indirect
-	github.com/vektah/gqlparser/v2 v2.2.0 // indirect
 	github.com/whyrusleeping/cbor v0.0.0-20171005072247-63513f603b11 // indirect
 	github.com/whyrusleeping/cbor-gen v0.0.0-20210219115102-f37d292932f2 // indirect
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1 // indirect
@@ -237,6 +232,7 @@ require (
 	go.uber.org/zap v1.18.1 // indirect
 	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e // indirect
 	golang.org/x/exp v0.0.0-20210615023648-acb5c1269671 // indirect
+	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
