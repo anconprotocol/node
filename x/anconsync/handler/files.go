@@ -78,6 +78,7 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": lnk.String(),
 	})
+	// impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
 	// impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, lnk)
 }
 

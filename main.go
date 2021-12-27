@@ -14,6 +14,7 @@ import (
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	gsync "github.com/ipfs/go-graphsync"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	multiaddr "github.com/multiformats/go-multiaddr"
 
@@ -155,6 +156,11 @@ func main() {
 			return
 		}
 		fmt.Println(rootKeyLink)
+
+		go func() {
+			impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
+		}()
+
 		///	impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
 	}
 
