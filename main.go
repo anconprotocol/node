@@ -14,7 +14,6 @@ import (
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	gsync "github.com/ipfs/go-graphsync"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	multiaddr "github.com/multiformats/go-multiaddr"
 
@@ -122,7 +121,7 @@ func main() {
 
 	proofHandler := handler.NewProofHandler(dagHandler)
 
-	if *rootHash != "" {
+	if *rootHash != "" && *sync == false {
 		err := proofHandler.VerifyGenesis(*rootHash, *rootkey)
 
 		if err != nil {
@@ -155,8 +154,8 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-
-		impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
+		fmt.Println(rootKeyLink)
+		///	impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
 	}
 
 	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
