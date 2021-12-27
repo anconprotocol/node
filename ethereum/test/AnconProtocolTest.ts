@@ -53,6 +53,7 @@ async function main() {
       valid: true,
     },
   ]; //proofCombined[0].exist.path
+
   exProof.valid = true;
   exProof.value = proofCombined[0].exist.value;
   // await contract.updateProtocolHeader()
@@ -61,7 +62,7 @@ async function main() {
     base64.decode(exProof.leaf.prefix as any),
     base64.decode(exProof.path[0].prefix as any),
     base64.decode(exProof.path[0].suffix as any),
-    0,
+    1,
     base64.decode(exProof.key),
     base64.decode(exProof.value),
   )
@@ -77,7 +78,7 @@ async function main() {
   );
 
   const contractName = "ANCON PROTOCOL";
-
+  console.log(`Our ${contractName} root calculation is: ${resRootCalc}`);
   console.log(`Our ${contractName} proof is: ${resVerifyProof}`);
 
   console.log(`Listing Transfer events for block ${BLOCK_NUMBER}`);
