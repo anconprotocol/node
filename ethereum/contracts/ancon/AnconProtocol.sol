@@ -5,10 +5,10 @@ import "../ics23/ics23.sol";
 contract AnconProtocol is ICS23 {
     address public owner;
     bytes public relayNetworkHash;
-    
-    mapping(string => ExistenceProof) public accountProofs;
-    mapping(address => ExistenceProof) public accountByAddrProofs;
-    mapping(bytes => ExistenceProof) public proofs;
+
+    mapping(string => bytes) public accountProofs;
+    mapping(address => bytes) public accountByAddrProofs;
+    mapping(bytes => bool) public proofs;
 
     event ProofPacketSubmitted(bytes key, bytes packet);
 
@@ -21,15 +21,13 @@ contract AnconProtocol is ICS23 {
         payable
         returns (bool)
     {
-        accountProofs[did] = proof;
-        accountByAddrProofs[msg.sender] = proof;
+        require(verifyProof(proof, proof.key));
+        accountProofs[did] = proof.key;
+        accountByAddrProofs[msg.sender] = proof.key;
         return true;
     }
 
-    function updateProtocolHeader(bytes memory rootHash)
-        public
-        returns (bool)
-    {
+    function updateProtocolHeader(bytes memory rootHash) public returns (bool) {
         require(msg.sender == owner);
         relayNetworkHash = rootHash;
         return true;
@@ -45,9 +43,9 @@ contract AnconProtocol is ICS23 {
             keccak256(proof.value) == keccak256(packet),
             "bad packet: packet hash is different from ics23 value"
         );
-        verify(proof, getIavlSpec(), relayNetworkHash, key, proof.value);
+                require(verifyProof(proof, proof.key));
 
-        proofs[key] = proof;
+        proofs[key] = true;
 
         // 2. Submit event
         emit ProofPacketSubmitted(key, packet);
