@@ -21,7 +21,7 @@ contract AnconProtocol is ICS23 {
         payable
         returns (bool)
     {
-        require(verifyProof(proof, proof.key));
+        // require(verifyProof(proof, proof.key));
         accountProofs[did] = proof.key;
         accountByAddrProofs[msg.sender] = proof.key;
         return true;
@@ -43,7 +43,7 @@ contract AnconProtocol is ICS23 {
             keccak256(proof.value) == keccak256(packet),
             "bad packet: packet hash is different from ics23 value"
         );
-                require(verifyProof(proof, proof.key));
+                // require(verifyProof(proof, proof.key));
 
         proofs[key] = true;
 
@@ -91,14 +91,55 @@ contract AnconProtocol is ICS23 {
         return proof;
     }
 
-    function verifyProof(ExistenceProof memory proof, bytes memory key)
+    function verifyProof(
+        bytes memory key,
+        bytes memory value,
+        bytes memory _prefix,
+        uint256[] memory _leafOpUint,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix,
+        uint256 existenceProofInnerOpHash
+    )
         public
         view
         returns (bool)
     {
+
+        ExistenceProof memory exProof = convertProof(
+            key, 
+            value, 
+            _prefix, 
+            _leafOpUint, 
+            _innerOpPrefix,
+            _innerOpSuffix, 
+            existenceProofInnerOpHash
+        );
+
         // Verify membership
-        verify(proof, getIavlSpec(), relayNetworkHash, key, proof.value);
+        verify(exProof, getIavlSpec(), relayNetworkHash, key, exProof.value);
 
         return true;
     }
+    function queryRootCalculation(
+        uint256[] memory leafOpUint,
+        bytes memory prefix,
+        // bytes[][] memory existenceProofInnerOp,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix,
+        uint256 existenceProofInnerOpHash,
+        bytes memory existenceProofKey,
+        bytes memory existenceProofValue
+    ) public view returns (bytes memory) {
+        ExistenceProof memory proof = convertProof(
+            existenceProofKey,
+            existenceProofValue,
+            prefix,
+            leafOpUint,
+            _innerOpPrefix,
+            _innerOpSuffix,
+            existenceProofInnerOpHash
+        );
+        return bytes(calculate(proof));
+    }
+
 }
