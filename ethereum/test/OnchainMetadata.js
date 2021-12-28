@@ -79,7 +79,7 @@ function toABIproofs(proofCombined) {
   };
 }
 
-contract("Onchain Metadata", (accounts) => {
+contract("QueryRootCalculation", (accounts) => {
   describe("when requesting to add metadata onchain", () => {
     it("should return true and emit event", async () => {
       try {
@@ -103,7 +103,7 @@ contract("Onchain Metadata", (accounts) => {
           { from: accounts[0] }
         );
         console.log(restUpdtHeader);
-        
+
       } catch (e) {
         console.log(e);
       }
