@@ -12,8 +12,8 @@ type Packet struct {
 	ops   []int32
 	proof []byte
 	root  []byte
-	key   []byte
-	value []byte
+	key   string
+	value string
 	data  []byte
 }
 
@@ -103,7 +103,7 @@ func encodeBytesString(v string) []byte {
 
 func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	updatedProof *EncodePackedExistenceProof,
-	value []byte,
+	value string,
 	data []byte,
 ) ([]byte, error) {
 
@@ -132,7 +132,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 func (adapter *OnchainAdapter) GenerateVerificationProof(
 	proof *EncodePackedExistenceProof,
 	root []byte,
-	value []byte,
+	value string,
 ) ([]byte, error) {
 
 	packet := &Packet{
