@@ -1,4 +1,4 @@
-package ethereum	
+package ethereum
 
 import (
 	"encoding/base64"
@@ -14,8 +14,8 @@ type EncodePackedExistenceProof struct {
 	InnerOpPrefix []byte
 	InnerOpHashOp int32
 	Prefix        []byte
-	Key           []byte
-	Value         []byte
+	Key           string
+	Value         string
 }
 
 var template = `{
@@ -105,8 +105,8 @@ func (a *OnchainAdapter) MarshalProof(v []byte) *EncodePackedExistenceProof {
 
 	var innerOpHash int32
 
-	key, err := base64.RawStdEncoding.DecodeString(string(p.Key))
-	value, err := base64.RawStdEncoding.DecodeString(string(p.Value))
+	key := string(p.Key)
+	value := (string(p.Value))
 	prefix, err := base64.RawStdEncoding.DecodeString(string(p.Leaf.Prefix))
 	innerOpHash = ics23.HashOp_value[p.Path[0].Hash.String()]
 

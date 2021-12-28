@@ -8,6 +8,14 @@ import (
 	"github.com/umbracle/go-web3/abi"
 )
 
+type Packet struct {
+	ops   []int32
+	proof []byte
+	root  []byte
+	key   string
+	value string
+	data  []byte
+}
 type EnrollL2Account struct {
 	did           []byte
 	innerOpPrefix []byte
@@ -161,7 +169,7 @@ func (adapter *OnchainAdapter) EnrollL2Account(
 
 func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	updatedProof *EncodePackedExistenceProof,
-	value []byte,
+	value string,
 	data []byte,
 ) ([]byte, error) {
 
@@ -190,7 +198,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 func (adapter *OnchainAdapter) GenerateVerificationProof(
 	proof *EncodePackedExistenceProof,
 	root []byte,
-	value []byte,
+	value string,
 ) ([]byte, error) {
 
 	packet := &VerifyProof{

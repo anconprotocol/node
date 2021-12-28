@@ -222,7 +222,7 @@ func (h *Host) SubmitProof(data interface{}, mem *wasmedge.Memory, params []inte
 	}
 
 	abiIcs23Proof := h.adapter.MarshalProof(proof)
-	bz, err := h.adapter.ApplyRequestWithProof(abiIcs23Proof, value, []byte(packet))
+	bz, err := h.adapter.ApplyRequestWithProof(abiIcs23Proof, string(value), []byte(packet))
 
 	length := uint(len(bz))
 	x := i32tob(uint32(len(bz)))
