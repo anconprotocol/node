@@ -8,19 +8,52 @@ import (
 	"github.com/umbracle/go-web3/abi"
 )
 
-type Packet struct {
-	ops   []int32
-	proof []byte
-	root  []byte
-	key   []byte
-	value []byte
-	data  []byte
+type EnrollL2Account struct {
+	did           []byte
+	innerOpPrefix []byte
+	key           []byte
+	innerOpSuffix []byte
+	prefix        []byte
+}
+type VerifyProof struct {
+	value        []byte
+	innerOpPrefix []byte
+	key           []byte
+	innerOpSuffix []byte
+	prefix        []byte
+}
+type SubmitPacketWithProof struct {
+	packet        []byte
+	innerOpPrefix []byte
+	key           []byte
+	innerOpSuffix []byte
+	prefix        []byte
 }
 
-func SignedProofAbiMethod() *abi.Method {
+func SubmitPacketWithProofAbi() *abi.Method {
 
-	// uint256Type, _ := abi.NewType("uint256", "", nil)
-	m, err := abi.NewMethod("verifyProof(uint256[] ops,string proof, string root, string key, string value)")
+	m, err := abi.NewMethod("submitPacketWithProof(string key, string packet,string prefix,string innerOpPrefix,string innerOpSuffix)")
+
+	if err != nil {
+		panic(err)
+	}
+
+	return m
+}
+func EnrollL2AccountAbi() *abi.Method {
+
+	m, err := abi.NewMethod("enrollL2Account(string key, string did,string prefix,string innerOpPrefix,string innerOpSuffix)")
+
+	if err != nil {
+		panic(err)
+	}
+
+	return m
+}
+
+func VerifyProofAbi() *abi.Method {
+
+	m, err := abi.NewMethod("verifyProof(string key, string value,string prefix,string innerOpPrefix,string innerOpSuffix)")
 
 	if err != nil {
 		panic(err)
@@ -40,7 +73,6 @@ type OnchainAdapter struct {
 }
 
 func NewOnchainAdapter(from string, chainName string, chainID int) *OnchainAdapter {
-
 	return &OnchainAdapter{
 		From:      from,
 		ChainName: chainName,
@@ -100,6 +132,32 @@ func encodeBytesString(v string) []byte {
 
 // 	return nil, resultCid, nil
 // }
+func (adapter *OnchainAdapter) EnrollL2Account(
+	updatedProof *EncodePackedExistenceProof,
+	value []byte,
+	data []byte,
+) ([]byte, error) {
+
+	packet := &EnrollL2Account{
+		proof: encodePacked(
+			updatedProof.Prefix,
+			updatedProof.InnerOpPrefix,
+			updatedProof.InnerOpSuffix,
+			i32tob((uint32(updatedProof.InnerOpHashOp))),
+		),
+		key:   updatedProof.Key,
+		value: value,
+		data:  data,
+	}
+
+	signedProofData, err := EnrollL2AccountAbi().Inputs.Encode(packet)
+
+	if err != nil {
+		return nil, fmt.Errorf("packing for signature proof generation failed")
+	}
+
+	return signedProofData, nil
+}
 
 func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	updatedProof *EncodePackedExistenceProof,
@@ -107,7 +165,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 	data []byte,
 ) ([]byte, error) {
 
-	packet := &Packet{
+	packet := &SubmitPacketWithProof{
 		ops: updatedProof.LeafOp,
 		proof: encodePacked(
 			updatedProof.Prefix,
@@ -120,7 +178,7 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 		data:  data,
 	}
 
-	signedProofData, err := SignedProofAbiMethod().Inputs.Encode(packet)
+	signedProofData, err := SubmitPacketWithProofAbi().Inputs.Encode(packet)
 
 	if err != nil {
 		return nil, fmt.Errorf("packing for signature proof generation failed")
@@ -135,7 +193,7 @@ func (adapter *OnchainAdapter) GenerateVerificationProof(
 	value []byte,
 ) ([]byte, error) {
 
-	packet := &Packet{
+	packet := &VerifyProof{
 		ops: proof.LeafOp,
 		proof: encodePacked(
 			proof.Prefix,
@@ -149,7 +207,7 @@ func (adapter *OnchainAdapter) GenerateVerificationProof(
 		data:  nil,
 	}
 
-	signedProofData, err := SignedProofAbiMethod().Inputs.Encode(packet)
+	signedProofData, err := VerifyProofAbi().Inputs.Encode(packet)
 
 	if err != nil {
 		return nil, fmt.Errorf("packing for signature proof generation failed")
