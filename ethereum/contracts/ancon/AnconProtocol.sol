@@ -6,7 +6,7 @@ contract AnconProtocol is ICS23 {
     address public owner;
     bytes public relayNetworkHash;
 
-    mapping(string => bytes) public accountProofs;
+    mapping(bytes => bytes) public accountProofs;
     mapping(address => bytes) public accountByAddrProofs;
     mapping(bytes => bool) public proofs;
 
@@ -16,14 +16,16 @@ contract AnconProtocol is ICS23 {
         owner = _onlyOwner;
     }
 
-    function enrollL2Account(string memory did, ExistenceProof memory proof)
-        public
-        payable
-        returns (bool)
-    {
-        // require(verifyProof(proof, proof.key));
-        accountProofs[did] = proof.key;
-        accountByAddrProofs[msg.sender] = proof.key;
+    function enrollL2Account(
+        bytes memory key, // did cid
+        bytes memory did, // did id
+        bytes memory _prefix,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix
+    ) public payable returns (bool) {
+        require(verifyProof(key, did, _prefix, _innerOpPrefix, _innerOpSuffix));
+        accountProofs[(did)] = key;
+        accountByAddrProofs[msg.sender] = key;
         return true;
     }
 
@@ -34,16 +36,14 @@ contract AnconProtocol is ICS23 {
     }
 
     function submitPacketWithProof(
-        ExistenceProof memory proof,
+        bytes memory key,
         bytes memory packet,
-        bytes memory key
+        bytes memory _prefix,
+        bytes memory _innerOpPrefix,
+        bytes memory _innerOpSuffix
     ) public payable returns (bool) {
         // 1. Verify
-        require(
-            keccak256(proof.value) == keccak256(packet),
-            "bad packet: packet hash is different from ics23 value"
-        );
-                // require(verifyProof(proof, proof.key));
+        require(verifyProof(key, packet, _prefix, _innerOpPrefix, _innerOpSuffix));
 
         proofs[key] = true;
 
@@ -74,7 +74,7 @@ contract AnconProtocol is ICS23 {
 
         innerOpArr[0] = InnerOp({
             valid: true,
-            hash: HashOp.SHA256,//HashOp(existenceProofInnerOpHash),
+            hash: HashOp.SHA256,
             prefix: _innerOpPrefix,
             suffix: _innerOpSuffix
         });
@@ -93,37 +93,33 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
-        //uint256[] memory _leafOpUint,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
-        bytes memory root
-        //uint256 existenceProofInnerOpHash
+        bytes memory _innerOpSuffix
     )
         public
         view
-        returns (bool)
+        returns (
+            bool
+        )
     {
-
         ExistenceProof memory exProof = convertProof(
-            key, 
-            value, 
-            _prefix, 
+            key,
+            value,
+            _prefix,
             _innerOpPrefix,
             _innerOpSuffix
         );
 
         // Verify membership
-        verify(exProof, getIavlSpec(), root, key, exProof.value);
+        verify(exProof, getIavlSpec(), relayNetworkHash, key, exProof.value);
 
         return true;
     }
+
     function queryRootCalculation(
-      //  uint256[] memory leafOpUint,
         bytes memory prefix,
-        // bytes[][] memory existenceProofInnerOp,
         bytes memory _innerOpPrefix,
         bytes memory _innerOpSuffix,
-      //  uint256 existenceProofInnerOpHash,
         bytes memory existenceProofKey,
         bytes memory existenceProofValue
     ) public view returns (bytes memory) {
@@ -136,5 +132,4 @@ contract AnconProtocol is ICS23 {
         );
         return bytes(calculate(proof));
     }
-
 }
