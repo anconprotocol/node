@@ -20,6 +20,7 @@ import (
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type AvailableDid string
@@ -215,7 +216,7 @@ func (dagctx *Did) CreateDidKey(c *gin.Context) {
 
 	domainName := ""
 	pub := []byte{}
-	cid, err := dagctx.AddDid(DidTypeKey, domainName, pub)
+	cid, _, err := dagctx.AddDid(DidTypeKey, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
@@ -246,7 +247,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 
 	domainName := v["domainName"]
 	pub := base58.Decode(v["pub"])
-	cid, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
+	cid, _, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
@@ -258,7 +259,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
-func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, error) {
+func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, ipld.Link, error) {
 
 	var didDoc *did.Doc
 	var err error
@@ -268,36 +269,58 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 
 		exists, err := dagctx.Store.DataStore.Has(ctx, domainName)
 		if err != nil {
-			return nil, fmt.Errorf("invalid domain name: %v", domainName)
+			return nil, nil, fmt.Errorf("invalid domain name: %v", domainName)
 		}
 		if exists {
-			return nil, fmt.Errorf("invalid domain name: %v", domainName)
+			return nil, nil, fmt.Errorf("invalid domain name: %v", domainName)
 		}
 
 		didDoc, err = dagctx.BuildDidWeb(domainName, pubbytes)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 	} else if didType == DidTypeKey {
 		didDoc, err = dagctx.BuildDidKey()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 	} else {
-		return nil, fmt.Errorf("Must create a did")
+		return nil, nil, fmt.Errorf("Must create a did")
 	}
 	bz, err := didDoc.JSONBytes()
 	n, err := sdk.Decode(basicnode.Prototype.Any, string(bz))
 	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
 
-	return lnk, nil
+	// proofs
+	key := fmt.Sprintf("%s/user/%s", dagctx.RootHash, didDoc.ID)
+	_, err = dagctx.Proof.Set([]byte(key), []byte(lnk.String()))
+	if err != nil {
+		return nil, nil, fmt.Errorf("Invalid key")
+	}
+	_, err = dagctx.Proof.SaveVersion(&emptypb.Empty{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("Invalid commit")
+	}
+	proof, err := dagctx.Proof.GetCommitmentProof([]byte(key))
+	if err != nil {
+		return nil, nil, fmt.Errorf("Invalid key")
+	}
+	proofnode, err := sdk.Decode(basicnode.Prototype.Any, string(proof))
+	cidlink := dagctx.Store.Store(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(key),
+	}, proofnode)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return lnk, cidlink, nil
 }
 
 func (dagctx *Did) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {

@@ -108,6 +108,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	p = fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(p), data)
 	dagctx.Proof.SaveVersion(&emptypb.Empty{})
 	c.JSON(201, gin.H{
@@ -134,7 +135,9 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(c.Param("path"))}, cidlink.Link{Cid: lnk})
+	p := fmt.Sprintf("%s/", dagctx.RootHash)
+
+	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk})
 
 	if err != nil {
 		c.JSON(400, gin.H{
