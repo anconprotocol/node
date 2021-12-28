@@ -19,7 +19,7 @@ type VerifyProof struct {
 	value        []byte
 	innerOpPrefix []byte
 	key           []byte
-	innerOpSuffix []byte
+	innerOpSuffix []byte	
 	prefix        []byte
 }
 type SubmitPacketWithProof struct {
