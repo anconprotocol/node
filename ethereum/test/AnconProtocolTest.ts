@@ -7,7 +7,7 @@ import { ics23 } from "@confio/ics23";
 import { base64 } from "ethers/lib/utils";
 
 const RPC_HOST = "http://localhost:8545/";
-const CONTRACT_ADDRESS = "0x59b0e313070138127dc91F9F357Ba989FE5D57F8";
+const CONTRACT_ADDRESS = "0x7cf045071FD203533FA76042AF1CE124Ea92E6fc";
 const BLOCK_NUMBER = 13730326;
 const ACCOUNT_ADDRESS = "0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6";
 
@@ -58,15 +58,13 @@ async function main() {
   exProof.value = proofCombined[0].exist.value;
   // await contract.updateProtocolHeader()
   const resRootCalc = await contract.queryRootCalculation(
-    [1, 0, 1, 1],
     base64.decode(exProof.leaf.prefix as any),
     base64.decode(exProof.path[0].prefix as any),
     base64.decode(exProof.path[0].suffix as any),
-    1,
     base64.decode(exProof.key),
     base64.decode(exProof.value),
   )
-
+ await contract.updateProtocolHeader(resRootCalc)
   const resVerifyProof = await contract.verifyProof(
     base64.decode(exProof.key),
     base64.decode(exProof.value),

@@ -57,17 +57,15 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
-        uint256[] memory _leafOpUint,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
-        uint256 existenceProofInnerOpHash
+        bytes memory _innerOpSuffix
     ) public pure returns (ExistenceProof memory) {
         LeafOp memory leafOp = LeafOp(
             true,
-            HashOp((_leafOpUint[0])),
-            HashOp((_leafOpUint[1])),
-            HashOp((_leafOpUint[2])),
-            LengthOp((_leafOpUint[3])),
+            HashOp.SHA256,
+            HashOp.NO_HASH,
+            HashOp.SHA256,
+            LengthOp.VAR_PROTO,
             _prefix
         );
 
@@ -76,7 +74,7 @@ contract AnconProtocol is ICS23 {
 
         innerOpArr[0] = InnerOp({
             valid: true,
-            hash: HashOp(existenceProofInnerOpHash),
+            hash: HashOp.SHA256,//HashOp(existenceProofInnerOpHash),
             prefix: _innerOpPrefix,
             suffix: _innerOpSuffix
         });
@@ -109,10 +107,8 @@ contract AnconProtocol is ICS23 {
             key, 
             value, 
             _prefix, 
-            _leafOpUint, 
             _innerOpPrefix,
-            _innerOpSuffix, 
-            existenceProofInnerOpHash
+            _innerOpSuffix
         );
 
         // Verify membership
@@ -121,12 +117,12 @@ contract AnconProtocol is ICS23 {
         return true;
     }
     function queryRootCalculation(
-        uint256[] memory leafOpUint,
+      //  uint256[] memory leafOpUint,
         bytes memory prefix,
         // bytes[][] memory existenceProofInnerOp,
         bytes memory _innerOpPrefix,
         bytes memory _innerOpSuffix,
-        uint256 existenceProofInnerOpHash,
+      //  uint256 existenceProofInnerOpHash,
         bytes memory existenceProofKey,
         bytes memory existenceProofValue
     ) public view returns (bytes memory) {
@@ -134,10 +130,8 @@ contract AnconProtocol is ICS23 {
             existenceProofKey,
             existenceProofValue,
             prefix,
-            leafOpUint,
             _innerOpPrefix,
-            _innerOpSuffix,
-            existenceProofInnerOpHash
+            _innerOpSuffix
         );
         return bytes(calculate(proof));
     }
