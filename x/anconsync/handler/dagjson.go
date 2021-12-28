@@ -78,7 +78,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s/%s", dagctx.RootHash, "user", didCid)
+	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootHash, "user", didCid)
 
 	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
 	hash := crypto.Keccak256([]byte(data))
@@ -135,9 +135,11 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	p := fmt.Sprintf("%s/", dagctx.RootHash)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
 
-	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk})
+	n, err := dagctx.Store.Load(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(p),
+	}, cidlink.Link{Cid: lnk})
 
 	if err != nil {
 		c.JSON(400, gin.H{

@@ -8,20 +8,13 @@ import (
 	"github.com/umbracle/go-web3/abi"
 )
 
-type Packet struct {
-	ops   []int32
-	proof []byte
-	root  []byte
-	key   string
-	value string
-	data  []byte
-}
 type EnrollL2Account struct {
 	did           []byte
 	innerOpPrefix []byte
 	key           []byte
 	innerOpSuffix []byte
 	prefix        []byte
+	innerOp       map[uint32][]byte
 }
 type VerifyProof struct {
 	value         []byte
@@ -29,6 +22,7 @@ type VerifyProof struct {
 	key           []byte
 	innerOpSuffix []byte
 	prefix        []byte
+	innerOp       map[uint32][]byte
 }
 type SubmitPacketWithProof struct {
 	packet        []byte
@@ -36,11 +30,12 @@ type SubmitPacketWithProof struct {
 	key           []byte
 	innerOpSuffix []byte
 	prefix        []byte
+	innerOp       map[uint32][]byte
 }
 
 func SubmitPacketWithProofAbi() *abi.Method {
 
-	m, err := abi.NewMethod("submitPacketWithProof(string key, string packet,string prefix,string innerOpPrefix,string innerOpSuffix)")
+	m, err := abi.NewMethod("submitPacketWithProof(string key, string packet,string prefix,string innerOpPrefix,string innerOpSuffix, bytes[][] innerOp)")
 
 	if err != nil {
 		panic(err)
@@ -50,7 +45,7 @@ func SubmitPacketWithProofAbi() *abi.Method {
 }
 func EnrollL2AccountAbi() *abi.Method {
 
-	m, err := abi.NewMethod("enrollL2Account(string key, string did,string prefix,string innerOpPrefix,string innerOpSuffix)")
+	m, err := abi.NewMethod("enrollL2Account(string key, string did,string prefix,string innerOpPrefix,string innerOpSuffix, bytes[][] innerOp)")
 
 	if err != nil {
 		panic(err)
@@ -61,7 +56,7 @@ func EnrollL2AccountAbi() *abi.Method {
 
 func VerifyProofAbi() *abi.Method {
 
-	m, err := abi.NewMethod("verifyProof(string key, string value,string prefix,string innerOpPrefix,string innerOpSuffix)")
+	m, err := abi.NewMethod("verifyProof(string key, string value,string prefix,string innerOpPrefix,string innerOpSuffix, bytes[][] innerOp)")
 
 	if err != nil {
 		panic(err)
@@ -152,6 +147,7 @@ func (adapter *OnchainAdapter) EnrollL2Account(
 		key:           []byte(proof.Key),
 		innerOpSuffix: proof.InnerOpSuffix,
 		prefix:        proof.Prefix,
+		// innerOp: proof.InnerOp,
 	}
 
 	signedProofData, err := EnrollL2AccountAbi().Inputs.Encode(packet)

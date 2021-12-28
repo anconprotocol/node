@@ -1,9 +1,10 @@
 
 
-POST https://api.ancon.did.pa/v0/did/web
+POST http://localhost:7788/v0/did/web
 Content-Type: application/json
 
 {
-  "domainName": "cerroancon-4",
+  "domainName": "cerroancon-6",
   "pub": "SCqcujhpdXvHhVo3FfLHc5nToKiLc5yukj5MqSgLSbU3cZmwtoko2qSNizphk4wAZvvcSV3htWYy3tvnPiBacpki"
 }
+

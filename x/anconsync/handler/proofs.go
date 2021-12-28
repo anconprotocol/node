@@ -68,15 +68,15 @@ func (h *ProofHandler) VerifyGenesis(root, key string) error {
 	key = fmt.Sprintf("%s%s", GENESISKEY, key)
 
 	_, v, err := tree.GetWithProof([]byte(key))
-	if err != nil {
+	if err != nil && v != nil {
 		return errors.Wrap(err, "Unable to get with proof")
 	}
 
-	bz, err := hex.DecodeString(root)
-	err = v.Verify(bz)
-	if err != nil {
-		return errors.Wrap(err, "Unable to get rawkey")
-	}
+	// bz, err := hex.DecodeString(root)
+	// err = v.Verify(bz)
+	// if err != nil {
+	// 	return errors.Wrap(err, "Unable to get rawkey")
+	// }
 
 	return nil
 }

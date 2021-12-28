@@ -17,13 +17,23 @@ contract AnconProtocol is ICS23 {
     }
 
     function enrollL2Account(
-        bytes memory key, // did cid
-        bytes memory did, // did id
+        bytes memory key, // proof key "/anconprotocol/root/user/diddocid"
+        bytes memory did, // proof value did doc id
         bytes memory _prefix,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix
+        bytes memory _innerOpSuffix,
+        bytes[][] memory _innerOp
     ) public payable returns (bool) {
-        require(verifyProof(key, did, _prefix, _innerOpPrefix, _innerOpSuffix));
+        require(
+            verifyProof(
+                key,
+                did,
+                _prefix,
+                _innerOpPrefix,
+                _innerOpSuffix,
+                _innerOp
+            )
+        );
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
         return true;
@@ -40,10 +50,20 @@ contract AnconProtocol is ICS23 {
         bytes memory packet,
         bytes memory _prefix,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix
+        bytes memory _innerOpSuffix,
+        bytes[][] memory _innerOp
     ) public payable returns (bool) {
         // 1. Verify
-        require(verifyProof(key, packet, _prefix, _innerOpPrefix, _innerOpSuffix));
+        require(
+            verifyProof(
+                key,
+                packet,
+                _prefix,
+                _innerOpPrefix,
+                _innerOpSuffix,
+                _innerOp
+            )
+        );
 
         proofs[key] = true;
 
@@ -58,7 +78,8 @@ contract AnconProtocol is ICS23 {
         bytes memory value,
         bytes memory _prefix,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix
+        bytes memory _innerOpSuffix,
+        bytes[][] memory _innerOp
     ) public pure returns (ExistenceProof memory) {
         LeafOp memory leafOp = LeafOp(
             true,
@@ -70,14 +91,17 @@ contract AnconProtocol is ICS23 {
         );
 
         // // innerOpArr
-        InnerOp[] memory innerOpArr = new InnerOp[](1);
+        InnerOp[] memory innerOpArr = new InnerOp[](_innerOp.length);
 
-        innerOpArr[0] = InnerOp({
-            valid: true,
-            hash: HashOp.SHA256,
-            prefix: _innerOpPrefix,
-            suffix: _innerOpSuffix
-        });
+        for (uint256 i = 0; i < _innerOp.length; i++) {
+            bytes[] memory temp = _innerOp[i];
+            innerOpArr[i] = InnerOp({
+                valid: true,
+                hash: HashOp(1),
+                prefix: temp[0],
+                suffix: temp[1]
+            });
+        }
         ExistenceProof memory proof = ExistenceProof({
             valid: true,
             key: key,
@@ -94,20 +118,16 @@ contract AnconProtocol is ICS23 {
         bytes memory value,
         bytes memory _prefix,
         bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix
-    )
-        public
-        view
-        returns (
-            bool
-        )
-    {
+        bytes memory _innerOpSuffix,
+        bytes[][] memory _innerOp
+    ) public view returns (bool) {
         ExistenceProof memory exProof = convertProof(
             key,
             value,
             _prefix,
             _innerOpPrefix,
-            _innerOpSuffix
+            _innerOpSuffix,
+            _innerOp
         );
 
         // Verify membership
@@ -121,14 +141,16 @@ contract AnconProtocol is ICS23 {
         bytes memory _innerOpPrefix,
         bytes memory _innerOpSuffix,
         bytes memory existenceProofKey,
-        bytes memory existenceProofValue
+        bytes memory existenceProofValue,
+        bytes[][] memory _innerOp
     ) public view returns (bytes memory) {
         ExistenceProof memory proof = convertProof(
             existenceProofKey,
             existenceProofValue,
             prefix,
             _innerOpPrefix,
-            _innerOpSuffix
+            _innerOpSuffix,
+            _innerOp
         );
         return bytes(calculate(proof));
     }

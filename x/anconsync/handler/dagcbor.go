@@ -87,7 +87,7 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s/%s", dagctx.RootHash, "user", didCid)
+	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootHash, "user", didCid)
 
 	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, data)
 	if err != nil {

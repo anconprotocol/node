@@ -216,14 +216,15 @@ func (dagctx *Did) CreateDidKey(c *gin.Context) {
 
 	domainName := ""
 	pub := []byte{}
-	cid, _, err := dagctx.AddDid(DidTypeKey, domainName, pub)
+	cid, proof, err := dagctx.AddDid(DidTypeKey, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
 	c.JSON(201, gin.H{
-		"cid": cid,
+		"cid":   cid,
+		"proof": proof,
 	})
 }
 
@@ -246,14 +247,15 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 
 	domainName := v["domainName"]
 	pub := base58.Decode(v["pub"])
-	cid, _, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
+	cid, proof, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
 	c.JSON(201, gin.H{
-		"cid": cid,
+		"cid":   cid,
+		"proof": proof,
 	})
 }
 
@@ -297,18 +299,20 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
 
 	// proofs
-	key := fmt.Sprintf("%s/user/%s", dagctx.RootHash, didDoc.ID)
-	_, err = dagctx.Proof.Set([]byte(key), []byte(lnk.String()))
+	key := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
+	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootHash, lnk.String())
+	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
 	if err != nil {
-		return nil, nil, fmt.Errorf("Invalid key")
+		return nil, nil, fmt.Errorf("invalid key")
 	}
-	_, err = dagctx.Proof.SaveVersion(&emptypb.Empty{})
+	res, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
+	fmt.Println(res)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Invalid commit")
+		return nil, nil, fmt.Errorf("invalid commit")
 	}
 	proof, err := dagctx.Proof.GetCommitmentProof([]byte(key))
 	if err != nil {
-		return nil, nil, fmt.Errorf("Invalid key")
+		return nil, nil, fmt.Errorf("invalid key")
 	}
 	proofnode, err := sdk.Decode(basicnode.Prototype.Any, string(proof))
 	cidlink := dagctx.Store.Store(ipld.LinkContext{
