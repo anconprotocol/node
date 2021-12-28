@@ -20,8 +20,6 @@ contract AnconProtocol is ICS23 {
         bytes memory key, // proof key "/anconprotocol/root/user/diddocid"
         bytes memory did, // proof value did doc id
         bytes memory _prefix,
-        bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
         bytes[][] memory _innerOp
     ) public payable returns (bool) {
         require(
@@ -29,8 +27,6 @@ contract AnconProtocol is ICS23 {
                 key,
                 did,
                 _prefix,
-                _innerOpPrefix,
-                _innerOpSuffix,
                 _innerOp
             )
         );
@@ -49,8 +45,6 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory packet,
         bytes memory _prefix,
-        bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
         bytes[][] memory _innerOp
     ) public payable returns (bool) {
         // 1. Verify
@@ -59,8 +53,6 @@ contract AnconProtocol is ICS23 {
                 key,
                 packet,
                 _prefix,
-                _innerOpPrefix,
-                _innerOpSuffix,
                 _innerOp
             )
         );
@@ -77,8 +69,6 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
-        bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
         bytes[][] memory _innerOp
     ) public pure returns (ExistenceProof memory) {
         LeafOp memory leafOp = LeafOp(
@@ -117,16 +107,12 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
-        bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
         bytes[][] memory _innerOp
     ) public view returns (bool) {
         ExistenceProof memory exProof = convertProof(
             key,
             value,
             _prefix,
-            _innerOpPrefix,
-            _innerOpSuffix,
             _innerOp
         );
 
@@ -138,8 +124,6 @@ contract AnconProtocol is ICS23 {
 
     function queryRootCalculation(
         bytes memory prefix,
-        bytes memory _innerOpPrefix,
-        bytes memory _innerOpSuffix,
         bytes memory existenceProofKey,
         bytes memory existenceProofValue,
         bytes[][] memory _innerOp
@@ -148,8 +132,6 @@ contract AnconProtocol is ICS23 {
             existenceProofKey,
             existenceProofValue,
             prefix,
-            _innerOpPrefix,
-            _innerOpSuffix,
             _innerOp
         );
         return bytes(calculate(proof));
