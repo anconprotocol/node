@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/impl"
+
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/gin-gonic/gin"
@@ -225,7 +225,6 @@ func (dagctx *Did) CreateDidKey(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
 func (dagctx *Did) CreateDidWeb(c *gin.Context) {
@@ -256,7 +255,6 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
 }
 
 func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, ipld.Link, error) {

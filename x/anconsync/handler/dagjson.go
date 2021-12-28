@@ -114,7 +114,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
 }
 
 // @BasePath /v0

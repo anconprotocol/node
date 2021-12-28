@@ -224,5 +224,5 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		"address": cid,
 	})
 
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, v, cid)
 }

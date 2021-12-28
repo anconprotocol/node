@@ -105,7 +105,7 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		"cid": cid,
 	})
 
-	impl.PushBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, cid)
+	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
 }
 
 // @BasePath /v0

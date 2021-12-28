@@ -24,10 +24,10 @@ type EnrollL2Account struct {
 	prefix        []byte
 }
 type VerifyProof struct {
-	value        []byte
+	value         []byte
 	innerOpPrefix []byte
 	key           []byte
-	innerOpSuffix []byte	
+	innerOpSuffix []byte
 	prefix        []byte
 }
 type SubmitPacketWithProof struct {
@@ -141,21 +141,17 @@ func encodeBytesString(v string) []byte {
 // 	return nil, resultCid, nil
 // }
 func (adapter *OnchainAdapter) EnrollL2Account(
-	updatedProof *EncodePackedExistenceProof,
+	proof *EncodePackedExistenceProof,
 	value []byte,
 	data []byte,
 ) ([]byte, error) {
 
 	packet := &EnrollL2Account{
-		proof: encodePacked(
-			updatedProof.Prefix,
-			updatedProof.InnerOpPrefix,
-			updatedProof.InnerOpSuffix,
-			i32tob((uint32(updatedProof.InnerOpHashOp))),
-		),
-		key:   updatedProof.Key,
-		value: value,
-		data:  data,
+		did:           []byte(value),
+		innerOpPrefix: proof.InnerOpPrefix,
+		key:           []byte(proof.Key),
+		innerOpSuffix: proof.InnerOpSuffix,
+		prefix:        proof.Prefix,
 	}
 
 	signedProofData, err := EnrollL2AccountAbi().Inputs.Encode(packet)
@@ -174,16 +170,11 @@ func (adapter *OnchainAdapter) ApplyRequestWithProof(
 ) ([]byte, error) {
 
 	packet := &SubmitPacketWithProof{
-		ops: updatedProof.LeafOp,
-		proof: encodePacked(
-			updatedProof.Prefix,
-			updatedProof.InnerOpPrefix,
-			updatedProof.InnerOpSuffix,
-			i32tob((uint32(updatedProof.InnerOpHashOp))),
-		),
-		key:   updatedProof.Key,
-		value: value,
-		data:  data,
+		packet:        []byte(value),
+		innerOpPrefix: updatedProof.InnerOpPrefix,
+		key:           []byte(updatedProof.Key),
+		innerOpSuffix: updatedProof.InnerOpSuffix,
+		prefix:        updatedProof.Prefix,
 	}
 
 	signedProofData, err := SubmitPacketWithProofAbi().Inputs.Encode(packet)
@@ -202,17 +193,11 @@ func (adapter *OnchainAdapter) GenerateVerificationProof(
 ) ([]byte, error) {
 
 	packet := &VerifyProof{
-		ops: proof.LeafOp,
-		proof: encodePacked(
-			proof.Prefix,
-			proof.InnerOpPrefix,
-			proof.InnerOpSuffix,
-			i32tob((uint32(proof.InnerOpHashOp))),
-		),
-		root:  root,
-		key:   proof.Key,
-		value: value,
-		data:  nil,
+		value:         []byte(value),
+		innerOpPrefix: proof.InnerOpPrefix,
+		key:           []byte(proof.Key),
+		innerOpSuffix: proof.InnerOpSuffix,
+		prefix:        proof.Prefix,
 	}
 
 	signedProofData, err := VerifyProofAbi().Inputs.Encode(packet)
