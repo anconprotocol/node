@@ -174,7 +174,7 @@ func main() {
 	didHandler := handler.Did{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootHash:         *rootHash,		
+		RootHash:         *rootHash,
 	}
 
 	fileHandler := handler.FileHandler{

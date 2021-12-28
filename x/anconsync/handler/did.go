@@ -310,7 +310,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 	if err != nil {
 		return nil, nil, fmt.Errorf("invalid commit")
 	}
-	proof, err := dagctx.Proof.GetCommitmentProof([]byte(key))
+	proof, err := dagctx.Proof.GetCommitmentProof([]byte(internalKey))
 	if err != nil {
 		return nil, nil, fmt.Errorf("invalid key")
 	}
