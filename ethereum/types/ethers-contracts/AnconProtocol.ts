@@ -136,7 +136,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     "updateProtocolHeader(bytes)": FunctionFragment;
     "submitPacketWithProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes,bytes)": FunctionFragment;
     "convertProof(bytes,bytes,bytes,bytes,bytes)": FunctionFragment;
-    "verifyProof(bytes,bytes,bytes,uint256[],bytes,bytes,uint256)": FunctionFragment;
+    "verifyProof(bytes,bytes,bytes,bytes,bytes,bytes)": FunctionFragment;
     "queryRootCalculation(bytes,bytes,bytes,bytes,bytes)": FunctionFragment;
   };
 
@@ -186,15 +186,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
-    values: [
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BigNumberish[],
-      BytesLike,
-      BytesLike,
-      BigNumberish
-    ]
+    values: [BytesLike, BytesLike, BytesLike, BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "queryRootCalculation",
@@ -342,10 +334,9 @@ export interface AnconProtocol extends BaseContract {
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
       _innerOpPrefix: BytesLike,
       _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
+      root: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -411,10 +402,9 @@ export interface AnconProtocol extends BaseContract {
     key: BytesLike,
     value: BytesLike,
     _prefix: BytesLike,
-    _leafOpUint: BigNumberish[],
     _innerOpPrefix: BytesLike,
     _innerOpSuffix: BytesLike,
-    existenceProofInnerOpHash: BigNumberish,
+    root: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -483,10 +473,9 @@ export interface AnconProtocol extends BaseContract {
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
       _innerOpPrefix: BytesLike,
       _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
+      root: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -567,10 +556,9 @@ export interface AnconProtocol extends BaseContract {
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
       _innerOpPrefix: BytesLike,
       _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
+      root: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -646,10 +634,9 @@ export interface AnconProtocol extends BaseContract {
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
       _innerOpPrefix: BytesLike,
       _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
+      root: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

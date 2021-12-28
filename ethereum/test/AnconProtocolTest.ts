@@ -4,10 +4,10 @@ import { utils, ethers } from "ethers";
 import { ExistenceProofStruct } from "../types/ethers-contracts/AnconProtocol";
 import { AnconProtocol__factory } from "../types/ethers-contracts/factories/AnconProtocol__factory";
 import { ics23 } from "@confio/ics23";
-import { base64 } from "ethers/lib/utils";
+import { arrayify, base64 } from "ethers/lib/utils";
 
 const RPC_HOST = "http://localhost:8545/";
-const CONTRACT_ADDRESS = "0x7cf045071FD203533FA76042AF1CE124Ea92E6fc";
+const CONTRACT_ADDRESS = "0x9cb049eB339C2cBFdf182455aa6DE7566a1C5C4D";
 const BLOCK_NUMBER = 13730326;
 const ACCOUNT_ADDRESS = "0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6";
 
@@ -64,15 +64,15 @@ async function main() {
     base64.decode(exProof.key),
     base64.decode(exProof.value),
   )
- await contract.updateProtocolHeader(resRootCalc)
+  console.log(resRootCalc)
+ // await contract.updateProtocolHeader(resRootCalc)
   const resVerifyProof = await contract.verifyProof(
     base64.decode(exProof.key),
     base64.decode(exProof.value),
     base64.decode(exProof.leaf.prefix as any),
-    [1, 0, 1, 1],
     base64.decode(exProof.path[0].prefix as any),
     base64.decode(exProof.path[0].suffix as any),
-    1
+    arrayify(resRootCalc)
   );
 
   const contractName = "ANCON PROTOCOL";

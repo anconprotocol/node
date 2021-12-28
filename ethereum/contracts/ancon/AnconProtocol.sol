@@ -93,10 +93,11 @@ contract AnconProtocol is ICS23 {
         bytes memory key,
         bytes memory value,
         bytes memory _prefix,
-        uint256[] memory _leafOpUint,
+        //uint256[] memory _leafOpUint,
         bytes memory _innerOpPrefix,
         bytes memory _innerOpSuffix,
-        uint256 existenceProofInnerOpHash
+        bytes memory root
+        //uint256 existenceProofInnerOpHash
     )
         public
         view
@@ -112,7 +113,7 @@ contract AnconProtocol is ICS23 {
         );
 
         // Verify membership
-        verify(exProof, getIavlSpec(), relayNetworkHash, key, exProof.value);
+        verify(exProof, getIavlSpec(), root, key, exProof.value);
 
         return true;
     }
