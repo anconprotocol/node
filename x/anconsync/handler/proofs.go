@@ -230,7 +230,7 @@ func (dagctx *ProofHandler) ReadCurrentRootHash(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/dagjson [post]
+// @Router /v0/proofs [post]
 func (dagctx *ProofHandler) Create(c *gin.Context) {
 
 	v, _ := c.GetRawData()
@@ -275,7 +275,7 @@ func (dagctx *ProofHandler) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v0/dagjson/{cid}/{path} [get]
+// @Router /v0/proofs/{cid}/{path} [get]
 func (dagctx *ProofHandler) Read(c *gin.Context) {
 
 	v, _ := c.GetRawData()

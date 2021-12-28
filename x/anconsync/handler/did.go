@@ -11,6 +11,7 @@ import (
 
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
@@ -35,6 +36,8 @@ const (
 
 type Did struct {
 	*sdk.AnconSyncContext
+	Proof    *proofsignature.IavlProofService
+	RootHash string
 }
 
 // BuildDidWeb ....

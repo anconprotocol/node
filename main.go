@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/anconprotocol/node/docs"
-	"github.com/anconprotocol/node/subgraphs/cosmos"
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	"github.com/anconprotocol/sdk"
@@ -97,9 +96,6 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/v0"
 
 	dagHandler := sdk.NewAnconSyncContext(s, exchange, ipfspeer)
-	didHandler := handler.Did{
-		AnconSyncContext: dagHandler,
-	}
 
 	if *init == true {
 		result, key, err := handler.InitGenesis(*hostName)
@@ -175,6 +171,12 @@ func main() {
 		Proof:            proofHandler.GetProofService(),
 		RootHash:         *rootHash,
 	}
+	didHandler := handler.Did{
+		AnconSyncContext: dagHandler,
+		Proof:            proofHandler.GetProofService(),
+		RootHash:         *rootHash,		
+	}
+
 	fileHandler := handler.FileHandler{
 		AnconSyncContext: dagHandler,
 	}
@@ -197,12 +199,12 @@ func main() {
 		api.POST("/proofs", proofHandler.Create)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
 	}
-	if subgraph.EnableDagcosmos {
-		ctx := context.WithValue(context.Background(), "dag", dagHandler)
-		indexer := cosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
-		r.GET("/indexer/cosmos/tip", indexer.TipEvent)
-		indexer.Subscribe(ctx, cosmos.NewBlock)
-	}
+	// if subgraph.EnableDagcosmos {
+	// 	ctx := context.WithValue(context.Background(), "dag", dagHandler)
+	// 	indexer := cosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
+	// 	r.GET("/indexer/cosmos/tip", indexer.TipEvent)
+	// 	indexer.Subscribe(ctx, cosmos.NewBlock)
+	// }
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))

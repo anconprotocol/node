@@ -27,6 +27,29 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v0/code": {
+            "post": {
+                "description": "Execute library smartcontracts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "file"
+                ],
+                "summary": "Upload hybrid smartcontracts",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v0/dagcbor": {
             "post": {
                 "description": "Writes a dag-cbor block which syncs with IPFS. Returns a CID.",
@@ -155,6 +178,95 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/v0/proofs": {
+            "post": {
+                "description": "Writes an ics23 proof",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "proofs"
+                ],
+                "summary": "Create",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v0/proofs/verify": {
+            "post": {
+                "description": "Verifies an ics23 proof",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "proofs"
+                ],
+                "summary": "Verifies an ics23 proofs",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v0/proofs/{cid}/{path}": {
+            "get": {
+                "description": "Returns JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "proofs"
+                ],
+                "summary": "Reads an existing proof",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/v0/tip": {
+            "post": {
+                "description": "Writes a dag-json block which syncs with IPFS. Returns a CID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dag-json"
+                ],
+                "summary": "Stores JSON as dag-json",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     }
 }`
@@ -171,7 +283,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.4.0",
-	Host:        "ancon.did.pa/api",
+	Host:        "api.ancon.did.pa",
 	BasePath:    "/v0",
 	Schemes:     []string{},
 	Title:       "Ancon Protocol Sync API v0.4.0",

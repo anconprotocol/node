@@ -1,5 +1,5 @@
 basePath: /v0
-host: ancon.did.pa/api
+host: api.ancon.did.pa
 info:
   contact: {}
   description: API
@@ -9,6 +9,21 @@ info:
   title: Ancon Protocol Sync API v0.4.0
   version: 0.4.0
 paths:
+  /v0/code:
+    post:
+      consumes:
+      - application/json
+      description: Execute library smartcontracts.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Upload hybrid smartcontracts
+      tags:
+      - file
   /v0/dagcbor:
     post:
       consumes:
@@ -93,4 +108,62 @@ paths:
       summary: Reads JSON from a dag-json block
       tags:
       - file
+  /v0/proofs:
+    post:
+      consumes:
+      - application/json
+      description: Writes an ics23 proof
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Create
+      tags:
+      - proofs
+  /v0/proofs/{cid}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: Returns JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Reads an existing proof
+      tags:
+      - proofs
+  /v0/proofs/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies an ics23 proof
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Verifies an ics23 proofs
+      tags:
+      - proofs
+  /v0/tip:
+    post:
+      consumes:
+      - application/json
+      description: Writes a dag-json block which syncs with IPFS. Returns a CID.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: Stores JSON as dag-json
+      tags:
+      - dag-json
 swagger: "2.0"
