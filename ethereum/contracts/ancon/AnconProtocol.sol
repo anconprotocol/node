@@ -19,17 +19,9 @@ contract AnconProtocol is ICS23 {
     function enrollL2Account(
         bytes memory key, // proof key "/anconprotocol/root/user/diddocid"
         bytes memory did, // proof value did doc id
-        bytes memory _prefix,
-        bytes[][] memory _innerOp
+        ExistenceProof memory proof
     ) public payable returns (bool) {
-        require(
-            verifyProof(
-                key,
-                did,
-                _prefix,
-                _innerOp
-            )
-        );
+        require(verifyProof(proof));
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
         return true;
@@ -44,18 +36,10 @@ contract AnconProtocol is ICS23 {
     function submitPacketWithProof(
         bytes memory key,
         bytes memory packet,
-        bytes memory _prefix,
-        bytes[][] memory _innerOp
+        ExistenceProof memory proof
     ) public payable returns (bool) {
         // 1. Verify
-        require(
-            verifyProof(
-                key,
-                packet,
-                _prefix,
-                _innerOp
-            )
-        );
+        require(verifyProof(proof));
 
         proofs[key] = true;
 
@@ -73,9 +57,9 @@ contract AnconProtocol is ICS23 {
     ) public pure returns (ExistenceProof memory) {
         LeafOp memory leafOp = LeafOp(
             true,
-            HashOp.SHA256,
+            HashOp(1),
             HashOp.NO_HASH,
-            HashOp.SHA256,
+            HashOp(1),
             LengthOp.VAR_PROTO,
             _prefix
         );
@@ -103,37 +87,28 @@ contract AnconProtocol is ICS23 {
         return proof;
     }
 
-    function verifyProof(
-        bytes memory key,
-        bytes memory value,
-        bytes memory _prefix,
-        bytes[][] memory _innerOp
-    ) public view returns (bool) {
-        ExistenceProof memory exProof = convertProof(
-            key,
-            value,
-            _prefix,
-            _innerOp
-        );
-
+    function verifyProof(ExistenceProof memory exProof)
+        public
+        view
+        returns (bool)
+    {
         // Verify membership
-        verify(exProof, getIavlSpec(), relayNetworkHash, key, exProof.value);
+        verify(
+            exProof,
+            getIavlSpec(),
+            relayNetworkHash,
+            exProof.key,
+            exProof.value
+        );
 
         return true;
     }
 
-    function queryRootCalculation(
-        bytes memory prefix,
-        bytes memory existenceProofKey,
-        bytes memory existenceProofValue,
-        bytes[][] memory _innerOp
-    ) public view returns (bytes memory) {
-        ExistenceProof memory proof = convertProof(
-            existenceProofKey,
-            existenceProofValue,
-            prefix,
-            _innerOp
-        );
+    function queryRootCalculation(ExistenceProof memory proof)
+        public
+        pure
+        returns (bytes memory)
+    {
         return bytes(calculate(proof));
     }
 }

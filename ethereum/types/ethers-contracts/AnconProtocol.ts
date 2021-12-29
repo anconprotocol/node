@@ -132,12 +132,12 @@ export interface AnconProtocolInterface extends utils.Interface {
     "proofs(bytes)": FunctionFragment;
     "relayNetworkHash()": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
-    "enrollL2Account(bytes,bytes,bytes,bytes[][])": FunctionFragment;
+    "enrollL2Account(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "updateProtocolHeader(bytes)": FunctionFragment;
-    "submitPacketWithProof(bytes,bytes,bytes,bytes[][])": FunctionFragment;
+    "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "convertProof(bytes,bytes,bytes,bytes[][])": FunctionFragment;
-    "verifyProof(bytes,bytes,bytes,bytes[][])": FunctionFragment;
-    "queryRootCalculation(bytes,bytes,bytes,bytes[][])": FunctionFragment;
+    "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "queryRootCalculation((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -170,7 +170,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "enrollL2Account",
-    values: [BytesLike, BytesLike, BytesLike, BytesLike[][]]
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "updateProtocolHeader",
@@ -178,7 +178,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "submitPacketWithProof",
-    values: [BytesLike, BytesLike, BytesLike, BytesLike[][]]
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "convertProof",
@@ -186,11 +186,11 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
-    values: [BytesLike, BytesLike, BytesLike, BytesLike[][]]
+    values: [ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "queryRootCalculation",
-    values: [BytesLike, BytesLike, BytesLike, BytesLike[][]]
+    values: [ExistenceProofStruct]
   ): string;
 
   decodeFunctionResult(
@@ -309,8 +309,7 @@ export interface AnconProtocol extends BaseContract {
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -322,8 +321,7 @@ export interface AnconProtocol extends BaseContract {
     submitPacketWithProof(
       key: BytesLike,
       packet: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -336,18 +334,12 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<[ExistenceProofStructOutput]>;
 
     verifyProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     queryRootCalculation(
-      prefix: BytesLike,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<[string]>;
   };
@@ -376,8 +368,7 @@ export interface AnconProtocol extends BaseContract {
   enrollL2Account(
     key: BytesLike,
     did: BytesLike,
-    _prefix: BytesLike,
-    _innerOp: BytesLike[][],
+    proof: ExistenceProofStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -389,8 +380,7 @@ export interface AnconProtocol extends BaseContract {
   submitPacketWithProof(
     key: BytesLike,
     packet: BytesLike,
-    _prefix: BytesLike,
-    _innerOp: BytesLike[][],
+    proof: ExistenceProofStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -403,18 +393,12 @@ export interface AnconProtocol extends BaseContract {
   ): Promise<ExistenceProofStructOutput>;
 
   verifyProof(
-    key: BytesLike,
-    value: BytesLike,
-    _prefix: BytesLike,
-    _innerOp: BytesLike[][],
+    exProof: ExistenceProofStruct,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   queryRootCalculation(
-    prefix: BytesLike,
-    existenceProofKey: BytesLike,
-    existenceProofValue: BytesLike,
-    _innerOp: BytesLike[][],
+    proof: ExistenceProofStruct,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -446,8 +430,7 @@ export interface AnconProtocol extends BaseContract {
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -459,8 +442,7 @@ export interface AnconProtocol extends BaseContract {
     submitPacketWithProof(
       key: BytesLike,
       packet: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -473,18 +455,12 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<ExistenceProofStructOutput>;
 
     verifyProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     queryRootCalculation(
-      prefix: BytesLike,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -531,8 +507,7 @@ export interface AnconProtocol extends BaseContract {
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -544,8 +519,7 @@ export interface AnconProtocol extends BaseContract {
     submitPacketWithProof(
       key: BytesLike,
       packet: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -558,18 +532,12 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<BigNumber>;
 
     verifyProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     queryRootCalculation(
-      prefix: BytesLike,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -608,8 +576,7 @@ export interface AnconProtocol extends BaseContract {
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -621,8 +588,7 @@ export interface AnconProtocol extends BaseContract {
     submitPacketWithProof(
       key: BytesLike,
       packet: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -635,18 +601,12 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifyProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
+      exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     queryRootCalculation(
-      prefix: BytesLike,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      _innerOp: BytesLike[][],
+      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

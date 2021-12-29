@@ -154,5 +154,5 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, gin.H(data))
+	c.JSON(200, json.RawMessage(data))
 }
