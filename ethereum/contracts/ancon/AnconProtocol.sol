@@ -11,6 +11,7 @@ contract AnconProtocol is ICS23 {
     mapping(bytes => bool) public proofs;
 
     event ProofPacketSubmitted(bytes key, bytes packet);
+    event EnrollL2Account(bool enrolledStatus, bytes key, bytes value);
 
     constructor(address _onlyOwner) public {
         owner = _onlyOwner;
@@ -24,6 +25,7 @@ contract AnconProtocol is ICS23 {
         require(verifyProof(proof));
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
+        emit EnrollL2Account(true, key, did);
         return true;
     }
 
