@@ -5,7 +5,7 @@ const fs = require("fs");
 const metadata = require("../build/contracts/OnchainMetadata.json");
 module.exports = async function (deployer) {
   try {
-    console.log(metadata);
+    // console.log(metadata);
     let contract = new web3.eth.Contract(metadata.abi);
 
     contract =  (

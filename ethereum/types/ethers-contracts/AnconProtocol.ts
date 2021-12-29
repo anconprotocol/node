@@ -238,11 +238,20 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "EnrollL2Account(bool)": EventFragment;
     "ProofPacketSubmitted(bytes,bytes)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "EnrollL2Account"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProofPacketSubmitted"): EventFragment;
 }
+
+export type EnrollL2AccountEvent = TypedEvent<
+  [boolean],
+  { enrolledStatus: boolean }
+>;
+
+export type EnrollL2AccountEventFilter = TypedEventFilter<EnrollL2AccountEvent>;
 
 export type ProofPacketSubmittedEvent = TypedEvent<
   [string, string],
@@ -466,6 +475,9 @@ export interface AnconProtocol extends BaseContract {
   };
 
   filters: {
+    "EnrollL2Account(bool)"(enrolledStatus?: null): EnrollL2AccountEventFilter;
+    EnrollL2Account(enrolledStatus?: null): EnrollL2AccountEventFilter;
+
     "ProofPacketSubmitted(bytes,bytes)"(
       key?: null,
       packet?: null
