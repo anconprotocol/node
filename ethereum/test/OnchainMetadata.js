@@ -135,6 +135,7 @@ contract('QueryRootCalculation', (accounts) => {
         )
         console.log(resRootCalc)
         const k = await contract2.verifyProof({ ...z })
+        const restL2 = await contract2.enrollL2Account(z.key, z.value, z)
         assert.equal(k, true)
       } catch (e) {
         console.log(e)
