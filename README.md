@@ -1,8 +1,19 @@
-# Ancon Protocol Node (beta / testnet)
+# Ancon Protocol Node v0.5.0
 
-## Initial Beta Release
 
-**Replaces CosmosSDK chain with a Graphsync network sync**
+### Hybrid Smart Contracts protocol for secure offchain data economy
+
+Ancon protocol is a new kind of SDK and technology that can be used to implement secure offchain data integrations using best of breed offchain protocols like ipfs and any blockchain with smart contracts support.
+
+
+![AnconProtocolProducts](https://user-images.githubusercontent.com/1248071/147708647-f0e25a24-8c54-4a62-923e-5a73bb0c9e60.png)
+
+
+## Ancon Protocol Node - L2 Gateway
+
+Node manages offchain data integrations and trusted offchain gateways.  It has DID web and DID key, Graphsync, and dag-json / dag-cbor technology support.
+
+
 
 ## Usage
 
@@ -11,356 +22,826 @@
 3. Configure ports and firewall rules
 4. Enjoy
 
-## Features
-
-### State of the art IPLD API engine
-
-Uses the latest `go-ipld-prime` API
-
-### DAG Contracts 
-
-DAG Contracts enables a whole set of use cases that regular smart contracts might be too costly or expensive. In this first release, DAG contracts will work with GraphQL queries with immutable CID data.
-
-Further down the road, GraphQL mutations will be used to integrate with onchain platforms, in an agnostic way.
-
-An use case that will be particularly important is for mass or batch NFT metadata updates or creation. With a DAG Contract, you can patch with IPLD Selectors an existing CID, patch with parent CID and new owner, create the new metadata CID, and then send the event to an onchain function, that takes care of minting, or any other business logic. 
-
-### Streaming files
-
-Ancon IPLD Router Sync uses `go-ipld-prime` **fsstore** which is a streaming enable blockstore that is well performant. 
-
-### GraphQL
-
-We eventually decided to pick GraphQL for our DAG Contracts technology. With that, expect the following features:
-
-#### DAG Contracts Directives
-
-```graphql
-query {
-  me {
-    @walk(resumeLink)   # Will traverse the link 
-  }
-}
-
-query {
-  me {
-    @focus(resumeLink) 
-  }
-}
-```
-
-#### DAG Contracts Subscriptions
-
-Any IPLD events will be mapped to GraphQL Subscriptions
-
-
-#### DAG Contracts Onchain Adapters (GraphQL Mutations)
-
-You will have a list of onchain adapters, with EVM adapters being the first to come out.
-
-
-
-
 ## Getting started
 ``` bash
 go mod tidy
 ```
 ``` bash
-go build ./server.go
+go build ./main.go
 ```
 ``` bash
-./server
+./main
 ```
 
 If you have problems with the system buffer size this can help:
 https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
 
-## Generating schemas and Swagger
+# API Reference
 
-### Server GraphQL schemas
 
-`~/Code/ancon-ipld-router-sync/x/anconsync/codegen$ go run github.com/99designs/gqlgen generate`
+## `POST /v0/did/key`
 
-### Client GraphQL schemas
+> Creates a new did-key
 
-`go run github.com/Khan/genqlient --init`
 
-### Swagger
+### Parameters
 
-`swag init`
+None
 
-## API
 
-- Swagger: `https://ancon.did.pa/api/swagger/index.html`
+### Returns
 
-## Examples
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the CID |
 
-### Create DAG blocks
-
-```
-POST https://ancon.did.pa/api/v0/dagjson
-Content-Type: application/json
-```
+example of the returned object:
 
 ```json
 {
-  "path": "/",
-  "data": {
-    "name": "XDV metadata sample",
-    "owner": "alice",
-    "description": "testing sample",
-    "image": "https://explore.ipld.io/#/explore/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D"
+  "cid": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+  },
+  "proof": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
   }
 }
 ```
 
-```
-POST https://ancon.did.pa/api/v0/dagcbor
-Content-Type: application/json
-```
+
+
+## `POST /v0/did/web`
+
+> Creates a new did-web
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `domainName` | `string` | Subdomain eg alice.ipfs.pa |
+| `pub` | `string` | (hex) public key  |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the CID |
+
+example of the returned object:
 
 ```json
 {
-  "path": "/",
-  "data": "<cbor content base64 encoded>"
+  "cid": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+  },
+  "proof": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+  }
 }
 ```
 
-### Reading blocks
 
-```
-GET https://ancon.did.pa/api/v0/dagcbor/baguqeeraouhd5jr7ktftgkbo5ufmihs3e2yqonajjejhomvbtsrwynlqdxba/
-```
+## `GET /v0/did/:did`
 
-```
-GET https://ancon.did.pa/api/v0/dagjson/baguqeeraouhd5jr7ktftgkbo5ufmihs3e2yqonajjejhomvbtsrwynlqdxba/file.json
-```
+> Returns did document as json
 
 
-### GraphQL DAG Designer
-
-- Playground: `https://ancon.did.pa/api/v0/query`
-
-**Query a dag-json by CID**
-
-![Query](https://user-images.githubusercontent.com/1248071/143898301-b72b4ad3-9faf-459f-860f-52bd82283914.png)
-
-**Mutates existing metadata CID**
-
-![Mutation](https://user-images.githubusercontent.com/1248071/143898299-50164b0b-4a2a-4582-9c22-aa7e9f374e45.png)
+### Parameters
 
 
-### EVM Adapter for Durin / Secure Offchain
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `did` | `string` | DID Doc id |
 
-1. Fork off repo and customize `adapters/ethereum_adapter.go`, in our case a NFT ownership transfer. This must be plugged in to the gateway, either REST or JSON-RPC.
 
-```go
-func (adapter *EthereumAdapter) ExecuteDagContract(
-	metadatadCid string,
-	resultCid string,
-	fromOwner string,
-	toOwner string,
-) (*DagTransaction, error) {
 
-	pk, has := os.LookupEnv("ETHEREUM_ADAPTER_KEY")
-	if !has {
-		return nil, fmt.Errorf("environment key ETHEREUM_ADAPTER_KEY not found")
-	}
-	privateKey, err := crypto.HexToECDSA(pk)
-	if err != nil {
-		return nil, fmt.Errorf("invalid ETHEREUM_ADAPTER_KEY")
-	}
+### Returns
 
-	data, err := ExecuteDagContractWithProofAbiMethod().Inputs.Pack(metadatadCid, fromOwner, resultCid, toOwner)
-	if err != nil {
-		return nil, fmt.Errorf("packing for proof generation failed")
-	}
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | A did document |
 
-	hash := crypto.Keccak256Hash(data)
+example of the returned object:
 
-	signature, err := crypto.Sign(hash.Bytes(), privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("signing failed")
-	}
-
-	return &DagTransaction{
-		MetadataCid: metadatadCid,
-		ResultCid: resultCid,
-		FromOwner: fromOwner,
-		ToOwner: toOwner,
-		Signature:     hexutil.Encode(signature),
-	}, nil
-}
-
-```
-
-Graphql integration executes the mutation and then the resulting cid is signed by the Durin gateway. 
-
-2. Customize `DagContractTrusted.sol`. The signature proof needs to match the gateway signed proof.
-
-```solidity
-//SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.4;
-
-import "./IDagContractTrustedReceiver.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-
-contract DagContractTrusted is Ownable {
-    using ECDSA for bytes32;
-    using Address for address;
-    string public url;
-    address private _signer;
-    mapping(bytes32 => bool) executed;
-    error OffchainLookup(string url, bytes prefix);
-    struct DagContractRequestProof {
-        string metadataCid;
-        address fromOwner;
-        address toOwner;
-        string resultCid;
-        address toReceiverContractAddress;
-        bytes32 signature;
-    }
-
-    constructor() {}
-
-    function setUrl(string memory url_) external onlyOwner {
-        url = url_;
-    }
-
-    function setSigner(address signer_) external onlyOwner {
-        _signer = signer_;
-    }
-
-    function getSigner() external view returns (address) {
-        return _signer;
-    }
-
-    /**
-     * @dev Requests a DAG contract offchain execution
-     */
-    function request(address toReceiverContractAddress, uint256 tokenId)
-        public
-        returns (bytes32)
+```javascript
+{
+  "@context": ["https://www.w3.org/ns/did/v1"],
+  "authentication": [
+    "",
     {
-        revert OffchainLookup(
-            url,
-            abi.encodeWithSignature(
-                "requestWithProof(address toReceiverContractAddress, uint256 tokenId, DagContractRequestProof memory proof)",
-                toReceiverContractAddress,
-                tokenId
-            )
-        );
+      "controller": "did:key:z3rc1YQMG366ttmuHeX2qodNeZAEhU6ktdjJEdLMRGX9gtpjaHitW6eu4BvZMEF",
+      "id": "did:key:z3rc1YQMG366ttmuHeX2qodNeZAEhU6ktdjJEdLMRGX9gtpjaHitW6eu4BvZMEF#",
+      "publicKeyBase58": "J8v1rHsHjrBP9khKJdiZBrfq4u2Ame2aUsv8fACmKjaF",
+      "type": "Ed25519VerificationKey2018"
     }
-
-    /**
-     * @dev Requests a DAG contract offchain execution with proof
-     */
-    function requestWithProof(
-        address toReceiverContractAddress,
-        uint256 tokenId,
-        DagContractRequestProof memory proof
-    ) external returns (bool) {
-        if (executed[proof.signature]) {
-            return false;
-        } else {
-            bytes32 digest = keccak256(
-                abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    keccak256(
-                        abi.encodePacked(
-                            proof.metadataCid,
-                            proof.fromOwner,
-                            proof.resultCid,
-                            proof.toOwner,
-                            toReceiverContractAddress,
-                            tokenId
-                        )
-                    )
-                )
-            );
-
-            address recovered = digest.recover(digest, proof.signature);
-
-            require(
-                _signer == recovered,
-                "Signer is not the signer of the token"
-            );
-            executed[proof.signature] = true;
-            bytes memory data = abi.encodePacked(
-                toReceiverContractAddress,
-                tokenId
-            );
-            _onDagContractResponseReceived(
-                toReceiverContractAddress,
-                address(this),
-                msg.sender,
-                proof.metadataCid,
-                proof.resultCid,
-                data
-            );
-            return true;
-        }
+  ],
+  "created": "2021-12-04T07:57:33.030203855-05:00",
+  "id": "did:key:z3rc1YQMG366ttmuHeX2qodNeZAEhU6ktdjJEdLMRGX9gtpjaHitW6eu4BvZMEF",
+  "updated": "2021-12-04T07:57:33.030203855-05:00",
+  "verificationMethod": [
+    {
+      "controller": "did:key:z3rc1YQMG366ttmuHeX2qodNeZAEhU6ktdjJEdLMRGX9gtpjaHitW6eu4BvZMEF",
+      "id": "did:key:z3rc1YQMG366ttmuHeX2qodNeZAEhU6ktdjJEdLMRGX9gtpjaHitW6eu4BvZMEF#",
+      "publicKeyBase58": "J8v1rHsHjrBP9khKJdiZBrfq4u2Ame2aUsv8fACmKjaF",
+      "type": "Ed25519VerificationKey2018"
     }
-
-    /**
-     * @dev Receives the DAG contract execution result
-     */
-    // function onDagContractResponseReceived(
-    //     address operator,
-    //     address from,
-    //     string memory parentCid,
-    //     string memory newCid,
-    //     bytes calldata data
-    // ) external returns (bytes4) {
-    //     return IDagContractTrustedReceiver.onDagContractResponseReceived.selector;
-    // }
-
-    function _onDagContractResponseReceived(
-        address to,
-        address operator,
-        address from,
-        string memory parentCid,
-        string memory newCid,
-        bytes memory _data
-    ) private returns (bool) {
-        if (to.isContract()) {
-            try
-                IDagContractTrustedReceiver(to).onDagContractResponseReceived(
-                    operator,
-                    from,
-                    parentCid,
-                    newCid,
-                    _data
-                )
-            returns (bytes4 retval) {
-                return
-                    retval ==
-                    IDagContractTrustedReceiver
-                        .onDagContractResponseReceived
-                        .selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert("DagContractTrusted: invalid receiver implementer");
-                } else {
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }
-                }
-            }
-        } else {
-            return true;
-        }
-    }
+  ]
 }
 
 ```
 
-### Pending
+## `GET /proofs/lasthash`
 
-- Tests
-- Use case / demo
+> Reads current last hash
 
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the hash |
+
+
+## `GET /user/:did/did.json`
+
+> Reads a did-web
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `did` | `string` | did web domain name   |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the CID |
+
+example of the returned object:
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/did/v1"],
+  "authentication": [
+    "",
+    {
+      "controller": "did:web:ipfs:user:rogelio",
+      "id": "did:web:ipfs:user:rogelio",
+      "publicKeyBase58": "ER5jUmbiApGWtR4QVHjG7nHpaMGhZmf4BRMSLw4tBeEmT8RZhUKwppqsjHihwXp4RpVjVXaChRZFyKj1s41uGJs",
+      "type": "Secp256k1VerificationKey2018"
+    }
+  ],
+  "created": "2021-12-04T08:20:35.623500975-05:00",
+  "id": "did:web:ipfs:user:rogelio",
+  "updated": "2021-12-04T08:20:35.623500975-05:00",
+  "verificationMethod": [
+    {
+      "controller": "did:web:ipfs:user:rogelio",
+      "id": "did:web:ipfs:user:rogelio",
+      "publicKeyBase58": "ER5jUmbiApGWtR4QVHjG7nHpaMGhZmf4BRMSLw4tBeEmT8RZhUKwppqsjHihwXp4RpVjVXaChRZFyKj1s41uGJs",
+      "type": "Secp256k1VerificationKey2018"
+    }
+  ]
+}
+
+```
+
+
+## `POST /v0/dagjson`
+
+> Stores json as dag-json in users path. Must have registerd DID and messasge must be signed with signature matching DID.
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `path` | `string` | path |
+| `from` | `string` | DID identifier |
+| `signature` | `string` | signature as hex |
+| `data` | `object` | object to store |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the CID |
+
+example of the returned object:
+
+```json
+{
+  "cid": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+  }
+}
+```
+
+
+
+## `POST /v0/dagcbor`
+
+> Stores json as dag-cbor in users path. Must have registerd DID and messasge must be signed with signature matching DID.
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `path` | `string` | path |
+| `data` | `object` | (base64) object to store |
+| `from` | `string` | DID identifier |
+| `signature` | `string` | signature as hex |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` | An object that contains the CID |
+
+example of the returned object:
+
+```json
+{
+  "cid": {
+    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+  }
+}
+```
+
+
+
+## `GET /v0/dagjson/:cid/*path`
+
+> Reads a dag-json block
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `cid` | `string` | cid |
+| `path` | `string` | path |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` |  json object |
+
+example of the returned object:
+
+```json
+ {
+    "name": "metadata sample",
+    "owner": "0x2a3D91a8D48C2892b391122b6c3665f52bCace23p",
+    "description": "testing sample",
+    "image": "helloworld.jpg"
+  }
+```
+
+
+## `GET /v0/dagcbor/:cid/*path`
+
+> Reads a dag-cbor block
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `cid` | `string` | cid |
+| `path` | `string` | path |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` |  cbor object |
+
+example of the returned object:
+
+```
+<...cbor data...>
+```
+
+
+## `GET /v0/file/:cid/*path`
+
+> Reads a dag-json block
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `cid` | `string` | cid |
+| `path` | `string` | path |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` |  content type stream|
+
+example of the returned object:
+
+```
+<...data...>
+```
+
+
+
+
+## `POST /v0/code`
+
+> Uploads a hybrid smart contract
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `code` | `string` | hex encoded Ancon Protocol Rust Smart Contract |
+| `from` | `string` | DID |
+| `signature` | `string` | hex encoded signature of code digest |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` |  content type stream|
+
+example of the returned object:
+
+```
+<...data...>
+```
+
+
+## `POST /rpc`
+
+> Trusted offchain JSON-RPC 2.0 gateway
+
+
+## `ancon_call`
+
+> Executes hybrid smart contract
+
+
+
+### Parameters
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `to` | `string` | smart contract cid address |
+| `from` | `string` | DID |
+| `signature` | `string` | signature |
+| `data` | `string` | data |
+
+
+
+### Returns
+
+| Type | Description |
+| -------- | -------- |
+| `Promise<Response>` |  content type stream|
+
+
+### Example
+
+```typescript
+import dotenv from 'dotenv'
+import { arrayify, hexlify } from '@ethersproject/bytes'
+import fs from 'fs'
+import { promisify } from 'util'
+import { ethers } from 'ethers'
+import web3 from 'web3'
+import { Secp256k1 } from '@cosmjs/crypto'
+import { fetchJson } from '@ethersproject/web'
+import { toUtf8Bytes, toUtf8String } from 'ethers/lib/utils'
+dotenv.config()
+
+export class ExecuteContractExample {
+  constructor(
+    private privateKey: string,
+    private apiUrl: string = 'http://localhost:7788',
+  ) {}
+
+  async execute({ to, from, query }: any): Promise<any> {
+    let data = {
+      to,
+      from,
+      data: query,
+      // signature: '',
+    } as any
+    const bz = ethers.utils.toUtf8Bytes(data.to + data.from + data.data)
+    const hash = ethers.utils.keccak256(bz)
+    const sig = await Secp256k1.createSignature(
+      arrayify(hash),
+      Buffer.from(this.privateKey, 'hex'),
+    )
+    data.signature = hexlify(sig.toFixedLength())
+
+    const body = {
+      jsonrpc: '2.0',
+      method: 'ancon_call',
+      params: [data.to, data.from, data.signature, data.data],
+      id: 1,
+    }
+    
+    const result = await fetchJson(
+      {
+        url: `${this.apiUrl}/rpc`,
+      },
+      JSON.stringify(body),
+    )
+
+    return result
+  }
+}
+
+;(async () => {
+  const contract = new ExecuteContractExample(
+    process.env.PRIVATE_KEY || '',
+    process.env.URL,
+  )
+
+  //@ts-ignore
+  let metadata = 'baguqeerak5hfvtgsvaaxtm5cbce2khnh7y4ijfnbrgeygwu4wixrz4z52vja'
+  const result = await contract.execute({
+    to: process.env.CONTRACT,
+    from: process.env.DID_USER,
+    query: `query   { metadata(cid: \"${metadata}\", path: \"/\"){name} }`
+  })
+
+  console.log(result)
+  const j = (web3.utils.hexToString(result.result))
+  console.log(JSON.parse(j))
+  
+})()
+```
+
+## `GET /swagger`
+
+> REST documentation
+
+
+# CLI Reference
+
+- `peeraddr`: Connects to subgraph node with IPFS
+- `addr`:  Host libp2p address
+- `apiaddr`:  Host API address
+- `data`: Storage directory
+- `cors`: Set to true to enable CORS requests
+- `origins`: Comma separated list of addresses
+- `init`: Initializes the proof storage by creating a genesis block
+- `keys`: Generates Secp256k1 keys
+- `hostname`: Node identifier
+- `rootkey`: Rootkey to validate
+- `sync`: Syncs with peers
+- `peers`:  List of peers to sync
+
+# Trusted offchain gateways
+
+Ancon Protocol node can be used to integrate onchain and offchain sources using EIP-3668 Durin or also called Trusted Offchain gateway. Further in `Subgraph networks` chapter, we'll revisit this feature as we replace REST with Graphsync.
+
+## What is trustless and trusted
+
+A trustless setting onchain means the consensus of a blockchain is enough to validate a transaction is valid and has no bad behavior.
+
+In cross chain use cases, there are many to accomplish this, one is with atomic swaps, which we'll use in parts, other is with ZK technology and other with protocols that are based on Merkle Proofs.
+
+
+## Design and Architecture of a Hybrid Smart Contract
+
+`Hybrid Smart Contracts` is the term used for integrating both offchain and onchain seamlessly in a secure way.
+
+Ancon Protocol Node SDK uses a set of technologies, the developer should have a good grasp of the following:
+
+- Go language
+- IPLD
+- GraphQL
+- Rust
+
+## Create Rust GraphQL Query and Mutations
+
+Download the `github.com/anconprotocol/contracts` and label it with the name of your project.
+
+The current source code has an example of a onchain DID ownership trasfer for ERC721 tokens.
+
+```rust
+use crate::sdk::focused_transform_patch_str;
+use crate::sdk::read_dag;
+use crate::sdk::submit_proof;
+use crate::sdk::{generate_proof, get_proof, read_dag_block, write_dag_block};
+use juniper::FieldResult;
+
+extern crate juniper;
+
+use juniper::{
+    graphql_object, EmptyMutation, EmptySubscription, FieldError, GraphQLEnum, GraphQLValue,
+    RootNode, Variables,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+
+use std::collections::HashMap;
+
+use std::str;
+use std::vec::*;
+
+pub struct Context {
+    pub metadata: HashMap<String, Ancon721Metadata>,
+    pub transfer: HashMap<String, MetadataPacket>,
+}
+
+impl juniper::Context for Context {}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MetadataPacket {
+    pub cid: String,
+    pub from_owner: String,
+    pub result_cid: String,
+    pub to_owner: String,
+    pub to_address: String,
+    pub token_id: String,
+    pub proof: String,
+}
+
+#[graphql_object(context = Context)]
+impl MetadataPacket {
+    fn cid(&self) -> &str {
+        &self.cid
+    }
+
+    fn from_owner(&self) -> &str {
+        &self.from_owner
+    }
+
+    fn result_cid(&self) -> &str {
+        &self.result_cid
+    }
+    fn to_owner(&self) -> &str {
+        &self.to_owner
+    }
+
+    fn to_address(&self) -> &str {
+        &self.to_address
+    }
+
+    fn token_id(&self) -> &str {
+        &self.token_id
+    }
+    fn proof(&self) -> &str {
+        &self.proof
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Ancon721Metadata {
+    pub name: String,
+    pub description: String,
+    pub image: String,
+    pub parent: String,
+    pub owner: String,
+    pub sources: Vec<String>,
+}
+
+#[graphql_object(context = Context)]
+impl Ancon721Metadata {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn description(&self) -> &str {
+        &self.description
+    }
+
+    fn image(&self) -> &str {
+        &self.image
+    }
+    fn parent(&self) -> &str {
+        &self.parent
+    }
+
+    fn owner(&self) -> &str {
+        &self.owner
+    }
+
+    async fn sources(&self) -> &Vec<String> {
+        &self.sources
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Query;
+
+#[graphql_object(context = Context)]
+impl Query {
+    fn api_version() -> &'static str {
+        "0.1"
+    }
+
+    pub fn metadata(context: &Context, cid: String, path: String) -> Ancon721Metadata {
+        let v = read_dag(&cid);
+        let res = serde_json::from_slice(&v);
+        res.unwrap()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Mutation;
+
+#[graphql_object(context = Context)]
+impl Mutation {
+    //Dagblock mutation
+    fn transfer(context: &Context, input: MetadataTransactionInput) -> Vec<MetadataPacket> {
+        let v = read_dag(&input.cid);
+        let res = serde_json::from_slice(&v);
+        let metadata: Ancon721Metadata = res.unwrap();
+
+        //generate current metadata proof packet
+        let proof = generate_proof(&input.cid);
+
+        let updated_cid =
+            focused_transform_patch_str(&input.cid, "owner", &metadata.owner, &input.new_owner);
+        let updated =
+            focused_transform_patch_str(&updated_cid, "parent", &metadata.parent, &input.cid);
+
+        //generate updated metadata proof packet
+        let proof_cid = apply_request_with_proof(input.clone(), &proof, &updated);
+        let v = read_dag(&proof_cid);
+        let res = serde_json::from_slice(&v);
+        let packet: MetadataPacket = res.unwrap();
+        let current_packet = MetadataPacket {
+            cid: input.cid,
+            from_owner: input.owner,
+            result_cid: updated,
+            to_address: "".to_string(),
+            to_owner: input.new_owner,
+            token_id: "".to_string(),
+            proof: proof,
+        };
+        let result = vec![current_packet, packet];
+        result
+    }
+}
+
+#[derive(Clone, Debug, GraphQLInputObject, Serialize, Deserialize)]
+struct MetadataTransactionInput {
+    path: String,
+    cid: String,
+    owner: String,
+    new_owner: String,
+}
+
+type Schema = RootNode<'static, Query, Mutation, EmptySubscription<Context>>;
+
+pub fn schema() -> Schema {
+    Schema::new(Query, Mutation, EmptySubscription::<Context>::new())
+}
+
+fn apply_request_with_proof(
+    input: MetadataTransactionInput,
+    prev_proof: &str,
+    new_cid: &str,
+) -> String {
+    // Must combined proofs (prev and new) in host function
+    // then send to chain and return result
+    let js = json!({
+        "previous": prev_proof,
+        "next_cid": new_cid,
+        "input": input
+    });
+    submit_proof(&js.to_string())
+}
+```
+
+
+## DAG Operations or Mutation
+
+Now we are going to apply a GraphQL mutation, which is an update to an immutable object, means it will discard the old CID and create a new CID from the latest update in the DAG block. 
+
+Why are we abstracting on top of GraphQL? The main reason is to provide a better and more expedite approach to software engineering differents pieces of technologies like IPFS and blockchain. By enforcing the schemas with code generation in server side, we also get a similar developer experience as when you do smart contract development. 
+
+In this example, we'll use one of the easiest IPLD Operator, which is the `focused transform`, where we 
+
+- Pinpoint or **select** a path inside a root node
+- Patch or mutate that selection with a function call. In our case, a diff patch, eg if previous node matches previous node requested a change, then apply requested change to node.
+
+In Ancon Protocol Contracts SDK, you can use focused transform with `focused_transform_patch_str`
+
+```rust
+
+#[derive(Clone, Copy, Debug)]
+pub struct Mutation;
+
+#[graphql_object(context = Context)]
+impl Mutation {
+    //Dagblock mutation
+    fn transfer(context: &Context, input: MetadataTransactionInput) -> Vec<MetadataPacket> {
+        let v = read_dag(&input.cid);
+        let res = serde_json::from_slice(&v);
+        let metadata: Ancon721Metadata = res.unwrap();
+
+        //generate current metadata proof packet
+        let proof = generate_proof(&input.cid);
+
+        let updated_cid =
+            focused_transform_patch_str(&input.cid, "owner", &metadata.owner, &input.new_owner);
+        let updated =
+            focused_transform_patch_str(&updated_cid, "parent", &metadata.parent, &input.cid);
+
+        //generate updated metadata proof packet
+        let proof_cid = apply_request_with_proof(input.clone(), &proof, &updated);
+        let v = read_dag(&proof_cid);
+        let res = serde_json::from_slice(&v);
+        let packet: MetadataPacket = res.unwrap();
+        let current_packet = MetadataPacket {
+            cid: input.cid,
+            from_owner: input.owner,
+            result_cid: updated,
+            to_address: "".to_string(),
+            to_owner: input.new_owner,
+            token_id: "".to_string(),
+            proof: proof,
+        };
+        let result = vec![current_packet, packet];
+        result
+    }
+}
+
+#[derive(Clone, Debug, GraphQLInputObject, Serialize, Deserialize)]
+struct MetadataTransactionInput {
+    path: String,
+    cid: String,
+    owner: String,
+    new_owner: String,
+}
+
+
+```
+
+The result must always be the previous and next packets.
+
+## Smart Contract APIs
+
+```rust
+pub fn focused_transform_patch_str(cid: &str, path: &str, prev: &str, next: &str) -> String
+```
+
+Applies an IPLD focused transform using a patch design pattern for string node values
+
+```rust
+pub fn read_dag(cid: &str) -> Vec<u8>
+```
+
+Reads a cid from dag store
+
+```rust
+pub fn submit_proof(data: &str) -> String
+```
+
+Submits proof (offchain)
+
+```rust
+pub fn get_proof(cid: &str) -> String
+```
+
+Retrieves proof (offchain)
+
+```rust
+pub fn generate_proof(cid: &str) -> String
+```
+
+Generates proof (offchain)
 
 > Copyright IFESA 2021
