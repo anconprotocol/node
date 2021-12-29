@@ -119,14 +119,14 @@ func main() {
 	proofHandler := handler.NewProofHandler(dagHandler)
 
 	if *rootHash != "" && *sync == false {
-		err := proofHandler.VerifyGenesis(*rootHash, *rootkey)
+		hash, err := proofHandler.VerifyGenesis(*rootkey)
 
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		fmt.Println("valid root hash: ", *rootHash)
+		fmt.Println("key validated with last current root hash: ", string(hash))
 
 	}
 

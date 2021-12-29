@@ -72,6 +72,9 @@ go build ./server.go
 ./server
 ```
 
+If you have problems with the system buffer size this can help:
+https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
+
 ## Generating schemas and Swagger
 
 ### Server GraphQL schemas

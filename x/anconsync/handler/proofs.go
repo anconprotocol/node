@@ -55,30 +55,30 @@ func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs}
 
 }
-func (h *ProofHandler) VerifyGenesis(root, key string) error {
+func (h *ProofHandler) VerifyGenesis(key string) ([]byte, error) {
 
 	version := 0
 	tree, err := iavl.NewMutableTree(h.db, int(2000))
 	if err != nil {
-		return errors.Wrap(err, "unable to create iavl tree")
+		return nil, errors.Wrap(err, "unable to create iavl tree")
 	}
 	if _, err = tree.LoadVersion(int64(version)); err != nil {
-		return errors.Wrapf(err, "unable to load version %d", version)
+		return nil, errors.Wrapf(err, "unable to load version %d", version)
 	}
 	key = fmt.Sprintf("%s%s", GENESISKEY, key)
 
 	_, v, err := tree.GetWithProof([]byte(key))
 	if err != nil && v != nil {
-		return errors.Wrap(err, "Unable to get with proof")
+		return nil, errors.Wrap(err, "Unable to get with proof")
 	}
 
-	// bz, err := hex.DecodeString(root)
-	// err = v.Verify(bz)
-	// if err != nil {
-	// 	return errors.Wrap(err, "Unable to get rawkey")
-	// }
+	bz := tree.Hash()
+	err = v.Verify(bz)
+	if err != nil {
+		return nil, errors.Wrap(err, "Unable to get rawkey")
+	}
 
-	return nil
+	return bz, nil
 }
 
 func InitGenesis(hostName string) (string, string, error) {
