@@ -70,34 +70,8 @@ let proofCombined = [
   },
 ]
 
-function toABIproofs(proofCombined) {
-  let innerOps = proofCombined[0].exist.path.map((p) =>
-    Object.values(p)
-      .slice(1)
-      .map((v) => base64.decode(v)),
-  )
-
-  let key = proofCombined[0].exist.key
-
-  return {
-    key: ethers.utils.base64.decode(key),
-    value: ethers.utils.base64.decode(proofCombined[0].exist.value),
-    prefix: ethers.utils.base64.decode(proofCombined[0].exist.leaf.prefix),
-    innerOps: innerOps,
-  }
-}
-
-contract('QueryRootCalculation', (accounts) => {
-  describe('when requesting to add metadata onchain', () => {
-    it('should return true and emit event', async () => {
-      try {
-        const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-        const contract = await AnconProtocol.deployed()
-        const contract2 = AnconProtocol__factory.connect(
-          contract.address,
-          provider,
-        )
-        let z = { ...proofCombined[0].exist }
+function toABIproofs() {
+  let z = { ...proofCombined[0].exist }
         z.key = hexlify(base64.decode(z.key))
         z.value = hexlify(base64.decode(z.value))
         z.leaf.prefix = hexlify(base64.decode(z.leaf.prefix))
@@ -124,6 +98,21 @@ contract('QueryRootCalculation', (accounts) => {
         z.leaf.prehash_key = 0
         z.leaf.len = z.leaf.length
 
+  return z
+}
+
+contract('QueryRootCalculation', (accounts) => {
+  describe('when requesting to add metadata onchain', () => {
+    it('should return true and emit event', async () => {
+      try {
+        const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+        const contract = await AnconProtocol.deployed()
+        const contract2 = AnconProtocol__factory.connect(
+          contract.address,
+          provider,
+        )
+        
+        z = toABIproofs();
         console.log(z)
         const resRootCalc = await contract2.callStatic.queryRootCalculation({
           ...z,
