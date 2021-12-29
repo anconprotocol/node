@@ -77,7 +77,8 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 	}
 
 	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
-	hash := crypto.Keccak256([]byte(data))
+	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
+	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := []byte(v["signature"])
 	ok, err := types.Authenticate(didDoc, hash, sig)
 	if ok {
@@ -105,7 +106,9 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		"cid": cid,
 	})
 
-	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
+	if v["pin"] == "true" {
+		impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
+	}
 }
 
 // @BasePath /v0

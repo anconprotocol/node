@@ -81,7 +81,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootHash, "user", didCid)
 
 	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
-	hashWithPrefix := fmt.Sprintf("%s%s","\x19Ethereum Signed Message:\n",data)
+	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
 	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := []byte(signature)
 	ok, err := types.Authenticate(didDoc, hash, sig)
@@ -115,7 +115,11 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": cid,
 	})
-	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
+	pin, _ := jsonparser.GetString(v, "pin")
+
+	if pin == "true" {
+		impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
+	}
 }
 
 // @BasePath /v0
