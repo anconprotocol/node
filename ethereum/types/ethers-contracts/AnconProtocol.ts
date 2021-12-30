@@ -132,10 +132,12 @@ export interface AnconProtocolInterface extends utils.Interface {
     "proofs(bytes)": FunctionFragment;
     "relayNetworkHash()": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
+    "getProtocolHeader()": FunctionFragment;
+    "getProof(bytes)": FunctionFragment;
+    "hasProof(bytes)": FunctionFragment;
     "enrollL2Account(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "updateProtocolHeader(bytes)": FunctionFragment;
     "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "convertProof(bytes,bytes,bytes,bytes[][])": FunctionFragment;
     "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "queryRootCalculation((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
@@ -169,6 +171,12 @@ export interface AnconProtocolInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "getProtocolHeader",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "getProof", values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: "hasProof", values: [BytesLike]): string;
+  encodeFunctionData(
     functionFragment: "enrollL2Account",
     values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
@@ -179,10 +187,6 @@ export interface AnconProtocolInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "submitPacketWithProof",
     values: [BytesLike, BytesLike, ExistenceProofStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "convertProof",
-    values: [BytesLike, BytesLike, BytesLike, BytesLike[][]]
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
@@ -213,6 +217,12 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getProtocolHeader",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getProof", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasProof", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "enrollL2Account",
     data: BytesLike
   ): Result;
@@ -225,10 +235,6 @@ export interface AnconProtocolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "convertProof",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "verifyProof",
     data: BytesLike
   ): Result;
@@ -238,20 +244,27 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "EnrollL2Account(bool)": EventFragment;
+    "AccountRegistered(bool,bytes,bytes)": EventFragment;
+    "HeaderUpdated(bytes)": EventFragment;
     "ProofPacketSubmitted(bytes,bytes)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "EnrollL2Account"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AccountRegistered"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "HeaderUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProofPacketSubmitted"): EventFragment;
 }
 
-export type EnrollL2AccountEvent = TypedEvent<
-  [boolean],
-  { enrolledStatus: boolean }
+export type AccountRegisteredEvent = TypedEvent<
+  [boolean, string, string],
+  { enrolledStatus: boolean; key: string; value: string }
 >;
 
-export type EnrollL2AccountEventFilter = TypedEventFilter<EnrollL2AccountEvent>;
+export type AccountRegisteredEventFilter =
+  TypedEventFilter<AccountRegisteredEvent>;
+
+export type HeaderUpdatedEvent = TypedEvent<[string], { hash: string }>;
+
+export type HeaderUpdatedEventFilter = TypedEventFilter<HeaderUpdatedEvent>;
 
 export type ProofPacketSubmittedEvent = TypedEvent<
   [string, string],
@@ -315,6 +328,12 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
+    getProtocolHeader(overrides?: CallOverrides): Promise<[string]>;
+
+    getProof(did: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
+    hasProof(key: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
+
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
@@ -333,14 +352,6 @@ export interface AnconProtocol extends BaseContract {
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    convertProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
-      overrides?: CallOverrides
-    ): Promise<[ExistenceProofStructOutput]>;
 
     verifyProof(
       exProof: ExistenceProofStruct,
@@ -374,6 +385,12 @@ export interface AnconProtocol extends BaseContract {
     overrides?: CallOverrides
   ): Promise<void>;
 
+  getProtocolHeader(overrides?: CallOverrides): Promise<string>;
+
+  getProof(did: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  hasProof(key: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
   enrollL2Account(
     key: BytesLike,
     did: BytesLike,
@@ -392,14 +409,6 @@ export interface AnconProtocol extends BaseContract {
     proof: ExistenceProofStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  convertProof(
-    key: BytesLike,
-    value: BytesLike,
-    _prefix: BytesLike,
-    _innerOp: BytesLike[][],
-    overrides?: CallOverrides
-  ): Promise<ExistenceProofStructOutput>;
 
   verifyProof(
     exProof: ExistenceProofStruct,
@@ -436,6 +445,12 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    getProtocolHeader(overrides?: CallOverrides): Promise<string>;
+
+    getProof(did: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+    hasProof(key: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
@@ -455,14 +470,6 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    convertProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
-      overrides?: CallOverrides
-    ): Promise<ExistenceProofStructOutput>;
-
     verifyProof(
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
@@ -475,8 +482,19 @@ export interface AnconProtocol extends BaseContract {
   };
 
   filters: {
-    "EnrollL2Account(bool)"(enrolledStatus?: null): EnrollL2AccountEventFilter;
-    EnrollL2Account(enrolledStatus?: null): EnrollL2AccountEventFilter;
+    "AccountRegistered(bool,bytes,bytes)"(
+      enrolledStatus?: null,
+      key?: null,
+      value?: null
+    ): AccountRegisteredEventFilter;
+    AccountRegistered(
+      enrolledStatus?: null,
+      key?: null,
+      value?: null
+    ): AccountRegisteredEventFilter;
+
+    "HeaderUpdated(bytes)"(hash?: null): HeaderUpdatedEventFilter;
+    HeaderUpdated(hash?: null): HeaderUpdatedEventFilter;
 
     "ProofPacketSubmitted(bytes,bytes)"(
       key?: null,
@@ -516,6 +534,12 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getProtocolHeader(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getProof(did: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    hasProof(key: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
@@ -533,14 +557,6 @@ export interface AnconProtocol extends BaseContract {
       packet: BytesLike,
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    convertProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     verifyProof(
@@ -585,6 +601,18 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getProtocolHeader(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getProof(
+      did: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    hasProof(
+      key: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     enrollL2Account(
       key: BytesLike,
       did: BytesLike,
@@ -602,14 +630,6 @@ export interface AnconProtocol extends BaseContract {
       packet: BytesLike,
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    convertProof(
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _innerOp: BytesLike[][],
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     verifyProof(

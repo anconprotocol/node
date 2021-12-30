@@ -10,11 +10,24 @@ contract AnconProtocol is ICS23 {
     mapping(address => bytes) public accountByAddrProofs;
     mapping(bytes => bool) public proofs;
 
+    event HeaderUpdated(bytes hash);
     event ProofPacketSubmitted(bytes key, bytes packet);
-    event EnrollL2Account(bool enrolledStatus, bytes key, bytes value);
+    event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
     constructor(address _onlyOwner) public {
         owner = _onlyOwner;
+    }
+
+    function getProtocolHeader() public view returns (bytes memory) {
+        return relayNetworkHash;
+    }
+
+    function getProof(bytes memory  did) public view returns (bytes memory) {
+        return accountProofs[did];
+    }
+
+    function hasProof(bytes memory key) public view returns (bool) {
+        return proofs[key];
     }
 
     function enrollL2Account(
@@ -25,13 +38,14 @@ contract AnconProtocol is ICS23 {
         require(verifyProof(proof));
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
-        emit EnrollL2Account(true, key, did);
+        emit AccountRegistered(true, key, did);
         return true;
     }
 
     function updateProtocolHeader(bytes memory rootHash) public returns (bool) {
         require(msg.sender == owner);
         relayNetworkHash = rootHash;
+        emit HeaderUpdated(rootHash);
         return true;
     }
 
@@ -49,44 +63,6 @@ contract AnconProtocol is ICS23 {
         emit ProofPacketSubmitted(key, packet);
 
         return true;
-    }
-
-    function convertProof(
-        bytes memory key,
-        bytes memory value,
-        bytes memory _prefix,
-        bytes[][] memory _innerOp
-    ) public pure returns (ExistenceProof memory) {
-        LeafOp memory leafOp = LeafOp(
-            true,
-            HashOp(1),
-            HashOp.NO_HASH,
-            HashOp(1),
-            LengthOp.VAR_PROTO,
-            _prefix
-        );
-
-        // // innerOpArr
-        InnerOp[] memory innerOpArr = new InnerOp[](_innerOp.length);
-
-        for (uint256 i = 0; i < _innerOp.length; i++) {
-            bytes[] memory temp = _innerOp[i];
-            innerOpArr[i] = InnerOp({
-                valid: true,
-                hash: HashOp(1),
-                prefix: temp[0],
-                suffix: temp[1]
-            });
-        }
-        ExistenceProof memory proof = ExistenceProof({
-            valid: true,
-            key: key,
-            value: value,
-            leaf: leafOp,
-            path: innerOpArr
-        });
-
-        return proof;
     }
 
     function verifyProof(ExistenceProof memory exProof)
