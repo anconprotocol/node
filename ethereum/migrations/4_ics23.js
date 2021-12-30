@@ -73,7 +73,7 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(Bytes);
   await deployer.link(Bytes, ICS23, AnconProtocol);
 
-  await deployer.deploy(AnconProtocol, accounts[0]);
+  await deployer.deploy(AnconProtocol, accounts[0], accounts[1]);
   const verifier = await AnconProtocol.deployed();
 
   console.log(proofCombined);

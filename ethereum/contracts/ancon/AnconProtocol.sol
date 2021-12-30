@@ -4,6 +4,7 @@ import "../ics23/ics23.sol";
 
 contract AnconProtocol is ICS23 {
     address public owner;
+    address public relayer;
     bytes public relayNetworkHash;
 
     mapping(bytes => bytes) public accountProofs;
@@ -14,8 +15,9 @@ contract AnconProtocol is ICS23 {
     event ProofPacketSubmitted(bytes key, bytes packet);
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
-    constructor(address _onlyOwner) public {
+    constructor(address _onlyOwner, address _relayer) public {
         owner = _onlyOwner;
+        relayer = _relayer;
     }
 
     function getProtocolHeader() public view returns (bytes memory) {
@@ -43,7 +45,7 @@ contract AnconProtocol is ICS23 {
     }
 
     function updateProtocolHeader(bytes memory rootHash) public returns (bool) {
-        require(msg.sender == owner);
+        require(msg.sender == relayer);
         relayNetworkHash = rootHash;
         emit HeaderUpdated(rootHash);
         return true;
