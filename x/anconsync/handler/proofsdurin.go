@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -54,13 +52,13 @@ func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
 
 		// get query
 		opts := gql.NewRequestOptions(rq)
-		to := rq.PostForm.Get("to")
-		from := rq.PostForm.Get("from")
-		sig := rq.PostForm.Get("sig")
-		result := api.Service.Call(to, from, []byte(sig), opts.Query)
-		// if formatErrorFn := h.formatErrorFn; formatErrorFn != nil && len(result.Errors) > 0 {
+		to := opts.Variables["to"]
+		from := opts.Variables["from"]
+		sig := opts.Variables["sig"]
+		result := api.Service.Call(to.(string), from.(string), []byte(sig.(string)), opts.Query)
+		// if formatErrorFn := h.]ormatErrorFn; formatErrorFn != nil && len(result.Errors) > 0 {
 		// 	formatted := make([]gqlerrors.FormattedError, len(result.Errors))
-		// 	for i, formattedError := range result.Errors {
+		// 	for i, formattedError z:= range result.Errors {
 		// 		formatted[i] = formatErrorFn(formattedError.OriginalError())
 		// 	}
 		// 	result.Errors = formatted
@@ -69,30 +67,16 @@ func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
 		acceptHeader := rq.Header.Get("Accept")
 		_, raw := rq.URL.Query()["raw"]
 		if !raw && !strings.Contains(acceptHeader, "application/json") && strings.Contains(acceptHeader, "text/html") {
-			renderPlayground(w, rq)
+			RenderPlayground(c.Writer, rq)
 			return
 		}
 
 		// use proper JSON Header
-		w.Header().Add("Content-Type", "application/json; charset=utf-8")
+		c.Header("Content-Type", "application/json; charset=utf-8")
+		c.JSON(200, result)
+		// if h.resultCallbackFn != nil {
+		// 	h.resultCallbackFn(ctx, &params, result, buff)
+		// }
 
-		var buff []byte
-		if h.pretty {
-			w.WriteHeader(http.StatusOK)
-			buff, _ = json.MarshalIndent(result, "", "\t")
-
-			w.Write(buff)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			buff, _ = json.Marshal(result)
-
-			w.Write(buff)
-		}
-
-		if h.resultCallbackFn != nil {
-			h.resultCallbackFn(ctx, &params, result, buff)
-		}
-
-		server.ServeHTTP(c.Writer, rq)
 	}
 }

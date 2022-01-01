@@ -39,7 +39,7 @@ module.exports = {
       timeoutBlocks: 200,
       ///gas: 5000000,
       // gasPrice: 135000000000,
-      skipDryRun: false,
+      //skipDryRun: false,
     },
     localhost: {
       from: '0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6',
