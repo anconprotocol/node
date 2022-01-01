@@ -185,8 +185,7 @@ func main() {
 	{
 		api.POST("/file", fileHandler.FileWrite)
 		api.POST("/code", fileHandler.UploadContract)
-		// api.POST("/query", handler.GraphqlHandler(s))
-		// api.GET("/query", handler.PlaygroundHandler(s))
+		api.GET("/graphql", handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
 		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
@@ -196,7 +195,6 @@ func main() {
 		api.POST("/did/web", didHandler.CreateDidWeb)
 		api.GET("/did/:did", didHandler.ReadDid)
 		api.GET("/proofs/get/:key", proofHandler.Read)
-		api.POST("/proofs", proofHandler.Create)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
 	}
 	// if subgraph.EnableDagcosmos {
