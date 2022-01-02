@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -44,7 +45,7 @@ func SmartContractHandler(anconCtx sdk.AnconSyncContext,
 
 func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
 	adapter *ethereum.OnchainAdapter, proofs *proofsignature.IavlProofAPI) gin.HandlerFunc {
-	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
+	//	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
 
 	return func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "dag", anconCtx)
@@ -55,7 +56,11 @@ func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
 		to := opts.Variables["to"]
 		from := opts.Variables["from"]
 		sig := opts.Variables["sig"]
-		result := api.Service.Call(to.(string), from.(string), []byte(sig.(string)), opts.Query)
+		var result string
+		if to != nil {
+			result = fmt.Sprintf(to.(string), from.(string), []byte(sig.(string)), opts.Query)
+
+		}
 		// if formatErrorFn := h.]ormatErrorFn; formatErrorFn != nil && len(result.Errors) > 0 {
 		// 	formatted := make([]gqlerrors.FormattedError, len(result.Errors))
 		// 	for i, formattedError z:= range result.Errors {

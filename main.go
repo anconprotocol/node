@@ -180,12 +180,13 @@ func main() {
 	fileHandler := handler.FileHandler{
 		AnconSyncContext: dagHandler,
 	}
-
+	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 	api := r.Group("/v0")
 	{
 		api.POST("/file", fileHandler.FileWrite)
 		api.POST("/code", fileHandler.UploadContract)
-		api.GET("/graphql", handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))
+		api.GET("/graphql", g)
+		api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
 		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
