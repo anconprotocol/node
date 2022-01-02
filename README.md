@@ -18,7 +18,9 @@ Node manages offchain data integrations and trusted offchain gateways.  It has D
 ## Usage
 
 1. Download latest release
-2. Run `anconsync` with `anconsync -peeraddr <seed peer multiaddress> -addr <host multiaddress> -apiaddr <host API address> -data <data directory>`
+2. Create rootkey with `anconsync --init`
+2. Production settings (recommended) `anconsync  --rootkey=<your new rootkey> --peeraddr /ip4/127.0.0.1/tcp/4001/p2p/<peer-id> --cors true  --origins=http://localhost:3000 --quic true --tlscert=/etc/letsencrypt/live/mynode/fullchain.pem --tlskey=/etc/letsencrypt/live/mynode/privkey.pem
+~                                                                                                                                `
 3. Configure ports and firewall rules
 4. Enjoy
 
@@ -528,6 +530,9 @@ export class ExecuteContractExample {
 - `rootkey`: Rootkey to validate
 - `sync`: Syncs with peers
 - `peers`:  List of peers to sync
+- `quic`: Enables QUIC
+- `tlscert`: TLS certificate for QUIC
+- `tlskey`: TLS key for QUIC
 
 # Trusted offchain gateways
 
@@ -844,4 +849,4 @@ pub fn generate_proof(cid: &str) -> String
 
 Generates proof (offchain)
 
-> Copyright IFESA 2021
+> Copyright IFESA 2021, 2022
