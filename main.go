@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	gsync "github.com/ipfs/go-graphsync"
 	peer "github.com/libp2p/go-libp2p-core/peer"
+	"github.com/lucas-clemente/quic-go/http3"
 	multiaddr "github.com/multiformats/go-multiaddr"
 
 	swaggerfiles "github.com/swaggo/files"
@@ -56,6 +57,9 @@ func main() {
 	rootkey := flag.String("rootkey", "", "root key")
 	sync := flag.Bool("sync", false, "Syncronizes remote dag storage")
 	seedPeers := flag.String("peers", "", "Array of peer addresses ")
+	quic := flag.Bool("quic", false, "Enable QUIC")
+	tlsKey := flag.String("tlscert", "", "TLS certificate")
+	tlsCert := flag.String("tlskey", "", "TLS key")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -207,5 +211,11 @@ func main() {
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))
-	r.Run(*apiAddr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+	if *quic {
+		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
+	} else {
+		r.Run(*apiAddr)
+	}
+
 }

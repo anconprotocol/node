@@ -36,7 +36,10 @@ require (
 	google.golang.org/protobuf v1.27.1
 )
 
-require github.com/graphql-go/graphql v0.8.0 // indirect
+require (
+	github.com/graphql-go/graphql v0.8.0 // indirect
+	github.com/marten-seemann/qpack v0.2.1 // indirect
+)
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
@@ -162,7 +165,7 @@ require (
 	github.com/libp2p/go-tcp-transport v0.4.0 // indirect
 	github.com/libp2p/go-ws-transport v0.5.0 // indirect
 	github.com/libp2p/go-yamux/v2 v2.3.0 // indirect
-	github.com/lucas-clemente/quic-go v0.24.0 // indirect
+	github.com/lucas-clemente/quic-go v0.24.0
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/marten-seemann/qtls-go1-16 v0.1.4 // indirect
