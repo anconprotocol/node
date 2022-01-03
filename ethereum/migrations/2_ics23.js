@@ -73,25 +73,24 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(Bytes);
   await deployer.link(Bytes, ICS23, AnconProtocol);
 
-  await deployer.deploy(AnconProtocol, accounts[0], accounts[1]);
+  await deployer.deploy(AnconProtocol, accounts[1]);
   const verifier = await AnconProtocol.deployed();
 
-  console.log(proofCombined);
-  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-  const contract = await AnconProtocol.deployed();
-  const contract2 = AnconProtocol__factory.connect(contract.address, provider);
+//  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
+//  const contract = await AnconProtocol.deployed();
+  // const contract2 = AnconProtocol__factory.connect(contract.address, provider);
 
-  z = toABIproofs();
-  console.log(z);
-  const resRootCalc = await contract2.callStatic.queryRootCalculation({
-    ...z,
-  });
+  // // z = toABIproofs();
+  // // console.log(z);
+  // // const resRootCalc = await contract2.callStatic.queryRootCalculation({
+  // //   ...z,
+  // // });
 
-  const restUpdtHeader = await contract.updateProtocolHeader(resRootCalc, {
-    from: accounts[0],
-  });
-  console.log(resRootCalc);
-  console.log(restUpdtHeader);
+  // // const restUpdtHeader = await contract.updateProtocolHeader(resRootCalc, {
+  // //   from: accounts[0],
+  // // });
+  // // console.log(resRootCalc);
+  // // console.log(restUpdtHeader);
 
   builder.addContract("AnconProtocol", verifier, verifier.address, network);
 };
