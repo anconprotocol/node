@@ -27,15 +27,24 @@ contract AnconProtocol is ICS23, Ownable {
     event ProofPacketSubmitted(bytes key, bytes packet);
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
-    constructor(address _relayer, address tokenERC20) public {
+    constructor(address _relayer) public {
         relayer = _relayer;
-        stablecoin = IERC20(tokenERC20);
     }
 
-    function withdrawBalance(address payable payee) public onlyOwner {
-        uint256 balance = stablecoin.balanceOf(address(this));
+    function withdraw(address payable payee) public onlyOwner {
+        uint256 b = address(this).balance;
 
-        require(stablecoin.transfer(payee, balance), "transfer failed");
+        emit Withdrawn(payee, b);
+    }
+
+    function withdrawToken(address payable payee, address erc20token) public onlyOwner {
+        uint256 balance = IERC20(erc20token).balanceOf(address(this));
+
+        // Transfer tokens to pay service fee
+        require(
+            IERC20(erc20token).transfer(payee, balance),
+            "transfer failed"
+        );
 
         emit Withdrawn(payee, balance);
     }
@@ -84,7 +93,7 @@ contract AnconProtocol is ICS23, Ownable {
         bytes memory did, // proof value did doc id
         ExistenceProof memory proof
     ) public payable returns (bool) {
-        require(keccak256(proof.key) == keccadk256(key), "invalid key");
+        require(keccak256(proof.key) == keccak256(key), "invalid key");
 
         require(verifyProof(proof), "invalid proof");
 
@@ -114,7 +123,7 @@ contract AnconProtocol is ICS23, Ownable {
         ExistenceProof memory proof
     ) public payable returns (bool) {
         // 1. Verify
-        require(keccak256(proof.key) == keccadk256(key), "invalid key");
+        require(keccak256(proof.key) == keccak256(key), "invalid key");
 
         require(verifyProof(proof));
 

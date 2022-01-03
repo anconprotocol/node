@@ -140,7 +140,8 @@ export interface AnconProtocolInterface extends utils.Interface {
     "stablecoin()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
-    "withdrawBalance(address)": FunctionFragment;
+    "withdraw(address)": FunctionFragment;
+    "withdrawToken(address,address)": FunctionFragment;
     "setProtocolFee(uint256)": FunctionFragment;
     "setAccountRegistrationFee(uint256)": FunctionFragment;
     "getProtocolHeader()": FunctionFragment;
@@ -150,7 +151,6 @@ export interface AnconProtocolInterface extends utils.Interface {
     "updateProtocolHeader(bytes)": FunctionFragment;
     "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "queryRootCalculation((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -210,9 +210,10 @@ export interface AnconProtocolInterface extends utils.Interface {
       BytesLike
     ]
   ): string;
+  encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "withdrawBalance",
-    values: [string]
+    functionFragment: "withdrawToken",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setProtocolFee",
@@ -242,10 +243,6 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
-    values: [ExistenceProofStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "queryRootCalculation",
     values: [ExistenceProofStruct]
   ): string;
 
@@ -294,8 +291,9 @@ export interface AnconProtocolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawBalance",
+    functionFragment: "withdrawToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -326,10 +324,6 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "verifyProof",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "queryRootCalculation",
     data: BytesLike
   ): Result;
 
@@ -476,8 +470,14 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
-    withdrawBalance(
+    withdraw(
       payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawToken(
+      payee: string,
+      erc20token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -520,11 +520,6 @@ export interface AnconProtocol extends BaseContract {
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    queryRootCalculation(
-      proof: ExistenceProofStruct,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
   };
 
   ENROLL_PAYMENT(overrides?: CallOverrides): Promise<string>;
@@ -578,8 +573,14 @@ export interface AnconProtocol extends BaseContract {
     overrides?: CallOverrides
   ): Promise<void>;
 
-  withdrawBalance(
+  withdraw(
     payee: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawToken(
+    payee: string,
+    erc20token: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -622,11 +623,6 @@ export interface AnconProtocol extends BaseContract {
     exProof: ExistenceProofStruct,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  queryRootCalculation(
-    proof: ExistenceProofStruct,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   callStatic: {
     ENROLL_PAYMENT(overrides?: CallOverrides): Promise<string>;
@@ -681,7 +677,13 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    withdrawBalance(payee: string, overrides?: CallOverrides): Promise<void>;
+    withdraw(payee: string, overrides?: CallOverrides): Promise<void>;
+
+    withdrawToken(
+      payee: string,
+      erc20token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setProtocolFee(
       _fee: BigNumberish,
@@ -709,7 +711,7 @@ export interface AnconProtocol extends BaseContract {
     updateProtocolHeader(
       rootHash: BytesLike,
       overrides?: CallOverrides
-    ): Promise<boolean>;
+    ): Promise<void>;
 
     submitPacketWithProof(
       key: BytesLike,
@@ -722,11 +724,6 @@ export interface AnconProtocol extends BaseContract {
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    queryRootCalculation(
-      proof: ExistenceProofStruct,
-      overrides?: CallOverrides
-    ): Promise<string>;
   };
 
   filters: {
@@ -836,8 +833,14 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    withdrawBalance(
+    withdraw(
       payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawToken(
+      payee: string,
+      erc20token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -878,11 +881,6 @@ export interface AnconProtocol extends BaseContract {
 
     verifyProof(
       exProof: ExistenceProofStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    queryRootCalculation(
-      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -950,8 +948,14 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    withdrawBalance(
+    withdraw(
       payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawToken(
+      payee: string,
+      erc20token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -998,11 +1002,6 @@ export interface AnconProtocol extends BaseContract {
 
     verifyProof(
       exProof: ExistenceProofStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    queryRootCalculation(
-      proof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
