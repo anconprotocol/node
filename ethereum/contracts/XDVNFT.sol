@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
 
 //  a NFT secure document
@@ -17,12 +18,14 @@ contract XDVNFT is
     ERC721Pausable,
     ERC721URIStorage,
     Ownable,
+    IAnconProtocol, 
     IERC721Receiver,
     TrustedOffchainHelper
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
+    IAnconProtocol public anconprotocol;
     address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
@@ -41,9 +44,11 @@ contract XDVNFT is
     constructor(
         string memory name,
         string memory symbol,
-        address tokenERC20
+        address tokenERC20,
+        address anconprotocolAddr
     ) ERC721(name, symbol) {
         stablecoin = IERC20(tokenERC20);
+        anconprotocol = IAnconProtocol(anconprotocolAddr);
     }
 
     function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
@@ -70,7 +75,19 @@ contract XDVNFT is
             )
         );
     }
-
+    function mint(address toAddress, uint256 tokenId)
+        external
+        returns (bytes32)
+    {
+        revert OffchainLookup(
+            url,
+            abi.encodeWithSignature(
+                "mintWithProof(address toAddress, string memory uri, bytes memory proof)",
+                toAddress,
+                tokenId
+            )
+        );
+    }
     /**
      * @dev Requests a DAG contract offchain execution
      */
@@ -88,129 +105,12 @@ contract XDVNFT is
         );
     }
 
-    function submitPacketWithProof(
-        // -- existence proof payload
-        uint256[] memory leafOpUint,
-        bytes memory prefix,
-        bytes[][] memory existenceProofInnerOp,
-        uint256 existenceProofInnerOpHash,
-        bytes memory key,
-        bytes memory value,
-        bytes memory packet
-    ) public pure returns (bool) {
-        // 1. Verify
-        require(
-            bytes32(value) == keccak256(packet),
-            "bad packet: packet hash is different from ics23 value"
-        );
-        // bytes memory calculatedHash = verifier.queryRootCalculation(
-        //     leafOpUint,
-        //     prefix,
-        //     existenceProofInnerOp,
-        //     existenceProofInnerOpHash,
-        //     key,
-        //     value
-        // );
-        // require(
-        //     keccak256(relayNetworkHash) == keccak256(calculatedHash),
-        //     "invalid proof for key"
-        // );
-        // proofs[key] = packet;
-        // // 2. Submit event
-        // emit ProofPacketSubmitted();
-        return true;
-    }
-
-    // /**
-    //  * @dev Transfer a XDV Data Token URI with proof
-    //  */
-    // function transferURIWithProof(
-    //     string memory toAddress,
-    //     string memory tokenId,
-    //     bytes memory proof
-    // ) public returns (uint256) {
-    //     bool proofRef = submitPacketWithProof(toAddress, tokenId, proof);
-                                    
-    //     require(proofRef, "Invalid proof");
-    //     (
-    //         bytes memory metadataCid,
-    //         bytes memory fromOwner,
-    //         bytes memory resultCid,
-    //         bytes memory toOwner,
-    //         ,
-    //         ,
-    //         bytes memory prefix,
-    //         bytes memory signature
-    //     ) = abi.decode(
-    //             proof,
-    //             (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
-    //         );
-    //     uint256 newItemId = _tokenIds.current();
-    //     _setTokenURI(newItemId, string(metadataCid));
-    //     //       _transfer()
-    //     //send the method name
-    //     //make set token uri work
-    //     return newItemId;
-    // }
-
-    /**
-     * @dev Requests a DAG contract offchain execution with proof
-     */
-    function _requestWithProof(
-        string memory toAddress,
-        string memory tokenId,
-        bytes memory proof
-    ) internal returns (bool) {
-        (
-            bytes memory metadataCid,
-            bytes memory fromOwner,
-            bytes memory resultCid,
-            bytes memory toOwner,
-            ,
-            ,
-            bytes memory prefix,
-            bytes memory signature
-        ) = abi.decode(
-                proof,
-                (bytes, bytes, bytes, bytes, bytes, bytes, bytes, bytes)
-            );
-
-        if (executed[bytes32(signature)]) {
-            revert("metadata dag transfer:  invalid proof");
-        } else {
-            bytes32 digest = keccak256(
-                abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    keccak256(
-                        abi.encodePacked(
-                            metadataCid,
-                            fromOwner,
-                            resultCid,
-                            toOwner,
-                            toAddress,
-                            tokenId,
-                            prefix
-                        )
-                    )
-                )
-            );
-
-            require(
-                isValidProof(digest, signature),
-                "Signer is not the signer of the token"
-            );
-            {
-                executed[bytes32(signature)] = true;
-                emit ProofAccepted(msg.sender, bytes32(signature));
-            }
-            return (true);
-        }
-    }
-
     /**
      * @dev Mints a XDV Data Token
      */
-    function mint(address user, string memory uri) public returns (uint256) {
+    function mintWithProof(address user, string memory uri, bytes memory proof) public returns (uint256) {
+        // verifyDid
+      //  submitPacketWithProof()
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();

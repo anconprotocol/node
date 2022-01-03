@@ -121,7 +121,7 @@ contract AnconProtocol is ICS23, Ownable {
         bytes memory key,
         bytes memory packet,
         ExistenceProof memory proof
-    ) public payable returns (bool) {
+    ) external payable returns (bool) {
         // 1. Verify
         require(keccak256(proof.key) == keccak256(key), "invalid key");
 
@@ -138,7 +138,7 @@ contract AnconProtocol is ICS23, Ownable {
     }
 
     function verifyProof(ExistenceProof memory exProof)
-        public
+        internal
         view
         returns (bool)
     {
