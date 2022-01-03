@@ -50,7 +50,7 @@ contract AnconProtocol is ICS23, Ownable {
         }
         if ((paymentType) == SUBMIT_PAYMENT) {
             fee = protocolFee;
-        }        // Transfer tokens to pay service fee
+        } // Transfer tokens to pay service fee
         require(
             stablecoin.transferFrom(tokenHolder, address(this), protocolFee),
             "transfer failed for recipient"
@@ -84,6 +84,8 @@ contract AnconProtocol is ICS23, Ownable {
         bytes memory did, // proof value did doc id
         ExistenceProof memory proof
     ) public payable returns (bool) {
+        require(keccak256(proof.key) == keccadk256(key), "invalid key");
+
         require(verifyProof(proof), "invalid proof");
 
         require(
@@ -100,11 +102,10 @@ contract AnconProtocol is ICS23, Ownable {
         return true;
     }
 
-    function updateProtocolHeader(bytes memory rootHash) public returns (bool) {
+    function updateProtocolHeader(bytes memory rootHash) public {
         require(msg.sender == relayer);
         relayNetworkHash = rootHash;
         emit HeaderUpdated(rootHash);
-        return true;
     }
 
     function submitPacketWithProof(
@@ -113,6 +114,8 @@ contract AnconProtocol is ICS23, Ownable {
         ExistenceProof memory proof
     ) public payable returns (bool) {
         // 1. Verify
+        require(keccak256(proof.key) == keccadk256(key), "invalid key");
+
         require(verifyProof(proof));
 
         proofs[key] = true;
@@ -143,7 +146,7 @@ contract AnconProtocol is ICS23, Ownable {
     }
 
     function queryRootCalculation(ExistenceProof memory proof)
-        public
+        internal
         pure
         returns (bytes memory)
     {
