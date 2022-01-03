@@ -39,7 +39,22 @@ type DagJsonHandler struct {
 // @Success 201 {string} cid
 // @Router /v0/dagjson [post]
 func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
+	// TODO:
+	// {
 
+	// 	metadata: object,
+	// 	ts: datetime,
+	// 	did: user,
+	// 	proofLink: "ipfs://babaaaf"
+	// }
+
+	// DAG Store
+	// Set merkle tree
+	// Commit
+	// Get Proof
+	// cid = Focused Transform (proofLink)
+
+	// return cid, ...
 	v, _ := c.GetRawData()
 	from, _ := jsonparser.GetString(v, "from")
 
