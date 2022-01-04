@@ -5,6 +5,8 @@ const { ethers } = require("ethers");
 const Bytes = artifacts.require("Bytes");
 const Memory = artifacts.require("Memory");
 const ICS23 = artifacts.require("ICS23");
+const Ics23Helper = artifacts.require("Ics23Helper");
+
 const AnconProtocol = artifacts.require("AnconProtocol");
 const {
   AnconProtocol__factory,
@@ -69,9 +71,11 @@ module.exports = async (deployer, network, accounts) => {
 
   await deployer.deploy(Memory);
   await deployer.link(Memory, Bytes);
-
+  
   await deployer.deploy(Bytes);
-  await deployer.link(Bytes, ICS23, AnconProtocol);
+  await deployer.deploy(Ics23Helper);
+  await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol);
+  await deployer.link(Ics23Helper, ICS23, AnconProtocol);
 
   await deployer.deploy(AnconProtocol, accounts[1]);
   const verifier = await AnconProtocol.deployed();

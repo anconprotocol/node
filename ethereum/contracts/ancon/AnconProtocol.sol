@@ -31,6 +31,10 @@ contract AnconProtocol is ICS23, Ownable {
         relayer = _relayer;
     }
 
+    function setPaymentToken(IERC20 tokenAddress) public onlyOwner {
+        stablecoin = tokenAddress;
+    }
+
     function withdraw(address payable payee) public onlyOwner {
         uint256 b = address(this).balance;
 
