@@ -3,12 +3,11 @@ package types
 import (
 	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
-	"github.com/anconprotocol/sdk"
 
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 )
 
-func GetDidDocument(data string, s *sdk.Storage) (*did.Doc, error) {
+func GetDidDocument(data string) (*did.Doc, error) {
 	return did.ParseDocument([]byte(data))
 }
 

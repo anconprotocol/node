@@ -192,7 +192,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
+	didDoc, err := types.GetDidDocument(string(didCid),)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("error in did Document %v", err).Error(),

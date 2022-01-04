@@ -17,10 +17,8 @@ import (
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
 	"github.com/gin-gonic/gin"
-	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/fluent"
-	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
 
@@ -87,7 +85,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	didCid, err := dagctx.Store.DataStore.Get(context.Background(), from)
+	doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing did").Error(),
@@ -95,9 +93,9 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootHash, "user", didCid)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
 
-	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
+	didDoc, err := types.GetDidDocument(string(doc))
 	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
 	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := []byte(signature)
@@ -126,7 +124,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
-	internalKey:= fmt.Sprintf("%s/%s", p, cid)
+	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
 	commithash, _ := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 	proof, err := dagctx.Proof.GetCommitmentProof([]byte(internalKey))
@@ -154,7 +152,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
-		lnk, _ := sdk.ParseCidLink(string(didCid))
+		lnk, _ := sdk.ParseCidLink((from))
 		na.AssembleEntry("issuer").AssignLink(lnk)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
@@ -165,7 +163,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
-
 
 	c.JSON(201, gin.H{
 		"cid": res,
@@ -188,7 +185,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 // @Success 200
 // @Router /v0/dagjson/{cid}/{path} [get]
 func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
-	lnk, err := cid.Parse(c.Param("cid"))
+	lnk, err := sdk.ParseCidLink(c.Param("cid"))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),
@@ -199,11 +196,11 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{
 		LinkPath: ipld.ParsePath(p),
-	}, cidlink.Link{Cid: lnk})
+	}, lnk)
 
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err),
+			"error": err.Error(),
 		})
 		return
 	}

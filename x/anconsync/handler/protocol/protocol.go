@@ -68,12 +68,12 @@ func NewProtocolAPI(adapter *ethereum.OnchainAdapter, storage *sdk.Storage, proo
 }
 
 func (s *ProtocolService) Call(to string, from string, sig []byte, data string) string {
-	didCid, err := s.Storage.DataStore.Get(context.Background(), from)
+	doc, err := s.Storage.DataStore.Get(context.Background(), from)
 	if err != nil {
 		return (hexutil.Encode([]byte(fmt.Errorf("invalid signature").Error())))
 	}
 
-	didDoc, err := types.GetDidDocument(string(didCid), s.Storage)
+	didDoc, err := types.GetDidDocument(string(doc))
 	hash := crypto.Keccak256([]byte(data))
 	ok, err := types.Authenticate(didDoc, hash, sig)
 	if ok {

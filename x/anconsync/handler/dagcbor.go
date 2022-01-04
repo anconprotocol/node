@@ -76,7 +76,7 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	didDoc, err := types.GetDidDocument(string(didCid), &dagctx.Store)
+	didDoc, err := types.GetDidDocument(string(didCid),)
 	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
 	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := []byte(v["signature"])
