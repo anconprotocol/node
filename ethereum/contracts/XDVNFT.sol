@@ -13,7 +13,7 @@ import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
 
 //  a NFT secure document
-contract XDVNFT is
+abstract contract XDVNFT is
     ERC721Burnable,
     ERC721Pausable,
     ERC721URIStorage,

@@ -91,7 +91,7 @@ contract AnconProtocol is ICS23, Ownable {
     function enrollL2Account(
         bytes memory key, // proof key "/anconprotocol/root/user/diddocid"
         bytes memory did, // proof value did doc id
-        ExistenceProof memory proof
+        Ics23Helper.ExistenceProof memory proof
     ) public payable returns (bool) {
         require(keccak256(proof.key) == keccak256(key), "invalid key");
 
@@ -120,7 +120,7 @@ contract AnconProtocol is ICS23, Ownable {
     function submitPacketWithProof(
         bytes memory key,
         bytes memory packet,
-        ExistenceProof memory proof
+        Ics23Helper.ExistenceProof memory proof
     ) external payable returns (bool) {
         // 1. Verify
         require(keccak256(proof.key) == keccak256(key), "invalid key");
@@ -137,7 +137,7 @@ contract AnconProtocol is ICS23, Ownable {
         return true;
     }
 
-    function verifyProof(ExistenceProof memory exProof)
+    function verifyProof(Ics23Helper.ExistenceProof memory exProof)
         internal
         view
         returns (bool)
@@ -154,7 +154,7 @@ contract AnconProtocol is ICS23, Ownable {
         return true;
     }
 
-    function queryRootCalculation(ExistenceProof memory proof)
+    function queryRootCalculation(Ics23Helper.ExistenceProof memory proof)
         internal
         pure
         returns (bytes memory)

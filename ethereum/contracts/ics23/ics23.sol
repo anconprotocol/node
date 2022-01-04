@@ -1,94 +1,37 @@
 pragma solidity >=0.8.0;
 import "./Bytes.sol";
+import "./Ics23Helper.sol";
 
 contract ICS23 {
   using Bytes for bytes;
+  // using Ics23Helper for *;
+  // Ics23Helper Ics23Helper;
+  // Ics23Helper.ProofSpec ProofSpec;
+  // Ics23Helper.LeafOp LeafOp;
+  // Ics23Helper.HashOp HashOp;
+  // Ics23Helper.LengthOp LengthOp;
+  // Ics23Helper.InnerOp InnerOp;
+  // Ics23Helper.ExistenceProof ExistenceProof;
+  // Ics23Helper.InnerSpec InnerSpec;
   // Data structures and helper functions
 
-  enum HashOp {
-    NO_HASH,
-    SHA256,
-    SHA512,
-    KECCAK,
-    RIPEMD160,
-    BITCOIN
-  }
-  enum LengthOp {
-    NO_PREFIX,
-    VAR_PROTO,
-    VAR_RLP,
-    FIXED32_BIG,
-    FIXED32_LITTLE,
-    FIXED64_BIG,
-    FIXED64_LITTLE,
-    REQUIRE_32_BYTES,
-    REQUIRE_64_BYTES
-  }
-
-  struct ExistenceProof {
-    bool valid;
-    bytes key;
-    bytes value;
-    LeafOp leaf;
-    InnerOp[] path;
-  }
-
-  struct NonExistenceProof {
-    bool valid;
-    bytes key;
-    ExistenceProof left;
-    ExistenceProof right;
-  }
-
-  struct LeafOp {
-    bool valid;
-    HashOp hash;
-    HashOp prehash_key;
-    HashOp prehash_value;
-    LengthOp len;
-    bytes prefix;
-  }
-
-  struct InnerOp {
-    bool valid;
-    HashOp hash;
-    bytes prefix;
-    bytes suffix;
-  }
-
-  struct ProofSpec {
-    LeafOp leafSpec;
-    InnerSpec innerSpec;
-    uint256 maxDepth;
-    uint256 minDepth;
-  }
-
-  struct InnerSpec {
-    uint256[] childOrder;
-    uint256 childSize;
-    uint256 minPrefixLength;
-    uint256 maxPrefixLength;
-    bytes emptyChild;
-    HashOp hash;
-  }
-
-  function getIavlSpec() public pure returns (ProofSpec memory) {
-    ProofSpec memory spec;
+  function getIavlSpec() public pure returns (Ics23Helper.ProofSpec memory) {
+    Ics23Helper.ProofSpec memory spec;
 
     uint256[] memory childOrder = new uint256[](2);
     childOrder[0] = 0;
     childOrder[1] = 1;
 
-    spec.leafSpec = LeafOp(
+    spec.leafSpec = Ics23Helper.LeafOp(
       true,
-      HashOp.SHA256,
-      HashOp.NO_HASH,
-      HashOp.SHA256,
-      LengthOp.VAR_PROTO,
+      Ics23Helper.HashOp.SHA256,
+      Ics23Helper.HashOp.NO_HASH,
+      Ics23Helper.HashOp.SHA256,
+      Ics23Helper.LengthOp.VAR_PROTO,
       hex"00"
     );
 
-    spec.innerSpec = InnerSpec(childOrder, 33, 4, 12, "", HashOp.SHA256);
+    spec.innerSpec = Ics23Helper.InnerSpec(childOrder, 33, 4, 12, "", Ics23Helper.HashOp.SHA256);
     return spec;
   }
 
@@ -98,7 +41,7 @@ contract ICS23 {
     GT
   }
 
-  function checkAgainstSpecLeafOp(LeafOp memory op, ProofSpec memory spec)
+  function checkAgainstSpecLeafOp(Ics23Helper.LeafOp memory op, Ics23Helper.ProofSpec memory spec)
     internal
     pure
   {
@@ -119,7 +62,7 @@ contract ICS23 {
   }
 
   function applyValueLeafOp(
-    LeafOp memory op,
+    Ics23Helper.LeafOp memory op,
     bytes memory key,
     bytes memory value
   ) internal pure returns (bytes memory) {
@@ -133,25 +76,25 @@ contract ICS23 {
   }
 
   function prepareLeafData(
-    HashOp hashOp,
-    LengthOp lengthOp,
+    Ics23Helper.HashOp hashOp,
+    Ics23Helper.LengthOp lengthOp,
     bytes memory data
   ) private pure returns (bytes memory) {
     return doLength(lengthOp, doHashOrNoop(hashOp, data));
   }
 
-  function doHashOrNoop(HashOp hashOp, bytes memory data)
+  function doHashOrNoop(Ics23Helper.HashOp hashOp, bytes memory data)
     private
     pure
     returns (bytes memory)
   {
-    if (hashOp == HashOp.NO_HASH) {
+    if (hashOp == Ics23Helper.HashOp.NO_HASH) {
       return data;
     }
     return doHash(hashOp, data);
   }
 
-  function checkAgainstSpecInnerOp(InnerOp memory op, ProofSpec memory spec)
+  function checkAgainstSpecInnerOp(Ics23Helper.InnerOp memory op, Ics23Helper.ProofSpec memory spec)
     internal
     pure
   {
@@ -174,7 +117,7 @@ contract ICS23 {
     );
   }
 
-  function applyValueInnerOp(InnerOp memory op, bytes memory child)
+  function applyValueInnerOp(Ics23Helper.InnerOp memory op, bytes memory child)
     internal
     pure
     returns (bytes memory)
@@ -187,47 +130,47 @@ contract ICS23 {
       );
   }
 
-  function doHash(HashOp hashOp, bytes memory data)
+  function doHash(Ics23Helper.HashOp hashOp, bytes memory data)
     internal
     pure
     returns (bytes memory)
   {
-    if (hashOp == HashOp.SHA256) {
+    if (hashOp == Ics23Helper.HashOp.SHA256) {
       return Bytes.fromBytes32(sha256(data));
     }
 
-    if (hashOp == HashOp.SHA512) {
+    if (hashOp == Ics23Helper.HashOp.SHA512) {
       //TODO: implement sha512
       revert("SHA512 not implemented");
     }
 
-    if (hashOp == HashOp.RIPEMD160) {
+    if (hashOp == Ics23Helper.HashOp.RIPEMD160) {
       return Bytes.fromBytes32(ripemd160(data));
     }
 
-    if (hashOp == HashOp.BITCOIN) {
+    if (hashOp == Ics23Helper.HashOp.BITCOIN) {
       bytes32 hash = sha256(data);
       return Bytes.fromBytes32(ripemd160(Bytes.fromBytes32(hash)));
     }
     revert("Unsupported hashop");
   }
 
-  function doLength(LengthOp lengthOp, bytes memory data)
+  function doLength(Ics23Helper.LengthOp lengthOp, bytes memory data)
     internal
     pure
     returns (bytes memory)
   {
-    if (lengthOp == LengthOp.NO_PREFIX) {
+    if (lengthOp == Ics23Helper.LengthOp.NO_PREFIX) {
       return data;
     }
-    if (lengthOp == LengthOp.VAR_PROTO) {
+    if (lengthOp == Ics23Helper.LengthOp.VAR_PROTO) {
       return abi.encodePacked(encodeVarintProto(uint64(data.length)), data);
     }
-    if (lengthOp == LengthOp.REQUIRE_32_BYTES) {
+    if (lengthOp == Ics23Helper.LengthOp.REQUIRE_32_BYTES) {
       require(data.length == 32, "Expected 32 bytes");
       return data;
     }
-    if (lengthOp == LengthOp.REQUIRE_64_BYTES) {
+    if (lengthOp == Ics23Helper.LengthOp.REQUIRE_64_BYTES) {
       require(data.length == 64, "Expected 64 bytes");
       return data;
     }
@@ -259,8 +202,8 @@ contract ICS23 {
   }
 
   function verify(
-    ExistenceProof memory proof,
-    ProofSpec memory spec,
+    Ics23Helper.ExistenceProof memory proof,
+    Ics23Helper.ProofSpec memory spec,
     bytes memory root,
     bytes memory key,
     bytes memory value
@@ -277,7 +220,7 @@ contract ICS23 {
     );
   }
 
-  function checkAgainstSpec(ExistenceProof memory proof, ProofSpec memory spec)
+  function checkAgainstSpec(Ics23Helper.ExistenceProof memory proof, Ics23Helper.ProofSpec memory spec)
     private
     pure
   {
@@ -299,7 +242,7 @@ contract ICS23 {
   // Calculate determines the root hash that matches the given proof.
   // You must validate the result is what you have in a header.
   // Returns error if the calculations cannot be performed.
-  function calculate(ExistenceProof memory p)
+  function calculate(Ics23Helper.ExistenceProof memory p)
     internal
     pure
     returns (bytes memory)
