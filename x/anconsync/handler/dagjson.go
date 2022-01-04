@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"time"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -18,6 +19,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/fluent"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
@@ -124,11 +126,49 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
-	p = fmt.Sprintf("%s/%s", p, cid)
-	dagctx.Proof.Set([]byte(p), data)
-	dagctx.Proof.SaveVersion(&emptypb.Empty{})
+	internalKey:= fmt.Sprintf("%s/%s", p, cid)
+	dagctx.Proof.Set([]byte(internalKey), data)
+	commithash, _ := dagctx.Proof.SaveVersion(&emptypb.Empty{})
+	proof, err := dagctx.Proof.GetCommitmentProof([]byte(internalKey))
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("read Error %v", err).Error(),
+		})
+		return
+	}
+	existPayload, _, _, err := jsonparser.Get(proof, "proof", "proofs", "[0]", "Proof", "exist")
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("parse Error %v", err).Error(),
+		})
+		return
+	}
+	proofnode, err := sdk.Decode(basicnode.Prototype.Any, string(existPayload))
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("decode Error %v", err).Error(),
+		})
+		return
+	}
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+		lnk, _ := sdk.ParseCidLink(string(didCid))
+		na.AssembleEntry("issuer").AssignLink(lnk)
+		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
+		na.AssembleEntry("content").AssignLink(cid)
+		na.AssembleEntry("commitHash").AssignString(string(commithash))
+		na.AssembleEntry("signature").AssignString(signature)
+		na.AssembleEntry("proof").AssignNode(proofnode)
+		na.AssembleEntry("key").AssignString(p)
+
+	})
+	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
+
+
 	c.JSON(201, gin.H{
-		"cid": cid,
+		"cid": res,
 	})
 	pin, _ := jsonparser.GetString(v, "pin")
 
