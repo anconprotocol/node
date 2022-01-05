@@ -37,8 +37,8 @@ const (
 
 type Did struct {
 	*sdk.AnconSyncContext
-	Proof    *proofsignature.IavlProofService
-	RootHash string
+	Proof   *proofsignature.IavlProofService
+	RootKey string
 }
 
 // BuildDidWeb ....
@@ -299,8 +299,8 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
 
 	// proofs
-	key := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
-	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootHash, lnk.String())
+	key := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootKey, lnk.String())
 	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
 	if err != nil {
 		return nil, nil, fmt.Errorf("invalid key")

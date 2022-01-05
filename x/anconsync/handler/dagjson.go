@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/0xPolygon/polygon-sdk/crypto"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"context"
 	"encoding/json"
 	"fmt"
 
+	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
@@ -24,8 +24,8 @@ import (
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof    *proofsignature.IavlProofService
-	RootHash string
+	Proof   *proofsignature.IavlProofService
+	RootKey string
 }
 
 // @BasePath /v0
@@ -93,13 +93,11 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
-	didDoc, err := types.GetDidDocument(string(doc))
-	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
-	hash := crypto.Keccak256([]byte(hashWithPrefix))
-	sig := []byte(signature)
-	ok, err := types.Authenticate(didDoc, hash, sig)
+	didDoc, _ := types.GetDidDocument(string(doc))
+	sig, _ := hexutil.Decode(signature)
+	ok, err := types.Authenticate(didDoc, data, sig)
 	if ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
@@ -192,7 +190,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootHash)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{
 		LinkPath: ipld.ParsePath(p),

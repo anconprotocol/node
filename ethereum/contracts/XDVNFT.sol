@@ -110,7 +110,7 @@ abstract contract XDVNFT is
      */
     function mintWithProof(address user, string memory uri, bytes memory proof) public returns (uint256) {
         // verifyDid
-      //  submitPacketWithProof()
+      submitPacketWithProof();
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();

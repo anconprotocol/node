@@ -24,7 +24,7 @@ import (
 type DagCborHandler struct {
 	*sdk.AnconSyncContext
 	Proof    *proofsignature.IavlProofService
-	RootHash string
+	RootKey string
 }
 
 // @BasePath /v0
@@ -88,7 +88,7 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootHash, "user", didCid)
+	p := fmt.Sprintf("/anconprotocol/%s/%s/%s", dagctx.RootKey, "user", didCid)
 
 	n, err := sdk.DecodeCBOR(basicnode.Prototype.Any, data)
 	if err != nil {
@@ -129,7 +129,7 @@ func (dagctx *DagCborHandler) DagCborRead(c *gin.Context) {
 		})
 		return
 	}
-	p := fmt.Sprintf("%s/", dagctx.RootHash)
+	p := fmt.Sprintf("%s/", dagctx.RootKey)
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk})
 	if err != nil {

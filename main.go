@@ -168,17 +168,17 @@ func main() {
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootHash:         *rootkey,
+		RootKey:         *rootkey,
 	}
 	dagCborHandler := handler.DagCborHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootHash:         *rootkey,
+		RootKey:         *rootkey,
 	}
 	didHandler := handler.Did{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootHash:         *rootkey,
+		RootKey:         *rootkey,
 	}
 
 	fileHandler := handler.FileHandler{
