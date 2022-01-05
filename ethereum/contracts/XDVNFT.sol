@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
+import "./ics23/Ics23Helper.sol";
 
 //  a NFT secure document
 abstract contract XDVNFT is
@@ -18,7 +19,7 @@ abstract contract XDVNFT is
     ERC721Pausable,
     ERC721URIStorage,
     Ownable,
-    IAnconProtocol, 
+    IAnconProtocol,
     IERC721Receiver,
     TrustedOffchainHelper
 {
@@ -75,6 +76,7 @@ abstract contract XDVNFT is
             )
         );
     }
+
     function mint(address toAddress, uint256 tokenId)
         external
         returns (bytes32)
@@ -88,13 +90,15 @@ abstract contract XDVNFT is
             )
         );
     }
+
     /**
      * @dev Requests a DAG contract offchain execution
      */
-    function transferMetadataOwnership(string memory metadataUri, address transferTo, uint256 tokenId)
-        external
-        returns (bytes32)
-    {
+    function transferMetadataOwnership(
+        string memory metadataUri,
+        address transferTo,
+        uint256 tokenId
+    ) external returns (bytes32) {
         revert OffchainLookup(
             url,
             abi.encodeWithSignature(
@@ -108,10 +112,25 @@ abstract contract XDVNFT is
     /**
      * @dev Mints a XDV Data Token
      */
-    function mintWithProof(address user, string memory uri, bytes memory proof) public returns (uint256) {
+    function mintWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof
+    ) public returns (uint256) {
         // verifyDid
-      submitPacketWithProof();
+        //   require(anconprotocol.verifyDid(
+        //     userProof.key,
+        //     abi.encodePacked(did),
+        //     userProof
+        // ), "invalid user proof");
+        require(anconprotocol.submitPacketWithProof(
+            key,
+            packet,
+            proof
+        ), "invalid packet proof");
         _tokenIds.increment();
+        (address user, string memory uri) =  abi.decode(packet,(address, string));
 
         uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);

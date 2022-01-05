@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
+	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 )
 
@@ -29,5 +30,22 @@ func Authenticate(didDoc *did.Doc, data []byte, sig []byte) (bool, error) {
 
 	k := bytes.Equal(bz, pub.Value)
 	return k, err
+
+}
+
+func RecoverKey(data string, sig string) ([]byte, error) {
+
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	hash := crypto.Keccak256([]byte(msg))
+	signature := hexutil.MustDecode(sig)
+	// signature[64] -= 27
+
+	rec, err := crypto.RecoverPubkey(signature, hash)
+	addr := crypto.PubKeyToAddress(rec)
+
+	bz, err := crypto.Ecrecover(hash, signature)
+	fmt.Println(addr)
+
+	return bz, err
 
 }

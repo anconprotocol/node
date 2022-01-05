@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 
 	"github.com/anconprotocol/sdk/proofsignature"
-	"github.com/btcsuite/btcutil/base58"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
@@ -244,9 +244,26 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 		})
 		return
 	}
+	if v["signature"] == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing signature").Error(),
+		})
+		return
+	}
+	if v["message"] == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing message").Error(),
+		})
+		return
+	}
 
 	domainName := v["domainName"]
-	pub := base58.Decode(v["pub"])
+	pub, err := types.RecoverKey((v["message"]), (v["signature"]))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("failed to create did").Error(),
+		})
+	}
 	cid, proof, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
