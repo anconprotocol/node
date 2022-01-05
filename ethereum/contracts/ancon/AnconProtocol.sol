@@ -27,8 +27,8 @@ contract AnconProtocol is ICS23, Ownable {
     event ProofPacketSubmitted(bytes key, bytes packet);
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
-    constructor(address _relayer) public {
-        relayer = _relayer;
+    constructor() public {
+//        relayer = _relayer;
     }
 
     function setPaymentToken(IERC20 tokenAddress) public onlyOwner {
@@ -115,8 +115,8 @@ contract AnconProtocol is ICS23, Ownable {
         return true;
     }
 
-    function updateProtocolHeader(bytes memory rootHash) public {
-        require(msg.sender == relayer);
+    function updateProtocolHeader(bytes memory rootHash) public onlyOwner {
+        // require(msg.sender == relayer);
         relayNetworkHash = rootHash;
         emit HeaderUpdated(rootHash);
     }
@@ -157,7 +157,25 @@ contract AnconProtocol is ICS23, Ownable {
 
         return true;
     }
+    function verifyProofWithKV(
+        bytes memory key,
+        bytes memory value,
+        Ics23Helper.ExistenceProof memory exProof)
+        external
+        view
+        returns (bool)
+    {
+        // Verify membership
+        verify(
+            exProof,
+            getIavlSpec(),
+            relayNetworkHash,
+            key,
+            value
+        );
 
+        return true;
+    }
     function queryRootCalculation(Ics23Helper.ExistenceProof memory proof)
         internal
         pure

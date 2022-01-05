@@ -151,6 +151,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     "enrollL2Account(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "updateProtocolHeader(bytes)": FunctionFragment;
     "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "verifyProofWithKV(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -245,6 +246,10 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "submitPacketWithProof",
     values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "verifyProofWithKV",
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "ENROLL_PAYMENT",
@@ -324,6 +329,10 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "submitPacketWithProof",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "verifyProofWithKV",
     data: BytesLike
   ): Result;
 
@@ -520,6 +529,13 @@ export interface AnconProtocol extends BaseContract {
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
   };
 
   ENROLL_PAYMENT(overrides?: CallOverrides): Promise<string>;
@@ -624,6 +640,13 @@ export interface AnconProtocol extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  verifyProofWithKV(
+    key: BytesLike,
+    value: BytesLike,
+    exProof: ExistenceProofStruct,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   callStatic: {
     ENROLL_PAYMENT(overrides?: CallOverrides): Promise<string>;
 
@@ -722,6 +745,13 @@ export interface AnconProtocol extends BaseContract {
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -883,6 +913,13 @@ export interface AnconProtocol extends BaseContract {
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1003,6 +1040,13 @@ export interface AnconProtocol extends BaseContract {
       packet: BytesLike,
       proof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

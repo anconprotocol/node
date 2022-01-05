@@ -82,6 +82,7 @@ export interface IAnconProtocolInterface extends utils.Interface {
   functions: {
     "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "verifyProofWithKV(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -92,6 +93,10 @@ export interface IAnconProtocolInterface extends utils.Interface {
     functionFragment: "verifyProof",
     values: [ExistenceProofStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "verifyProofWithKV",
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "submitPacketWithProof",
@@ -99,6 +104,10 @@ export interface IAnconProtocolInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "verifyProof",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "verifyProofWithKV",
     data: BytesLike
   ): Result;
 
@@ -143,6 +152,13 @@ export interface IAnconProtocol extends BaseContract {
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
   };
 
   submitPacketWithProof(
@@ -157,6 +173,13 @@ export interface IAnconProtocol extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  verifyProofWithKV(
+    key: BytesLike,
+    value: BytesLike,
+    exProof: ExistenceProofStruct,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   callStatic: {
     submitPacketWithProof(
       key: BytesLike,
@@ -166,6 +189,13 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<boolean>;
 
     verifyProof(
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -185,6 +215,13 @@ export interface IAnconProtocol extends BaseContract {
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -196,6 +233,13 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifyProof(
+      exProof: ExistenceProofStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    verifyProofWithKV(
+      key: BytesLike,
+      value: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

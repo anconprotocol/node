@@ -77,7 +77,7 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol);
   await deployer.link(Ics23Helper, ICS23, AnconProtocol);
 
-  await deployer.deploy(AnconProtocol, accounts[1]);
+  await deployer.deploy(AnconProtocol);
   const verifier = await AnconProtocol.deployed();
 
 //  const provider = new ethers.providers.Web3Provider(web3.currentProvider);

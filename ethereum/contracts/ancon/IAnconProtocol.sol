@@ -18,4 +18,10 @@ interface IAnconProtocol {
         external
         view
         returns (bool);
+
+    function verifyProofWithKV(
+        bytes memory key,
+        bytes memory value,
+        Ics23Helper.ExistenceProof memory exProof
+    ) external view returns (bool);
 }
