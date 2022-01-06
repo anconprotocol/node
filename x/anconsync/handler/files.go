@@ -201,7 +201,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 	}
 
 	hash := fmt.Sprintf(`%s%s`, code, from)
-	ok, err := types.Authenticate(didDoc, []byte(hash), sig)
+	ok, err := types.Authenticate(didDoc, []byte(hash), string(sig))
 
 	if !ok || err != nil {
 		c.JSON(400, gin.H{

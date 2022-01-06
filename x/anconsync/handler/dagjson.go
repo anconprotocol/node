@@ -74,22 +74,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	data, err := hexutil.Decode(temp)
-	var buf bytes.Buffer
-	isJSON := false
-	if err != nil {
-		isJSON = true
-		err = json.Compact(&buf, []byte(temp))
-		data = buf.Bytes()
-
-	}
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing payload data source").Error(),
-		})
-		return
-	}
 	doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -101,14 +85,30 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
 	didDoc, _ := types.GetDidDocument(string(doc))
-	sig, _ := hexutil.Decode(signature)
-	ok, err := types.Authenticate(didDoc, data, sig)
+	temp, _ := jsonparser.GetUnsafeString(v, "data")
+	ok, err := types.Authenticate(didDoc, []byte(temp), signature)
 	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
 		})
 		return
 	}
+
+	data, err := hexutil.Decode(temp)
+	var buf bytes.Buffer
+	isJSON := false
+	if err != nil {
+		isJSON = true
+		err = json.Compact(&buf, []byte(temp))
+		data = buf.Bytes()
+	}
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing payload data source").Error(),
+		})
+		return
+	}
+	
 	path, _ := jsonparser.GetString(v, "path")
 
 	if path == "" {

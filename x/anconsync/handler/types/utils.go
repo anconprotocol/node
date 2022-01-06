@@ -13,16 +13,16 @@ func GetDidDocument(data string) (*did.Doc, error) {
 	return did.ParseDocument([]byte(data))
 }
 
-func Authenticate(didDoc *did.Doc, data []byte, sig []byte) (bool, error) {
+func Authenticate(didDoc *did.Doc, data []byte, sig string) (bool, error) {
 	jsonWebKey := didDoc.VerificationMethods()
 	id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
 	pub, _ := did.LookupPublicKey(id, didDoc)
 
-	temp := string(data)
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(temp), temp)
+	
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 	hash := crypto.Keccak256([]byte(msg))
-	signature := sig
-	// sig[64] -= 27
+	signature := hexutil.MustDecode(sig)
+	// signature[64] -= 27
 
 	rec, err := crypto.RecoverPubkey(signature, hash)
 	addr := crypto.PubKeyToAddress(rec)
