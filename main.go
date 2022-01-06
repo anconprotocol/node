@@ -168,17 +168,13 @@ func main() {
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootKey:         *rootkey,
+		RootKey:          *rootkey,
 	}
-	dagCborHandler := handler.DagCborHandler{
-		AnconSyncContext: dagHandler,
-		Proof:            proofHandler.GetProofService(),
-		RootKey:         *rootkey,
-	}
+
 	didHandler := handler.Did{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
-		RootKey:         *rootkey,
+		RootKey:          *rootkey,
 	}
 
 	fileHandler := handler.FileHandler{
@@ -193,9 +189,11 @@ func main() {
 		api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
 		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
-		api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
+		api.GET("/dag/:cid/*path", dagJsonHandler.DagJsonRead)
+		api.POST("/dag", dagJsonHandler.DagJsonWrite)
 		api.POST("/dagjson", dagJsonHandler.DagJsonWrite)
-		api.POST("/dagcbor", dagCborHandler.DagCborWrite)
+		// api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
+		// api.POST("/dagcbor", dagCborHandler.DagCborWrite)
 		api.POST("/did/key", didHandler.CreateDidKey)
 		api.POST("/did/web", didHandler.CreateDidWeb)
 		api.GET("/did/:did", didHandler.ReadDid)

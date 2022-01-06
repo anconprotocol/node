@@ -103,7 +103,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	didDoc, _ := types.GetDidDocument(string(doc))
 	sig, _ := hexutil.Decode(signature)
 	ok, err := types.Authenticate(didDoc, data, sig)
-	if ok {
+	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
 		})

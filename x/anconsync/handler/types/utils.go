@@ -18,14 +18,16 @@ func Authenticate(didDoc *did.Doc, data []byte, sig []byte) (bool, error) {
 	id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
 	pub, _ := did.LookupPublicKey(id, didDoc)
 
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	temp := string(data)
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(temp), temp)
 	hash := crypto.Keccak256([]byte(msg))
-	sig[64] -= 27
+	signature := sig
+	// sig[64] -= 27
 
-	rec, err := crypto.RecoverPubkey(sig, hash)
+	rec, err := crypto.RecoverPubkey(signature, hash)
 	addr := crypto.PubKeyToAddress(rec)
 
-	bz, err := crypto.Ecrecover(hash, sig)
+	bz, err := crypto.Ecrecover(hash, signature)
 	fmt.Println(addr)
 
 	k := bytes.Equal(bz, pub.Value)

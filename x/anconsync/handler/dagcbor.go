@@ -23,7 +23,7 @@ import (
 
 type DagCborHandler struct {
 	*sdk.AnconSyncContext
-	Proof    *proofsignature.IavlProofService
+	Proof   *proofsignature.IavlProofService
 	RootKey string
 }
 
@@ -76,12 +76,12 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	didDoc, err := types.GetDidDocument(string(didCid),)
+	didDoc, err := types.GetDidDocument(string(didCid))
 	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
 	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := []byte(v["signature"])
 	ok, err := types.Authenticate(didDoc, hash, sig)
-	if ok {
+	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
 		})
@@ -130,8 +130,6 @@ func (dagctx *DagCborHandler) DagCborRead(c *gin.Context) {
 		return
 	}
 	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
-
-
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk})
 	if err != nil {
