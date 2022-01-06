@@ -74,11 +74,14 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	//		temp = strings.ReplaceAll(temp, "\n", "")
-	// temp = strings.ReplaceAll(temp, "\\","\"")
+	data, err := hexutil.Decode(temp)
 	var buf bytes.Buffer
-	err := json.Compact(&buf, []byte(temp))
-	data := buf.Bytes()
+	if err != nil {
+
+		err = json.Compact(&buf, []byte(temp))
+		data = buf.Bytes()
+
+	}
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing payload data source").Error(),

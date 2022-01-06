@@ -4,7 +4,6 @@ import "./Ics23Helper.sol";
 
 contract ICS23 {
   using Bytes for bytes;
-  // using Ics23Helper for *;
   // Ics23Helper Ics23Helper;
   // Ics23Helper.ProofSpec ProofSpec;
   // Ics23Helper.LeafOp LeafOp;

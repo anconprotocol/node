@@ -1,7 +1,7 @@
 pragma solidity >=0.8.0;
 import "./Bytes.sol";
 
-library Ics23Helper {
+contract Ics23Helper {
   using Bytes for bytes;
   // Data structures and helper functions
 
