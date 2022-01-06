@@ -18,6 +18,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/gin-gonic/gin"
 	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
@@ -76,8 +77,9 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	data, err := hexutil.Decode(temp)
 	var buf bytes.Buffer
+	isJSON := false
 	if err != nil {
-
+		isJSON = true
 		err = json.Compact(&buf, []byte(temp))
 		data = buf.Bytes()
 
@@ -116,8 +118,12 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	n, err := sdk.Decode(basicnode.Prototype.Any, string(data))
-
+	var n datamodel.Node
+	if isJSON {
+		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
+	} else {
+		n = basicnode.NewBytes(data)
+	}
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("decode Error %v", err).Error(),
