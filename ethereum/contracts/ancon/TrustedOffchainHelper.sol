@@ -29,6 +29,26 @@ abstract contract TrustedOffchainHelper is Ownable {
         return _signer;
     }
 
+
+
+    function authenticate(bytes32 digest, bytes memory signature)
+        public
+        returns (bool)
+    {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // ecrecover takes the signature parameters, and the only way to get them
+        // currently is to use assembly.
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+
+        return digest.recover((v + 27), r, s) == msg.sender;
+    }
+
     function isValidProof(bytes32 digest, bytes memory signature)
         internal
         returns (bool)

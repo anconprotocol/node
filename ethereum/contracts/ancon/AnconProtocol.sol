@@ -28,7 +28,7 @@ contract AnconProtocol is ICS23, Ownable {
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
     constructor() public {
-//        relayer = _relayer;
+        //        relayer = _relayer;
     }
 
     function setPaymentToken(IERC20 tokenAddress) public onlyOwner {
@@ -41,14 +41,14 @@ contract AnconProtocol is ICS23, Ownable {
         emit Withdrawn(payee, b);
     }
 
-    function withdrawToken(address payable payee, address erc20token) public onlyOwner {
+    function withdrawToken(address payable payee, address erc20token)
+        public
+        onlyOwner
+    {
         uint256 balance = IERC20(erc20token).balanceOf(address(this));
 
         // Transfer tokens to pay service fee
-        require(
-            IERC20(erc20token).transfer(payee, balance),
-            "transfer failed"
-        );
+        require(IERC20(erc20token).transfer(payee, balance), "transfer failed");
 
         emit Withdrawn(payee, balance);
     }
@@ -102,7 +102,7 @@ contract AnconProtocol is ICS23, Ownable {
         require(verifyProof(proof), "invalid proof");
 
         require(
-            keccak256(key) == keccak256(accountProofs[did]),
+            keccak256(key) != keccak256(accountProofs[did]),
             "user already registered"
         );
 
@@ -122,18 +122,24 @@ contract AnconProtocol is ICS23, Ownable {
     }
 
     function submitPacketWithProof(
+        address sender,
+        Ics23Helper.ExistenceProof memory userProof,
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory proof
     ) external payable returns (bool) {
         // 1. Verify
         require(keccak256(proof.key) == keccak256(key), "invalid key");
-
+        require(
+          keccak256 ( accountByAddrProofs[sender] )== keccak256(userProof.key),
+            "invalid user key"
+        );
+        require(verifyProof(userProof), "invalid user proof");
         require(verifyProof(proof));
 
         proofs[key] = true;
 
-        protocolPayment(SUBMIT_PAYMENT, msg.sender);
+        protocolPayment(SUBMIT_PAYMENT, sender);
 
         // 2. Submit event
         emit ProofPacketSubmitted(key, packet);
@@ -157,25 +163,18 @@ contract AnconProtocol is ICS23, Ownable {
 
         return true;
     }
+
     function verifyProofWithKV(
         bytes memory key,
         bytes memory value,
-        Ics23Helper.ExistenceProof memory exProof)
-        external
-        view
-        returns (bool)
-    {
+        Ics23Helper.ExistenceProof memory exProof
+    ) external view returns (bool) {
         // Verify membership
-        verify(
-            exProof,
-            getIavlSpec(),
-            relayNetworkHash,
-            key,
-            value
-        );
+        verify(exProof, getIavlSpec(), relayNetworkHash, key, value);
 
         return true;
     }
+
     function queryRootCalculation(Ics23Helper.ExistenceProof memory proof)
         internal
         pure
@@ -183,4 +182,5 @@ contract AnconProtocol is ICS23, Ownable {
     {
         return bytes(calculate(proof));
     }
+
 }

@@ -150,7 +150,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     "hasProof(bytes)": FunctionFragment;
     "enrollL2Account(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "updateProtocolHeader(bytes)": FunctionFragment;
-    "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "submitPacketWithProof(address,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProofWithKV(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
@@ -244,7 +244,13 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "submitPacketWithProof",
-    values: [BytesLike, BytesLike, ExistenceProofStruct]
+    values: [
+      string,
+      ExistenceProofStruct,
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProofWithKV",
@@ -524,6 +530,8 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<ContractTransaction>;
 
     submitPacketWithProof(
+      sender: string,
+      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -634,6 +642,8 @@ export interface AnconProtocol extends BaseContract {
   ): Promise<ContractTransaction>;
 
   submitPacketWithProof(
+    sender: string,
+    userProof: ExistenceProofStruct,
     key: BytesLike,
     packet: BytesLike,
     proof: ExistenceProofStruct,
@@ -742,6 +752,8 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<void>;
 
     submitPacketWithProof(
+      sender: string,
+      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -908,6 +920,8 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<BigNumber>;
 
     submitPacketWithProof(
+      sender: string,
+      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -1036,6 +1050,8 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     submitPacketWithProof(
+      sender: string,
+      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
