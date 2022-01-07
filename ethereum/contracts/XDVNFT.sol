@@ -115,22 +115,28 @@ contract XDVNFT is
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
     ) public returns (uint256) {
-        // verifyDid
-        //   require(anconprotocol.verifyDid(
-        //     userProof.key,
-        //     abi.encodePacked(did),
-        //     userProof
-        // ), "invalid user proof");
-        require(anconprotocol.submitPacketWithProof(
-            key,
-            packet,
-            proof
-        ), "invalid packet proof");
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
         _tokenIds.increment();
-        (address user, string memory uri) =  abi.decode(packet,(address, string));
-
+        (address user, string memory uri) = abi.decode(
+            packet,
+            (address, string)
+        );
+        require(
+            hash == keccak256(abi.encodePacked(user, uri)),
+            "Invalid packet"
+        );
         uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
