@@ -219,6 +219,7 @@ example of the returned object:
 
 
 ## `POST /v0/dagjson`
+## `POST /v0/dag`
 
 > Stores json as dag-json in users path. Must have registerd DID and messasge must be signed with signature matching DID.
 
@@ -232,40 +233,8 @@ example of the returned object:
 | `from` | `string` | DID identifier |
 | `signature` | `string` | signature as hex |
 | `data` | `object` | object to store |
+| `pin` | `bool` | ipfs pin |
 
-
-
-### Returns
-
-| Type | Description |
-| -------- | -------- |
-| `Promise<Response>` | An object that contains the CID |
-
-example of the returned object:
-
-```json
-{
-  "cid": {
-    "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
-  }
-}
-```
-
-
-
-## `POST /v0/dagcbor`
-
-> Stores json as dag-cbor in users path. Must have registerd DID and messasge must be signed with signature matching DID.
-
-### Parameters
-
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| `path` | `string` | path |
-| `data` | `object` | (base64) object to store |
-| `from` | `string` | DID identifier |
-| `signature` | `string` | signature as hex |
 
 
 
@@ -284,10 +253,12 @@ example of the returned object:
   }
 }
 ```
+
 
 
 
 ## `GET /v0/dagjson/:cid/*path`
+## `GET /v0/dag/:cid/*path`
 
 > Reads a dag-json block
 
@@ -306,45 +277,26 @@ example of the returned object:
 
 | Type | Description |
 | -------- | -------- |
-| `Promise<Response>` |  json object |
+| `Promise<DagResponse>` |  json object |
 
-example of the returned object:
+
 
 ```json
  {
-    "name": "metadata sample",
-    "owner": "0x2a3D91a8D48C2892b391122b6c3665f52bCace23p",
-    "description": "testing sample",
-    "image": "helloworld.jpg"
-  }
-```
-
-
-## `GET /v0/dagcbor/:cid/*path`
-
-> Reads a dag-cbor block
-
-
-### Parameters
-
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| `cid` | `string` | cid |
-| `path` | `string` | path |
-
-
-
-### Returns
-
-| Type | Description |
-| -------- | -------- |
-| `Promise<Response>` |  cbor object |
-
-example of the returned object:
-
-```
-<...cbor data...>
+   "proof": {
+     ...
+   },
+   "signature": "...",
+   "commitHash": "...",
+   "issuer": {
+     "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+   },
+   "content": {
+     "/": "baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+   },
+   "timestamp": 101212365,
+   "key": "/anconprotocol/baguqeeraui7hue3i2smgzmzdqmrxrnicqpoggayqkoocqdcjf3q5n66smdlq"
+ }
 ```
 
 
