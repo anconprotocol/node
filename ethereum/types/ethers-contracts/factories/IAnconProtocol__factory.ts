@@ -13,6 +13,97 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        components: [
+          {
+            internalType: "bool",
+            name: "valid",
+            type: "bool",
+          },
+          {
+            internalType: "bytes",
+            name: "key",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes",
+            name: "value",
+            type: "bytes",
+          },
+          {
+            components: [
+              {
+                internalType: "bool",
+                name: "valid",
+                type: "bool",
+              },
+              {
+                internalType: "enum Ics23Helper.HashOp",
+                name: "hash",
+                type: "uint8",
+              },
+              {
+                internalType: "enum Ics23Helper.HashOp",
+                name: "prehash_key",
+                type: "uint8",
+              },
+              {
+                internalType: "enum Ics23Helper.HashOp",
+                name: "prehash_value",
+                type: "uint8",
+              },
+              {
+                internalType: "enum Ics23Helper.LengthOp",
+                name: "len",
+                type: "uint8",
+              },
+              {
+                internalType: "bytes",
+                name: "prefix",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Ics23Helper.LeafOp",
+            name: "leaf",
+            type: "tuple",
+          },
+          {
+            components: [
+              {
+                internalType: "bool",
+                name: "valid",
+                type: "bool",
+              },
+              {
+                internalType: "enum Ics23Helper.HashOp",
+                name: "hash",
+                type: "uint8",
+              },
+              {
+                internalType: "bytes",
+                name: "prefix",
+                type: "bytes",
+              },
+              {
+                internalType: "bytes",
+                name: "suffix",
+                type: "bytes",
+              },
+            ],
+            internalType: "struct Ics23Helper.InnerOp[]",
+            name: "path",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct Ics23Helper.ExistenceProof",
+        name: "userProof",
+        type: "tuple",
+      },
+      {
         internalType: "bytes",
         name: "key",
         type: "bytes",
