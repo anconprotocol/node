@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"time"
 
-	"google.golang.org/protobuf/types/known/emptypb"
-
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -25,8 +24,10 @@ import (
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof   *proofsignature.IavlProofService
-	RootKey string
+	Proof *proofsignature.IavlProofService
+
+	LastCommit *Commit
+	RootKey    string
 }
 
 // @BasePath /v0
@@ -108,7 +109,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	path, _ := jsonparser.GetString(v, "path")
 
 	if path == "" {
@@ -133,40 +134,17 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
-	commithash, _ := dagctx.Proof.SaveVersion(&emptypb.Empty{})
-	proof, err := dagctx.Proof.GetCommitmentProof([]byte(internalKey))
 
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("read Error %v", err).Error(),
-		})
-		return
-	}
-	existPayload, _, _, err := jsonparser.Get(proof, "proof", "proofs", "[0]", "Proof", "exist")
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("parse Error %v", err).Error(),
-		})
-		return
-	}
-	proofnode, err := sdk.Decode(basicnode.Prototype.Any, string(existPayload))
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("decode Error %v", err).Error(),
-		})
-		return
-	}
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
 		lnk, _ := sdk.ParseCidLink((from))
 		na.AssembleEntry("issuer").AssignLink(lnk)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
-		na.AssembleEntry("commitHash").AssignString(string(commithash))
+		na.AssembleEntry("commitHash").AssignString(string(dagctx.LastCommit.LastHash))
+		na.AssembleEntry("height").AssignInt((dagctx.LastCommit.Height))
 		na.AssembleEntry("signature").AssignString(signature)
-		na.AssembleEntry("proof").AssignNode(proofnode)
-		na.AssembleEntry("key").AssignString(p)
+		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
+		na.AssembleEntry("parent").AssignString(p)
 
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)

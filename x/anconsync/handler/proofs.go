@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -15,7 +16,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	dbm "github.com/tendermint/tm-db"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/proofsignature"
@@ -23,14 +26,38 @@ import (
 
 var GENESISKEY = "/anconprotocol/"
 
+type Commit struct {
+	LastHash []byte
+	Height   int64
+}
 type ProofHandler struct {
 	*sdk.AnconSyncContext
 	db dbm.DB
 
-	api    proofsignature.IavlProofAPI
-	proofs proofsignature.IavlProofService
+	LastCommit *Commit
+	api        proofsignature.IavlProofAPI
+	proofs     proofsignature.IavlProofService
+	RootKey    string
 }
 
+func (h *ProofHandler) Commit() (int64, string, error) {
+
+	p := fmt.Sprintf("%s/%s/hash", "/anconprotocol", h.RootKey)
+
+	parent, err := h.proofs.Hash(&emptypb.Empty{})
+	parentHash, _ := jsonparser.GetString(parent, "lastHash")
+	h.proofs.Set([]byte(p), []byte(parentHash))
+
+	v, err := h.proofs.SaveVersion(&emptypb.Empty{})
+
+	hash, err := jsonparser.GetString(v, "root_hash")
+	version, err := jsonparser.GetInt(v, "version")
+	lastHash := []byte(hash)
+	blockNumber := cast.ToInt64(version)
+
+	h.LastCommit = &Commit{Height: blockNumber, LastHash: lastHash}
+	return cast.ToInt64(version), hash, err
+}
 func (h *ProofHandler) GetProofService() *proofsignature.IavlProofService {
 	return &h.proofs
 
@@ -275,7 +302,7 @@ func (dagctx *ProofHandler) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v0/proofs/{cid}/{path} [get]
+// @Router /v0/proofs/get/{path} [get]
 func (dagctx *ProofHandler) Read(c *gin.Context) {
 
 	v, _ := c.GetRawData()
@@ -289,7 +316,8 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 		return
 	}
 
-	data, err := dagctx.proofs.GetWithProof([]byte(key))
+	internalKey, _ := base64.StdEncoding.DecodeString(key)
+	data, err := dagctx.proofs.GetCommitmentProof([]byte(internalKey))
 
 	if err != nil {
 		c.JSON(400, gin.H{
