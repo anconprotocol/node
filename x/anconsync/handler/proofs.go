@@ -42,11 +42,11 @@ type ProofHandler struct {
 
 func (h *ProofHandler) Commit() (int64, string, error) {
 
-	p := fmt.Sprintf("%s/%s/hash", "/anconprotocol", h.RootKey)
+	// p := fmt.Sprintf("%s/%s/hash", "/anconprotocol", h.RootKey)
 
-	parent, err := h.proofs.Hash(&emptypb.Empty{})
-	parentHash, _ := jsonparser.GetString(parent, "lastHash")
-	h.proofs.Set([]byte(p), []byte(parentHash))
+	// parent, err := h.proofs.Hash(&emptypb.Empty{})
+	// parentHash, _ := jsonparser.GetString(parent, "lastHash")
+	// h.proofs.Set([]byte(p), []byte(parentHash))
 
 	v, err := h.proofs.SaveVersion(&emptypb.Empty{})
 
@@ -305,9 +305,7 @@ func (dagctx *ProofHandler) Create(c *gin.Context) {
 // @Router /v0/proofs/get/{path} [get]
 func (dagctx *ProofHandler) Read(c *gin.Context) {
 
-	v, _ := c.GetRawData()
-
-	key, _ := jsonparser.GetString(v, "key")
+	key, _ := c.Params.Get("key")
 
 	if key == "" {
 		c.JSON(400, gin.H{
@@ -315,9 +313,17 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 		})
 		return
 	}
+	height, _ := c.GetQuery("height")
 
+	if height == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing height").Error(),
+		})
+		return
+	}
+	version := cast.ToInt64(height)
 	internalKey, _ := base64.StdEncoding.DecodeString(key)
-	data, err := dagctx.proofs.GetCommitmentProof([]byte(internalKey))
+	data, err := dagctx.proofs.GetCommitmentProof([]byte(internalKey), version)
 
 	if err != nil {
 		c.JSON(400, gin.H{

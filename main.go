@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/x/anconsync/handler"
@@ -170,7 +169,6 @@ func main() {
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
-		LastCommit: proofHandler.LastCommit,
 	}
 
 	didHandler := handler.Did{
@@ -184,21 +182,21 @@ func main() {
 	}
 	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 
-	ticker := time.NewTicker(2500 * time.Millisecond)
-	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			case <-ticker.C:
-				block, hash,_ := proofHandler.Commit()
-				fmt.Printf("block at %d %s\r\n", block,  hash)
-			}
-		}
-	}()
+	// ticker := time.NewTicker(1500 * time.Millisecond)
+	// done := make(chan bool)
+	// go func() {
+	// 	for {
+	// 		select {
+	// 		case <-done:
+	// 			return
+	// 		case <-ticker.C:
+	// 			block, hash, _ := proofHandler.Commit()
+	// 			fmt.Printf("block at %d %s\r\n", block, hash)
+	// 		}
+	// 	}
+	// }()
 
-	defer ticker.Stop()
+	// defer ticker.Stop()
 
 	api := r.Group("/v0")
 	{
@@ -216,7 +214,7 @@ func main() {
 		api.POST("/did/key", didHandler.CreateDidKey)
 		api.POST("/did/web", didHandler.CreateDidWeb)
 		api.GET("/did/:did", didHandler.ReadDid)
-		api.GET("/proofs/get/:key", proofHandler.Read)
+		api.GET("/proof/:key", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
 	}
 	// if subgraph.EnableDagcosmos {

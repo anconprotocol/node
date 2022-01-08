@@ -20,14 +20,15 @@ import (
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
+	"github.com/spf13/cast"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
 	Proof *proofsignature.IavlProofService
 
-	LastCommit *Commit
-	RootKey    string
+	RootKey string
 }
 
 // @BasePath /v0
@@ -41,22 +42,7 @@ type DagJsonHandler struct {
 // @Success 201 {string} cid
 // @Router /v0/dagjson [post]
 func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
-	// TODO:
-	// {
 
-	// 	metadata: object,
-	// 	ts: datetime,
-	// 	did: user,
-	// 	proofLink: "ipfs://babaaaf"
-	// }
-
-	// DAG Store
-	// Set merkle tree
-	// Commit
-	// Get Proof
-	// cid = Focused Transform (proofLink)
-
-	// return cid, ...
 	v, _ := c.GetRawData()
 	from, _ := jsonparser.GetString(v, "from")
 
@@ -134,14 +120,19 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
+	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
+	hash, err := jsonparser.GetString(commit, "root_hash")
+	version, err := jsonparser.GetInt(commit, "version")
+	lastHash := []byte(hash)
+	blockNumber := cast.ToInt64(version)
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
 		lnk, _ := sdk.ParseCidLink((from))
 		na.AssembleEntry("issuer").AssignLink(lnk)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
-		na.AssembleEntry("commitHash").AssignString(string(dagctx.LastCommit.LastHash))
-		na.AssembleEntry("height").AssignInt((dagctx.LastCommit.Height))
+		na.AssembleEntry("commitHash").AssignString(string(lastHash))
+		na.AssembleEntry("height").AssignInt(blockNumber)
 		na.AssembleEntry("signature").AssignString(signature)
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
 		na.AssembleEntry("parent").AssignString(p)

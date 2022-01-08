@@ -12,6 +12,8 @@ import (
 
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
+	"github.com/buger/jsonparser"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
@@ -270,9 +272,23 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
+	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
+
+	hash, err := jsonparser.GetString(commit, "root_hash")
+	version, err := jsonparser.GetInt(commit, "version")
+	lastHash := []byte(hash)
+
+	_, err = dagctx.Proof.GetCommitmentProof([]byte(key), version)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+	}
 	c.JSON(201, gin.H{
-		"cid": cid,
-		"key": base64.StdEncoding.EncodeToString([]byte(key)),
+		"cid":    cid,
+		"height": version,
+		"hash":   lastHash,
+		"key":    base64.StdEncoding.EncodeToString([]byte(key)),
 	})
 }
 
@@ -322,6 +338,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid key")
 	}
+
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid commit")
 	}

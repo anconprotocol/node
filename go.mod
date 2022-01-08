@@ -3,7 +3,7 @@ module github.com/anconprotocol/node
 go 1.17
 
 require (
-	github.com/anconprotocol/sdk v0.0.0-20211228164807-11f323df99bc
+	github.com/anconprotocol/sdk v0.1.5
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipld/go-ipld-prime v0.14.3
 	github.com/tendermint/tendermint v0.35.0
@@ -11,7 +11,6 @@ require (
 
 require (
 	github.com/0xPolygon/polygon-sdk v0.0.0-20211207172349-a9ee5ed12815
-	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/confio/ics23/go v0.6.6
 	github.com/cosmos/iavl v0.17.3
@@ -37,6 +36,7 @@ require (
 )
 
 require (
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/graphql-go/graphql v0.8.0 // indirect
 	github.com/marten-seemann/qpack v0.2.1 // indirect
 )
