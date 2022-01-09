@@ -90,8 +90,8 @@ module.exports = async (deployer, network, accounts) => {
 
   await verifier.setPaymentToken('0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
   await verifier.updateProtocolHeader('0x')
-  await verifier.setProtocolFee('50000000000000000')
-  await verifier.setAccountRegistrationFee('50000000000000000')
+  await verifier.setProtocolFee('500000000')
+  await verifier.setAccountRegistrationFee('500000000')
 
   builder.addContract('XDVNFT', c, c.address, network)
 

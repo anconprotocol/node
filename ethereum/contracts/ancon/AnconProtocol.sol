@@ -4,10 +4,11 @@ import "../ics23/ics23.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract AnconProtocol is ICS23, Ownable {
+contract AnconProtocol is ICS23 {
     bytes32 public ENROLL_PAYMENT = keccak256("ENROLL_PAYMENT");
     bytes32 public SUBMIT_PAYMENT = keccak256("SUBMIT_PAYMENT");
 
+    address public owner;
     address public relayer;
     bytes public relayNetworkHash;
 
@@ -28,14 +29,16 @@ contract AnconProtocol is ICS23, Ownable {
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
     constructor() public {
-        //        relayer = _relayer;
+        owner = msg.sender;
     }
 
-    function setPaymentToken(IERC20 tokenAddress) public onlyOwner {
+    function setPaymentToken(IERC20 tokenAddress) public {
+        require(owner == msg.sender);
         stablecoin = tokenAddress;
     }
 
-    function withdraw(address payable payee) public onlyOwner {
+    function withdraw(address payable payee) public {
+        require(owner == msg.sender);
         uint256 b = address(this).balance;
 
         emit Withdrawn(payee, b);
@@ -43,8 +46,9 @@ contract AnconProtocol is ICS23, Ownable {
 
     function withdrawToken(address payable payee, address erc20token)
         public
-        onlyOwner
+        
     {
+        require(owner == msg.sender);
         uint256 balance = IERC20(erc20token).balanceOf(address(this));
 
         // Transfer tokens to pay service fee
@@ -72,11 +76,13 @@ contract AnconProtocol is ICS23, Ownable {
         emit ServiceFeePaid(tokenHolder, protocolFee);
     }
 
-    function setProtocolFee(uint256 _fee) public onlyOwner {
+    function setProtocolFee(uint256 _fee) public {
+        require(owner == msg.sender);
         protocolFee = _fee;
     }
 
-    function setAccountRegistrationFee(uint256 _fee) public onlyOwner {
+    function setAccountRegistrationFee(uint256 _fee) public {
+        require(owner == msg.sender);
         accountRegistrationFee = _fee;
     }
 
@@ -115,7 +121,8 @@ contract AnconProtocol is ICS23, Ownable {
         return true;
     }
 
-    function updateProtocolHeader(bytes memory rootHash) public onlyOwner {
+    function updateProtocolHeader(bytes memory rootHash) public {
+        require(owner == msg.sender);
         // require(msg.sender == relayer);
         relayNetworkHash = rootHash;
         emit HeaderUpdated(rootHash);
