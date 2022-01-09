@@ -71,9 +71,8 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
-	didDoc, _ := types.GetDidDocument(string(doc))
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	ok, err := types.Authenticate(didDoc, []byte(temp), signature)
+	ok, err := types.Authenticate(doc, []byte(temp), signature)
 	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),

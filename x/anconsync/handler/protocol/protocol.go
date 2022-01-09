@@ -73,9 +73,8 @@ func (s *ProtocolService) Call(to string, from string, sig []byte, data string) 
 		return (hexutil.Encode([]byte(fmt.Errorf("invalid signature").Error())))
 	}
 
-	didDoc, err := types.GetDidDocument(string(doc))
 	hash := crypto.Keccak256([]byte(data))
-	ok, err := types.Authenticate(didDoc, hash, string(sig))
+	ok, err := types.Authenticate(doc, hash, string(sig))
 	if !ok {
 		return (hexutil.Encode([]byte(fmt.Errorf("user must registered as a did").Error())))
 	}

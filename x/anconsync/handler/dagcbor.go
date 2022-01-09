@@ -76,11 +76,10 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 		return
 	}
 
-	didDoc, err := types.GetDidDocument(string(didCid))
 	hashWithPrefix := fmt.Sprintf("%s%s", "\x19Ethereum Signed Message:\n", data)
 	hash := crypto.Keccak256([]byte(hashWithPrefix))
 	sig := (v["signature"])
-	ok, err := types.Authenticate(didDoc, hash, sig)
+	ok, err := types.Authenticate(didCid, hash, sig)
 	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),

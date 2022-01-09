@@ -218,7 +218,7 @@ func (dagctx *Did) CreateDidKey(c *gin.Context) {
 
 	domainName := ""
 	pub := []byte{}
-	cid, proof, err := dagctx.AddDid(DidTypeKey, domainName, pub)
+	cid, proof, err := dagctx.AddDid(DidTypeKey, "", domainName, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
@@ -260,13 +260,13 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	}
 
 	domainName := v["domainName"]
-	pub, err := types.RecoverKey((v["message"]), (v["signature"]))
+	pub, addr, err := types.RecoverKey((v["message"]), (v["signature"]))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
-	cid, key, err := dagctx.AddDid(DidTypeWeb, domainName, pub)
+	cid, key, err := dagctx.AddDid(DidTypeWeb, domainName, addr, pub)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
@@ -285,14 +285,15 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 		})
 	}
 	c.JSON(201, gin.H{
-		"cid":    cid,
-		"height": version,
-		"hash":   lastHash,
-		"key":    base64.StdEncoding.EncodeToString([]byte(key)),
+		"cid":             cid,
+		"ethereumAddress": addr,
+		"height":          version,
+		"hash":            lastHash,
+		"key":             base64.StdEncoding.EncodeToString([]byte(key)),
 	})
 }
 
-func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []byte) (ipld.Link, string, error) {
+func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, pubbytes []byte) (ipld.Link, string, error) {
 
 	var didDoc *did.Doc
 	var err error
@@ -323,7 +324,12 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, pubbytes []by
 		return nil, "", fmt.Errorf("Must create a did")
 	}
 	bz, err := didDoc.JSONBytes()
-	n, err := sdk.Decode(basicnode.Prototype.Any, string(bz))
+	patch, err := jsonparser.Set(bz, []byte(fmt.Sprintf(`"%s"`,  addr)), "verificationMethod", "[0]", "ethereumAddress")
+	fmt.Println(
+		string(patch),
+	)
+	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
+
 	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
 	if err != nil {
 		return nil, "", err
