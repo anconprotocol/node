@@ -95,6 +95,7 @@ func main() {
 	host := impl.NewPeer(ctx, *addr)
 
 	exchange, ipfspeer := impl.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
+
 	fmt.Println(ipfspeer.ID)
 
 	docs.SwaggerInfo.BasePath = "/v0"

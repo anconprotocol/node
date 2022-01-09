@@ -3,7 +3,7 @@ module github.com/anconprotocol/node
 go 1.17
 
 require (
-	github.com/anconprotocol/sdk v0.1.5
+	github.com/anconprotocol/sdk v0.1.7
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipld/go-ipld-prime v0.14.3
 	github.com/tendermint/tendermint v0.35.0

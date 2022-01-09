@@ -10,7 +10,6 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/impl"
 	"github.com/buger/jsonparser"
 
 	"github.com/ipld/go-ipld-prime"
@@ -216,5 +215,5 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		"address": cid,
 	})
 
-	impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, v, cid)
+	// impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(js), cid)
 }

@@ -73,7 +73,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	ok, err := types.Authenticate(doc, []byte(temp), signature)
-	if !ok {
+	if ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
 		})
@@ -108,6 +108,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	if isJSON {
 		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
 	} else {
+		// TODO: fix
 		n = basicnode.NewBytes(data)
 	}
 	if err != nil {
@@ -139,14 +140,23 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
+	resp, _ := sdk.Encode(block)
+	tx, err := impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(resp))
+
+	resp2, _ := sdk.Encode(n)
+	m, err := impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(resp2))
+
+	c1, _ := sdk.ParseCidLink(m)
+	c2, _ := sdk.ParseCidLink(tx)
+	impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
+	impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
 		"cid": res,
+		"ipfs": map[string]interface{}{
+			"metadata": m,
+			"tx":       tx,
+		},
 	})
-	pin, _ := jsonparser.GetString(v, "pin")
-
-	if pin == "true" {
-		impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
-	}
 }
 
 // @BasePath /v0

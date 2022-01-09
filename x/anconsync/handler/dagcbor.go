@@ -12,6 +12,7 @@ import (
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/anconprotocol/sdk/proofsignature"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
@@ -101,13 +102,12 @@ func (dagctx *DagCborHandler) DagCborWrite(c *gin.Context) {
 	dagctx.Proof.Set([]byte(p), data)
 	dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
-	c.JSON(201, gin.H{
-		"cid": cid,
-	})
+	dist, err := impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", data)
 
-	if v["pin"] == "true" {
-		impl.PushBlock(c.Request.Context(), dagctx.IPFSPeer, data, cid)
-	}
+	c.JSON(201, gin.H{
+		"cid":  cid,
+		"ipfs": dist,
+	})
 }
 
 // @BasePath /v0
