@@ -136,6 +136,7 @@ contract AnconProtocol is ICS23 {
         Ics23Helper.ExistenceProof memory proof
     ) external payable returns (bool) {
         // 1. Verify
+        require(proofs[key] == false, "proof has been submitted (found key)");
         require(keccak256(proof.key) == keccak256(key), "invalid key");
         require(
           keccak256 ( accountByAddrProofs[sender] )== keccak256(userProof.key),

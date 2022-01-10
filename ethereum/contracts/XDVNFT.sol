@@ -145,6 +145,39 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Burns a XDV Data Token
+     */
+    function burnWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
+    ) public returns (uint256) {
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
+        (uint256  id) = abi.decode(
+            packet,
+            (uint256)
+        );
+        require(
+            hash == keccak256(abi.encodePacked(id)),
+            "Invalid packet"
+        );
+        _burn(id);
+        return id;
+    }
+
+
+    /**
      * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
      * by `operator` from `from`, this function is called.
      *
