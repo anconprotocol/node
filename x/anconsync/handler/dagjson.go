@@ -2,6 +2,8 @@ package handler
 
 import (
 	"bytes"
+	"log"
+	"strings"
 	"time"
 
 	"context"
@@ -15,20 +17,22 @@ import (
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
+	ecies "github.com/ecies/go"
 	"github.com/gin-gonic/gin"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/spf13/cast"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof *proofsignature.IavlProofService
-
-	RootKey string
+	Proof    *proofsignature.IavlProofService
+	IPFSHost string
+	RootKey  string
 }
 
 // @BasePath /v0
@@ -44,6 +48,7 @@ type DagJsonHandler struct {
 func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	v, _ := c.GetRawData()
+
 	from, _ := jsonparser.GetString(v, "from")
 
 	if from == "" {
@@ -95,6 +100,47 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
+	encrypt, _ := jsonparser.GetString(v, "encrypt")
+	hasEncrypt := encrypt == "true"
+	var authorizedRecipients []string
+
+	if hasEncrypt {
+		recipients, _ := jsonparser.GetString(v, "authorizedRecipients")
+		authorizedRecipients = strings.Split(recipients, ",")
+
+		content, err := dagctx.Store.DataStore.Get(c.Request.Context(), authorizedRecipients[0])
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("authorized recipient not found").Error(),
+			})
+			return
+		}
+
+		pub, err := types.GetDidDocumentAuthentication((content))
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("missing recipient public key").Error(),
+			})
+			return
+		}
+
+		data, err = ecies.Encrypt((*ecies.PublicKey)(pub), data)
+		fmt.Println(data)
+
+		if err != nil {
+			log.Printf("failed to encrypt payload: %s", err)
+			return
+		}
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("error while loading recipient public keys").Error(),
+			})
+			return
+		}
+
+	}
+
 	path, _ := jsonparser.GetString(v, "path")
 
 	if path == "" {
@@ -105,7 +151,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 
 	var n datamodel.Node
-	if isJSON {
+	if isJSON && !hasEncrypt {
 		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
 	} else {
 		// TODO: fix
@@ -117,6 +163,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
+
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
@@ -141,15 +188,15 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
 	resp, _ := sdk.Encode(block)
-	tx, err := impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(resp))
+	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
 
 	resp2, _ := sdk.Encode(n)
-	m, err := impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(resp2))
+	m, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp2))
 
-	c1, _ := sdk.ParseCidLink(m)
-	c2, _ := sdk.ParseCidLink(tx)
-	impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
-	impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
+	// c1, _ := sdk.ParseCidLink(m)
+	// c2, _ := sdk.ParseCidLink(tx)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
 		"cid": res,
 		"ipfs": map[string]interface{}{

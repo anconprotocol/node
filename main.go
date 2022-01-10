@@ -60,6 +60,7 @@ func main() {
 	quic := flag.Bool("quic", false, "Enable QUIC")
 	tlsKey := flag.String("tlscert", "", "TLS certificate")
 	tlsCert := flag.String("tlskey", "", "TLS key")
+	ipfshost := flag.String("ipfshost", "", "IPFS Host")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -170,12 +171,14 @@ func main() {
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
+		IPFSHost:         *ipfshost,
 	}
 
 	didHandler := handler.Did{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
+		IPFSHost:         *ipfshost,
 	}
 
 	fileHandler := handler.FileHandler{

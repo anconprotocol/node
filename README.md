@@ -234,7 +234,8 @@ example of the returned object:
 | `signature` | `string` | signature as hex |
 | `data` | `object` | object to store |
 | `pin` | `bool` | ipfs pin |
-
+| `encrypt` | `bool` | enables JOSE Web Encryption |
+| `authorizedRecipients` | `string array` | comma delimited Ethereum address
 
 
 
@@ -485,6 +486,7 @@ export class ExecuteContractExample {
 - `quic`: Enables QUIC
 - `tlscert`: TLS certificate for QUIC
 - `tlskey`: TLS key for QUIC
+- `ipfshost`: IPFS Host address for DAG Pinning
 
 # Trusted offchain gateways
 

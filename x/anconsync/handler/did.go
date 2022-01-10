@@ -15,6 +15,7 @@ import (
 	"github.com/buger/jsonparser"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/anconprotocol/sdk/impl"
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
@@ -39,8 +40,9 @@ const (
 
 type Did struct {
 	*sdk.AnconSyncContext
-	Proof   *proofsignature.IavlProofService
-	RootKey string
+	Proof    *proofsignature.IavlProofService
+	IPFSHost string
+	RootKey  string
 }
 
 // BuildDidWeb ....
@@ -284,6 +286,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
+
 	c.JSON(201, gin.H{
 		"cid":             cid,
 		"ethereumAddress": addr,
@@ -324,21 +327,22 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 		return nil, "", fmt.Errorf("Must create a did")
 	}
 	bz, err := didDoc.JSONBytes()
-	patch, err := jsonparser.Set(bz, []byte(fmt.Sprintf(`"%s"`,  addr)), "verificationMethod", "[0]", "ethereumAddress")
-	fmt.Println(
-		string(patch),
-	)
+	patch, err := jsonparser.Set(bz, []byte(fmt.Sprintf(`"%s"`, addr)), "verificationMethod", "[0]", "ethereumAddress")
 	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
+
+	resp, _ := sdk.Encode(n)
+	ipfscid, err := impl.PushBlock(ctx, dagctx.IPFSHost, []byte(resp))
 
 	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
 	if err != nil {
 		return nil, "", err
 	}
+	fmt.Println(ipfscid, lnk)
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
+	dagctx.Store.DataStore.Put(ctx, addr, patch)
 
 	// proofs
-	//	key := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootKey, lnk.String())
 	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
 	if err != nil {

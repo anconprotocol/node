@@ -3,7 +3,7 @@ module github.com/anconprotocol/node
 go 1.17
 
 require (
-	github.com/anconprotocol/sdk v0.1.7
+	github.com/anconprotocol/sdk v0.1.8
 	github.com/ipfs/go-cid v0.1.0
 	github.com/ipld/go-ipld-prime v0.14.3
 	github.com/tendermint/tendermint v0.35.0
@@ -37,8 +37,10 @@ require (
 
 require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
+	github.com/fomichev/secp256k1 v0.0.0-20180413221153-00116ff8c62f // indirect
 	github.com/graphql-go/graphql v0.8.0 // indirect
 	github.com/marten-seemann/qpack v0.2.1 // indirect
+	github.com/square/go-jose/v3 v3.0.0-20200630053402-0a67ce9b0693 // indirect
 )
 
 require (
@@ -64,6 +66,7 @@ require (
 	github.com/dgraph-io/ristretto v0.0.3 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/ecies/go v1.0.1
 	github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/flynn/noise v1.0.0 // indirect
@@ -215,7 +218,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.8.1 // indirect
-	github.com/square/go-jose/v3 v3.0.0-20200630053402-0a67ce9b0693 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect

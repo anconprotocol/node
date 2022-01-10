@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
@@ -14,13 +15,22 @@ func GetDidDocument(data string) (*did.Doc, error) {
 	return did.ParseDocument(bz)
 }
 
+func GetDidDocumentAuthentication(data []byte) (*ecdsa.PublicKey, error) {
+	didDoc, _ := did.ParseDocument(data)
+	jsonWebKey := didDoc.VerificationMethods()
+	id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
+	pub, _ := did.LookupPublicKey(id, didDoc)
+
+	return crypto.ParsePublicKey(pub.Value)
+
+}
 func Authenticate(diddoc []byte, data []byte, sig string) (bool, error) {
 	// jsonWebKey := didDoc.VerificationMethods()
 	// id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
 	// pub, _ := did.LookupPublicKey(id, didDoc)
 	// addrrec := pub.ID
 
-	addrrec, err := jsonparser.GetString((diddoc),"verificationMethod","[0]", "ethereumAddress")
+	addrrec, err := jsonparser.GetString((diddoc), "verificationMethod", "[0]", "ethereumAddress")
 	if err != nil {
 		return false, fmt.Errorf("invalid did, missing ethereumAddress")
 	}
