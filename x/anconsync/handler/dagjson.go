@@ -174,8 +174,15 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
-		lnk, _ := sdk.ParseCidLink((from))
-		na.AssembleEntry("issuer").AssignLink(lnk)
+		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("invalid did %v", err).Error(),
+			})
+			return
+		}
+	
+		na.AssembleEntry("issuer").AssignString(addrrec)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
 		na.AssembleEntry("commitHash").AssignString(string(lastHash))
@@ -183,7 +190,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		na.AssembleEntry("signature").AssignString(signature)
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
 		na.AssembleEntry("parent").AssignString(p)
-
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
@@ -198,7 +204,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
 	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
-		"cid": res,
+		"cid": res.String(),
 		"ipfs": map[string]interface{}{
 			"metadata": m,
 			"tx":       tx,
