@@ -16,17 +16,26 @@ contract AnconProtocol is ICS23 {
     uint256 public protocolFee = 0;
     uint256 public accountRegistrationFee = 0;
 
-    mapping(bytes => bytes) public accountProofs;
-    mapping(address => bytes) public accountByAddrProofs;
-    mapping(bytes => bool) public proofs;
+    mapping(bytes => bytes) public accountProofs; //did user-assigned proof key
+    mapping(address => bytes) public accountByAddrProofs; //proof key-assigned eth address
+    mapping(bytes => bool) public proofs; //if proof key was submitted to the blockchain
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
 
     event ServiceFeePaid(address indexed from, uint256 fee);
 
     event HeaderUpdated(bytes hash);
-    event ProofPacketSubmitted(bytes key, bytes packet);
-    event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
+    event ProofPacketSubmitted(
+        bytes key,
+        bytes packet,
+        Ics23Helper.ExistenceProof proof
+    );
+    event AccountRegistered(
+        bool enrolledStatus,
+        bytes key,
+        bytes value,
+        Ics23Helper.ExistenceProof proof
+    );
 
     constructor() public {
         owner = msg.sender;
@@ -40,14 +49,13 @@ contract AnconProtocol is ICS23 {
     function withdraw(address payable payee) public {
         require(owner == msg.sender);
         uint256 b = address(this).balance;
+        (bool sent, bytes memory data) = payee.call{value: b}("");
+        require(sent, "Failed to send Ether");
 
         emit Withdrawn(payee, b);
     }
 
-    function withdrawToken(address payable payee, address erc20token)
-        public
-        
-    {
+    function withdrawToken(address payable payee, address erc20token) public {
         require(owner == msg.sender);
         uint256 balance = IERC20(erc20token).balanceOf(address(this));
 
@@ -69,11 +77,11 @@ contract AnconProtocol is ICS23 {
             fee = protocolFee;
         } // Transfer tokens to pay service fee
         require(
-            stablecoin.transferFrom(tokenHolder, address(this), protocolFee),
+            stablecoin.transferFrom(tokenHolder, address(this), fee),
             "transfer failed for recipient"
         );
 
-        emit ServiceFeePaid(tokenHolder, protocolFee);
+        emit ServiceFeePaid(tokenHolder, fee);
     }
 
     function setProtocolFee(uint256 _fee) public {
@@ -99,8 +107,8 @@ contract AnconProtocol is ICS23 {
     }
 
     function enrollL2Account(
-        bytes memory key, // proof key "/anconprotocol/root/user/diddocid"
-        bytes memory did, // proof value did doc id
+        bytes memory key,
+        bytes memory did,
         Ics23Helper.ExistenceProof memory proof
     ) public payable returns (bool) {
         require(keccak256(proof.key) == keccak256(key), "invalid key");
@@ -117,7 +125,7 @@ contract AnconProtocol is ICS23 {
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
 
-        emit AccountRegistered(true, key, did);
+        emit AccountRegistered(true, key, did, proof);
         return true;
     }
 
@@ -139,7 +147,7 @@ contract AnconProtocol is ICS23 {
         require(proofs[key] == false, "proof has been submitted (found key)");
         require(keccak256(proof.key) == keccak256(key), "invalid key");
         require(
-          keccak256 ( accountByAddrProofs[sender] )== keccak256(userProof.key),
+            keccak256(accountByAddrProofs[sender]) == keccak256(userProof.key),
             "invalid user key"
         );
         require(verifyProof(userProof), "invalid user proof");
@@ -150,7 +158,7 @@ contract AnconProtocol is ICS23 {
         protocolPayment(SUBMIT_PAYMENT, sender);
 
         // 2. Submit event
-        emit ProofPacketSubmitted(key, packet);
+        emit ProofPacketSubmitted(key, packet, proof);
 
         return true;
     }
@@ -190,5 +198,4 @@ contract AnconProtocol is ICS23 {
     {
         return bytes(calculate(proof));
     }
-
 }

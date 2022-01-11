@@ -3,7 +3,6 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
@@ -19,7 +18,6 @@ contract XDVNFT is
     ERC721Pausable,
     ERC721URIStorage,
     Ownable,
-    IERC721Receiver,
     TrustedOffchainHelper
 {
     using Counters for Counters.Counter;
@@ -59,52 +57,12 @@ contract XDVNFT is
         serviceFeeForContract = _fee;
     }
 
-    /**
-     * @dev Requests a DAG contract offchain execution
-     */
-    function transferURI(address toAddress, uint256 tokenId)
-        external
-        returns (bytes32)
-    {
-        revert OffchainLookup(
-            url,
-            abi.encodeWithSignature(
-                "transferURIWithProof(address toAddress, uint256 tokenId, bytes memory proof)",
-                toAddress,
-                tokenId
-            )
-        );
-    }
-
     function mint(address toAddress, uint256 tokenId)
         external
         returns (bytes32)
     {
-        revert OffchainLookup(
-            url,
-            abi.encodeWithSignature(
-                "mintWithProof(address toAddress, string memory uri, bytes memory proof)",
-                toAddress,
-                tokenId
-            )
-        );
-    }
-
-    /**
-     * @dev Requests a DAG contract offchain execution
-     */
-    function transferMetadataOwnership(
-        string memory metadataUri,
-        address transferTo,
-        uint256 tokenId
-    ) external returns (bytes32) {
-        revert OffchainLookup(
-            url,
-            abi.encodeWithSignature(
-                "transferMetadataOwnershipWithProof(string metadataUri, address transferTo, uint256 tokenId, bytes memory proof)",
-                transferTo,
-                tokenId
-            )
+        revert UsageInformation(
+            "Requires anconprotocol proof to execute minting. See https://github.com/anconprotocol for more info"
         );
     }
 
@@ -128,7 +86,6 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        _tokenIds.increment();
         (address user, string memory uri) = abi.decode(
             packet,
             (address, string)
@@ -137,6 +94,7 @@ contract XDVNFT is
             hash == keccak256(abi.encodePacked(user, uri)),
             "Invalid packet"
         );
+        _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
@@ -164,35 +122,10 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        (uint256  id) = abi.decode(
-            packet,
-            (uint256)
-        );
-        require(
-            hash == keccak256(abi.encodePacked(id)),
-            "Invalid packet"
-        );
+        uint256 id = abi.decode(packet, (uint256));
+        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
         _burn(id);
         return id;
-    }
-
-
-    /**
-     * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
-     * by `operator` from `from`, this function is called.
-     *
-     * It must return its Solidity selector to confirm the token transfer.
-     * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
-     *
-     * The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-     */
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external returns (bytes4) {
-        return this.onERC721Received.selector;
     }
 
     /**
@@ -261,5 +194,13 @@ contract XDVNFT is
         require(stablecoin.transfer(payee, balance), "XDV: Transfer failed");
 
         emit Withdrawn(payee, balance);
+    }
+
+    function withdraw(address payable payee) public onlyOwner {
+        uint256 b = address(this).balance;
+        (bool sent, bytes memory data) = payee.call{value: b}("");
+        require(sent, "Failed to send Ether");
+
+        emit Withdrawn(payee, b);
     }
 }
