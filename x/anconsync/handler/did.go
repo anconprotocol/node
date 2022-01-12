@@ -274,10 +274,24 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
+	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
+
+	hash, err := jsonparser.GetString(commit, "root_hash")
+	version, err := jsonparser.GetInt(commit, "version")
+	lastHash := []byte(hash)
+
+	_, err = dagctx.Proof.GetCommitmentProof([]byte(key), version)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+	}
 
 	c.JSON(201, gin.H{
 		"cid":             cid,
 		"ethereumAddress": addr,
+		"height":          version,
+		"hash":            lastHash,
 		"key":             base64.StdEncoding.EncodeToString([]byte(key)),
 	})
 }
@@ -326,24 +340,18 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	fmt.Println(ipfscid, lnk)
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
+	dagctx.Store.DataStore.Put(ctx, addr, patch)
 
 	// proofs
 	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootKey, lnk.String())
 	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
-	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
-
-	if err != nil {
-		return nil, "", fmt.Errorf("invalid commit")
-	}
-	version, err := jsonparser.GetInt(commit, "version")
-	b64key := base64.StdEncoding.EncodeToString([]byte(internalKey))
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid key")
 	}
 
-	patch, err = jsonparser.Set(patch, []byte(fmt.Sprintf(`"%s"`, b64key)), "verificationMethod", "[0]", "key")
-	patch, err = jsonparser.Set(patch, []byte(fmt.Sprintf(`"%s"`, version)), "verificationMethod", "[0]", "height")
-	dagctx.Store.DataStore.Put(ctx, addr, patch)
+	if err != nil {
+		return nil, "", fmt.Errorf("invalid commit")
+	}
 
 	return lnk, internalKey, nil
 }
