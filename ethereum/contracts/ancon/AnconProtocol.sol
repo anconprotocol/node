@@ -25,17 +25,8 @@ contract AnconProtocol is ICS23 {
     event ServiceFeePaid(address indexed from, uint256 fee);
 
     event HeaderUpdated(bytes hash);
-    event ProofPacketSubmitted(
-        bytes key,
-        bytes packet,
-        Ics23Helper.ExistenceProof proof
-    );
-    event AccountRegistered(
-        bool enrolledStatus,
-        bytes key,
-        bytes value,
-        Ics23Helper.ExistenceProof proof
-    );
+    event ProofPacketSubmitted(bytes key, bytes packet);
+    event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
     constructor() public {
         owner = msg.sender;
@@ -125,7 +116,7 @@ contract AnconProtocol is ICS23 {
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
 
-        emit AccountRegistered(true, key, did, proof);
+        emit AccountRegistered(true, key, did);
         return true;
     }
 
@@ -158,7 +149,7 @@ contract AnconProtocol is ICS23 {
         protocolPayment(SUBMIT_PAYMENT, sender);
 
         // 2. Submit event
-        emit ProofPacketSubmitted(key, packet, proof);
+        emit ProofPacketSubmitted(key, packet);
 
         return true;
     }
