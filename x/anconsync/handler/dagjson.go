@@ -181,7 +181,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 			})
 			return
 		}
-	
+
 		na.AssembleEntry("issuer").AssignString(addrrec)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
@@ -191,6 +191,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
 		na.AssembleEntry("parent").AssignString(p)
 	})
+
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
 	resp, _ := sdk.Encode(block)

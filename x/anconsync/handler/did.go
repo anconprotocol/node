@@ -13,6 +13,7 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/buger/jsonparser"
+	"github.com/spf13/cast"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/anconprotocol/sdk/impl"
@@ -20,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/fluent"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/multiformats/go-multibase"
@@ -174,6 +176,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
+
 	value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -276,23 +279,41 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	}
 	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+
 	hash, err := jsonparser.GetString(commit, "root_hash")
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
+	blockNumber := cast.ToInt64(version)
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+		// addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 
-	_, err = dagctx.Proof.GetCommitmentProof([]byte(key), version)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": err.Error(),
-		})
-	}
+		na.AssembleEntry("issuer").AssignString(addr)
+		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
+		na.AssembleEntry("content").AssignLink(cid)
+		na.AssembleEntry("commitHash").AssignString(string(lastHash))
+		na.AssembleEntry("height").AssignInt(blockNumber)
+		na.AssembleEntry("signature").AssignString(v["signature"])
+		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(key)))
+		na.AssembleEntry("parent").AssignString(p)
+	})
+	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
+	resp, _ := sdk.Encode(block)
+
+	dagctx.Store.DataStore.Put(c.Request.Context(), "raw:"+addr, []byte(resp))
+
+	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
+
+	// c1, _ := sdk.ParseCidLink(m)
+	// c2, _ := sdk.ParseCidLink(tx)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
-		"cid":             cid,
-		"ethereumAddress": addr,
-		"height":          version,
-		"hash":            lastHash,
-		"key":             base64.StdEncoding.EncodeToString([]byte(key)),
+		"cid": res.String(),
+		"ipfs": map[string]interface{}{
+			"tx": tx,
+		},
 	})
 }
 
