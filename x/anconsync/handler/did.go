@@ -185,6 +185,11 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 		return
 	}
 
+	if strings.HasPrefix(did, "raw:") {
+		c.JSON(200, value)
+		return
+	}
+
 	lnk, err := sdk.ParseCidLink(string(value))
 	if err != nil {
 		c.JSON(400, gin.H{
