@@ -140,6 +140,72 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Locks a XDV Data Token
+     */
+    function lockWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
+    ) public returns (uint256) {
+        // require(
+        //     anconprotocol.submitPacketWithProof(
+        //         msg.sender,
+        //         userProof,
+        //         key,
+        //         packet,
+        //         proof
+        //     ),
+        //     "invalid packet proof"
+        // );
+        // uint256 id = abi.decode(packet, (uint256));
+        // require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        // _lock(id);
+        // return id;
+    }
+
+    function _lock(uint256 tokenId)
+        internal
+        override(ERC721, ERC721URIStorage)
+    {
+        // super._burn(tokenId);
+    }
+
+    /**
+     * @dev Locks a XDV Data Token
+     */
+    function unlockWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
+    ) public returns (uint256) {
+        // require(
+        //     anconprotocol.submitPacketWithProof(
+        //         msg.sender,
+        //         userProof,
+        //         key,
+        //         packet,
+        //         proof
+        //     ),
+        //     "invalid packet proof"
+        // );
+        // uint256 id = abi.decode(packet, (uint256));
+        // require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        // _unlock(id);
+        // return id;
+    }
+
+    function _unlock(uint256 tokenId)
+        internal
+        override(ERC721, ERC721URIStorage)
+    {
+        // super._burn(tokenId);
+    }
+
+    /**
      * @dev Just overrides the superclass' function. Fixes inheritance
      * source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
