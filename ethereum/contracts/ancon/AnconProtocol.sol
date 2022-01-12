@@ -32,9 +32,9 @@ contract AnconProtocol is ICS23 {
         owner = msg.sender;
     }
 
-    function setPaymentToken(IERC20 tokenAddress) public {
+    function setPaymentToken(address tokenAddress) public {
         require(owner == msg.sender);
-        stablecoin = tokenAddress;
+        stablecoin = IERC20(tokenAddress);
     }
 
     function withdraw(address payable payee) public {
@@ -62,17 +62,27 @@ contract AnconProtocol is ICS23 {
     {
         uint256 fee = 0;
         if ((paymentType) == ENROLL_PAYMENT) {
-            fee = accountRegistrationFee;
+            require(
+                stablecoin.transferFrom(
+                    tokenHolder,
+                    address(this),
+                    accountRegistrationFee
+                ),
+                "transfer failed for recipient"
+            );
+            emit ServiceFeePaid(tokenHolder, accountRegistrationFee);
         }
         if ((paymentType) == SUBMIT_PAYMENT) {
-            fee = protocolFee;
+            require(
+                stablecoin.transferFrom(
+                    tokenHolder,
+                    address(this),
+                    protocolFee
+                ),
+                "transfer failed for recipient"
+            );
+            emit ServiceFeePaid(tokenHolder, protocolFee);
         } // Transfer tokens to pay service fee
-        require(
-            stablecoin.transferFrom(tokenHolder, address(this), fee),
-            "transfer failed for recipient"
-        );
-
-        emit ServiceFeePaid(tokenHolder, fee);
     }
 
     function setProtocolFee(uint256 _fee) public {
