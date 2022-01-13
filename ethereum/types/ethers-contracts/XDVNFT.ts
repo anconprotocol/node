@@ -82,7 +82,6 @@ export interface XDVNFTInterface extends utils.Interface {
   functions: {
     "anconprotocol()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
-    "authenticate(bytes32,bytes)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "dagContractOperator()": FunctionFragment;
@@ -108,13 +107,12 @@ export interface XDVNFTInterface extends utils.Interface {
     "url()": FunctionFragment;
     "setServiceFeeForPaymentAddress(uint256)": FunctionFragment;
     "setServiceFeeForContract(uint256)": FunctionFragment;
-    "transferURI(address,uint256)": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
-    "transferMetadataOwnership(string,address,uint256)": FunctionFragment;
     "mintWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
-    "onERC721Received(address,address,uint256,bytes)": FunctionFragment;
+    "burnWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "withdrawBalance(address)": FunctionFragment;
+    "withdraw(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -124,10 +122,6 @@ export interface XDVNFTInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "authenticate",
-    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
@@ -200,16 +194,8 @@ export interface XDVNFTInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferURI",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "mint",
     values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferMetadataOwnership",
-    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "mintWithProof",
@@ -222,8 +208,14 @@ export interface XDVNFTInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "onERC721Received",
-    values: [string, string, BigNumberish, BytesLike]
+    functionFragment: "burnWithProof",
+    values: [
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct,
+      ExistenceProofStruct,
+      BytesLike
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenURI",
@@ -233,16 +225,13 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "withdrawBalance",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
 
   decodeFunctionResult(
     functionFragment: "anconprotocol",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "authenticate",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(
@@ -307,21 +296,13 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "setServiceFeeForContract",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferURI",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferMetadataOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "mintWithProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "onERC721Received",
+    functionFragment: "burnWithProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
@@ -329,6 +310,7 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "withdrawBalance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -446,12 +428,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -610,27 +586,8 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     mint(
       toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -644,14 +601,12 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    /**
-     * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-     */
-    onERC721Received(
-      operator: string,
-      from: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
+    burnWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -667,6 +622,11 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    withdraw(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   anconprotocol(overrides?: CallOverrides): Promise<string>;
@@ -677,12 +637,6 @@ export interface XDVNFT extends BaseContract {
   approve(
     to: string,
     tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  authenticate(
-    digest: BytesLike,
-    signature: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -836,27 +790,8 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  /**
-   * Requests a DAG contract offchain execution
-   */
-  transferURI(
-    toAddress: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   mint(
     toAddress: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  /**
-   * Requests a DAG contract offchain execution
-   */
-  transferMetadataOwnership(
-    metadataUri: string,
-    transferTo: string,
     tokenId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -870,14 +805,12 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  /**
-   * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-   */
-  onERC721Received(
-    operator: string,
-    from: string,
-    tokenId: BigNumberish,
-    data: BytesLike,
+  burnWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -887,6 +820,11 @@ export interface XDVNFT extends BaseContract {
   tokenURI(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   withdrawBalance(
+    payee: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdraw(
     payee: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -902,12 +840,6 @@ export interface XDVNFT extends BaseContract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
 
     /**
      * See {IERC721-balanceOf}.
@@ -1048,27 +980,8 @@ export interface XDVNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     mint(
       toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -1082,16 +995,14 @@ export interface XDVNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    /**
-     * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-     */
-    onERC721Received(
-      operator: string,
-      from: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
+    burnWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<BigNumber>;
 
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
@@ -1099,6 +1010,8 @@ export interface XDVNFT extends BaseContract {
     tokenURI(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     withdrawBalance(payee: string, overrides?: CallOverrides): Promise<void>;
+
+    withdraw(payee: string, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -1189,12 +1102,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1351,27 +1258,8 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     mint(
       toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1385,14 +1273,12 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    /**
-     * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-     */
-    onERC721Received(
-      operator: string,
-      from: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
+    burnWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1408,6 +1294,11 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    withdraw(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1419,12 +1310,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1590,27 +1475,8 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     mint(
       toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1624,14 +1490,12 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    /**
-     * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
-     */
-    onERC721Received(
-      operator: string,
-      from: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
+    burnWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1644,6 +1508,11 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     withdrawBalance(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
