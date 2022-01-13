@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
@@ -24,6 +23,7 @@ import (
 
 type FileHandler struct {
 	*sdk.AnconSyncContext
+	RootKey  string
 }
 
 // @BasePath /v0
@@ -64,9 +64,8 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	}
 
 	n, err := DecodeNode(w.Bytes())
-	lnk := dagctx.Store.Store(ipld.LinkContext{
-		LinkPath: ipld.ParsePath(strings.Join([]string{"/", file.Filename}, "/")),
-	}, n)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -99,14 +98,12 @@ func (dagctx *FileHandler) FileRead(c *gin.Context) {
 		})
 		return
 	}
-	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(c.Param("path"))}, cidlink.Link{Cid: lnk})
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err),
-		})
-		return
-	}
+	n, err := dagctx.Store.Load(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(p),
+	}, cidlink.Link{Cid: lnk})
+
 	bz, err := EncodeNode(n)
 
 	if err != nil {
@@ -210,9 +207,10 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	c.JSON(201, gin.H{
-		"address": cid,
+		"address": lnk.String(),
 	})
 
 	// impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(js), cid)

@@ -182,6 +182,7 @@ func main() {
 	}
 
 	fileHandler := handler.FileHandler{
+		RootKey:          *rootkey,
 		AnconSyncContext: dagHandler,
 	}
 	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
