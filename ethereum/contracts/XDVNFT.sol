@@ -27,6 +27,7 @@ contract XDVNFT is
     address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
+    mapping(uint256 => bool) public tokenLockStorage;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
 
@@ -98,6 +99,8 @@ contract XDVNFT is
         uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
+        //Newly minted NFTs are not locked
+        tokenLockStorage[newItemId] = false;
 
         return newItemId;
     }
@@ -149,27 +152,25 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) public returns (uint256) {
-        // require(
-        //     anconprotocol.submitPacketWithProof(
-        //         msg.sender,
-        //         userProof,
-        //         key,
-        //         packet,
-        //         proof
-        //     ),
-        //     "invalid packet proof"
-        // );
-        // uint256 id = abi.decode(packet, (uint256));
-        // require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
-        // _lock(id);
-        // return id;
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
+        uint256 id = abi.decode(packet, (uint256));
+        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        lock(id);
+        return id;
     }
 
-    function _lock(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
-        // super._burn(tokenId);
+    function lock(uint256 tokenId) internal {
+        require(tokenLockStorage[tokenId] == false, "Token is already locked");
+        tokenLockStorage[tokenId] = true;
     }
 
     /**
@@ -182,27 +183,25 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) public returns (uint256) {
-        // require(
-        //     anconprotocol.submitPacketWithProof(
-        //         msg.sender,
-        //         userProof,
-        //         key,
-        //         packet,
-        //         proof
-        //     ),
-        //     "invalid packet proof"
-        // );
-        // uint256 id = abi.decode(packet, (uint256));
-        // require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
-        // _unlock(id);
-        // return id;
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
+        uint256 id = abi.decode(packet, (uint256));
+        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        unlock(id);
+        return id;
     }
 
-    function _unlock(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
-        // super._burn(tokenId);
+    function unlock(uint256 tokenId) internal {
+        require(tokenLockStorage[tokenId] == true, "Token is already unlocked");
+        tokenLockStorage[tokenId] = false;
     }
 
     /**
@@ -224,6 +223,7 @@ contract XDVNFT is
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Pausable) {
         require(!paused(), "XDV: Token execution is paused");
+        require(!islocked(tokenId), "XDV: This token is locked");
 
         if (from == address(0)) {
             paymentBeforeMint(msg.sender);
@@ -269,4 +269,34 @@ contract XDVNFT is
 
         emit Withdrawn(payee, b);
     }
+
+    // add two function modifiers
+    // a modifier to check the owner of the contract
+    // a modifier to determine if the locked flag is true of false
+    // modifier onlyOwner() {
+    //     require(msg.sender == owner, "Not Owner");
+    //     _;
+    // }
+
+    // Add a setter to change the locked flag
+    // only the owner of the contract can call because a modifier is specified
+    function islocked(uint256 tokenId) public returns (bool) {
+        return tokenLockStorage[tokenId];
+    }
+
+    // add the function modifier to the transfer function
+    // if the locked==false then one can not trade
+    // function transfer(address _to, uint256 _value)
+    //     public
+    //     returns (bool success)
+    // {
+    //     require(islocked() == false, "Token is locked");
+    //     if (_value > 0 && _value <= balanceOf(msg.sender)) {
+    //         __balanceOf[msg.sender] -= _value;
+    //         __balanceOf[_to] += _value;
+    //         emit Transfer(msg.sender, _to, _value);
+    //         return true;
+    //     }
+    //     return false;
+    // }
 }
