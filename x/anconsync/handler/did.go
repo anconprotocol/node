@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -176,19 +177,21 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
-	value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
+	lnk, err := sdk.ParseCidLink(did)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("did web not found %v", err),
-		})
-		return
-	}
 
-	lnk, err := sdk.ParseCidLink(string(value))
-	if err != nil {
+		value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("did web not found %v", err),
+			})
+			return
+		}
+
 		if strings.HasPrefix(did, "raw:") {
-			c.JSON(200, value)
+			c.JSON(200, json.RawMessage(value))
 			return
 		}
 
@@ -198,7 +201,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 		return
 	}
 
-	n, err := dagctx.Store.Load(ipld.LinkContext{}, cidlink.Link{Cid: lnk.Cid})
+	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk.Cid})
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("block not found%v", err),
@@ -212,7 +215,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, data)
+	c.JSON(200, json.RawMessage(data))
 }
 
 func (dagctx *Did) CreateDidKey(c *gin.Context) {
@@ -359,8 +362,9 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	}
 
 	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
 
-	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
+	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	if err != nil {
 		return nil, "", err
 	}
