@@ -185,13 +185,13 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 		return
 	}
 
-	if strings.HasPrefix(did, "raw:") {
-		c.JSON(200, value)
-		return
-	}
-
 	lnk, err := sdk.ParseCidLink(string(value))
 	if err != nil {
+		if strings.HasPrefix(did, "raw:") {
+			c.JSON(200, value)
+			return
+		}
+
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid hash %v", err),
 		})
@@ -354,16 +354,18 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	}
 	bz, err := didDoc.JSONBytes()
 	patch, err := jsonparser.Set(bz, []byte(fmt.Sprintf(`"%s"`, addr)), "verificationMethod", "[0]", "ethereumAddress")
-	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
+	if err != nil {
+		return nil, "", fmt.Errorf("invalid patch")
+	}
 
-	resp, _ := sdk.Encode(n)
-	ipfscid, err := impl.PushBlock(ctx, dagctx.IPFSHost, []byte(resp))
+	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
 
 	lnk := dagctx.Store.Store(ipld.LinkContext{}, n)
 	if err != nil {
 		return nil, "", err
 	}
-	fmt.Println(ipfscid, lnk)
+	resp, _ := sdk.Encode(n)
+	impl.PushBlock(ctx, dagctx.IPFSHost, []byte(resp))
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
 	dagctx.Store.DataStore.Put(ctx, addr, patch)
