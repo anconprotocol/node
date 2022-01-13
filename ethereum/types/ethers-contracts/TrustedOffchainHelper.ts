@@ -25,7 +25,6 @@ export interface TrustedOffchainHelperInterface extends utils.Interface {
     "setUrl(string)": FunctionFragment;
     "setSigner(address)": FunctionFragment;
     "getSigner()": FunctionFragment;
-    "authenticate(bytes32,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -41,10 +40,6 @@ export interface TrustedOffchainHelperInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "setUrl", values: [string]): string;
   encodeFunctionData(functionFragment: "setSigner", values: [string]): string;
   encodeFunctionData(functionFragment: "getSigner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "authenticate",
-    values: [BytesLike, BytesLike]
-  ): string;
 
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
@@ -59,10 +54,6 @@ export interface TrustedOffchainHelperInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setUrl", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setSigner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getSigner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "authenticate",
-    data: BytesLike
-  ): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -148,12 +139,6 @@ export interface TrustedOffchainHelper extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getSigner(overrides?: CallOverrides): Promise<[string]>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   /**
@@ -190,12 +175,6 @@ export interface TrustedOffchainHelper extends BaseContract {
 
   getSigner(overrides?: CallOverrides): Promise<string>;
 
-  authenticate(
-    digest: BytesLike,
-    signature: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     /**
      * Returns the address of the current owner.
@@ -222,12 +201,6 @@ export interface TrustedOffchainHelper extends BaseContract {
     setSigner(signer_: string, overrides?: CallOverrides): Promise<void>;
 
     getSigner(overrides?: CallOverrides): Promise<string>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
   };
 
   filters: {
@@ -284,12 +257,6 @@ export interface TrustedOffchainHelper extends BaseContract {
     ): Promise<BigNumber>;
 
     getSigner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -326,11 +293,5 @@ export interface TrustedOffchainHelper extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getSigner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
   };
 }
