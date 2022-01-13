@@ -28,8 +28,9 @@ contract AnconProtocol is ICS23 {
     event ProofPacketSubmitted(bytes key, bytes packet);
     event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
 
-    constructor() public {
+    constructor(address tokenAddress) public {
         owner = msg.sender;
+        stablecoin = IERC20(tokenAddress);
     }
 
     function setPaymentToken(address tokenAddress) public {
@@ -58,9 +59,8 @@ contract AnconProtocol is ICS23 {
 
     function protocolPayment(bytes32 paymentType, address tokenHolder)
         internal
-        virtual
     {
-        uint256 fee = 0;
+        require(stablecoin.balanceOf(address(msg.sender)) > 0, "no enough balance");
         if ((paymentType) == ENROLL_PAYMENT) {
             require(
                 stablecoin.transferFrom(
@@ -112,7 +112,7 @@ contract AnconProtocol is ICS23 {
         bytes memory did,
         Ics23Helper.ExistenceProof memory proof
     ) public payable returns (bool) {
-        require(keccak256(proof.key) == keccak256(key), "invalid key");
+        // require(keccak256(proof.key) == keccak256(key), "invalid key");
 
         require(verifyProof(proof), "invalid proof");
 

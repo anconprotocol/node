@@ -77,8 +77,8 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(Bytes)
   await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol)
 
-  await deployer.deploy(AnconProtocol)
-  const verifier = await AnconProtocol.deployed()
+  await deployer.deploy(AnconProtocol,  '0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
+  const verifier = await AnconProtocol.deployed('0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
   await deployer.deploy(
     XDVNFT,
     'XDVNFT',
@@ -90,8 +90,8 @@ module.exports = async (deployer, network, accounts) => {
 
   await verifier.setPaymentToken('0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
   await verifier.updateProtocolHeader('0x')
-  await verifier.setProtocolFee('500000000')
-  await verifier.setAccountRegistrationFee('500000000')
+  // await verifier.setProtocolFee(new BigNumber(500000000))
+  // await verifier.setAccountRegistrationFee(new BigNumber(500000000))
 
   builder.addContract('XDVNFT', c, c.address, network)
 
