@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"image"
 	"os"
 	"path/filepath"
 
@@ -14,6 +15,9 @@ import (
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
+	"github.com/makiuchi-d/gozxing"
+	"github.com/makiuchi-d/gozxing/qrcode"
+	"github.com/makiuchi-d/gozxing/qrcode/encoder"
 	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
@@ -331,5 +335,76 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, data)
+
+	exportAs, _ := c.GetQuery("exportAs")
+	if exportAs == "qr" {
+		q, err := encoder.Encoder_encode(string(data), gozxing.EncodeHintType_ERROR_CORRECTION, nil)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("decode Error %v", err).Error(),
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"key":     internalKey,
+			"version": version,
+			"proof":   q,
+		})
+	} else {
+		c.JSON(200, data)
+	}
+}
+
+// @BasePath /v0
+// ExtractQR godoc
+// @Summary Extracts a QR code
+// @Schemes
+// @Description Returns JSON
+// @Tags proofs
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /v0/proofs/qr [post]
+func (dagctx *ProofHandler) ExtractQR(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("error in form file %v", err).Error(),
+		})
+		return
+	}
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("cannot open file. %v", err).Error(),
+		})
+		return
+	}
+	defer src.Close()
+	// var bz []byte
+
+	img, _, _ := image.Decode(src)
+	bmp, err := gozxing.NewBinaryBitmapFromImage(
+		img,
+	)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("failed reading file. %v", err).Error(),
+		})
+		return
+	}
+
+	r := qrcode.NewQRCodeReader()
+	result, err := r.Decode(bmp, nil)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("decode Error %v", err).Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"decoded": result,
+	})
 }

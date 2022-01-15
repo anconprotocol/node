@@ -221,6 +221,7 @@ func main() {
 		api.GET("/did/:did", didHandler.ReadDid)
 		api.GET("/proof/:key", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
+		api.GET("/proofs/qr", proofHandler.ExtractQR)
 	}
 	// if subgraph.EnableDagcosmos {
 	// 	ctx := context.WithValue(context.Background(), "dag", dagHandler)

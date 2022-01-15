@@ -23,6 +23,7 @@ import (
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
+	"github.com/ipld/go-ipld-prime/traversal"
 	"github.com/spf13/cast"
 
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -243,6 +244,27 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
+
+	path := c.Param("path")
+
+	if path != "" {
+
+		prog := traversal.Progress{
+			Cfg: &traversal.Config{
+				LinkSystem:                     dagctx.Store.LinkSystem,
+				LinkTargetNodePrototypeChooser: basicnode.Chooser,
+			},
+		}
+		n, err = prog.Get(n, ipld.ParsePath(path))
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("%v", err),
+			})
+			return
+		}
+
+	}
+
 	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
