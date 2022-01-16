@@ -77,22 +77,22 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(Bytes)
   await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol)
 
-  await deployer.deploy(AnconProtocol,  '0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
-  const verifier = await AnconProtocol.deployed('0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
+  await deployer.deploy(AnconProtocol,  '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa')
+  const verifier = await AnconProtocol.deployed()
   await deployer.deploy(
     XDVNFT,
     'XDVNFT',
     'XDVNFT',
-    '0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867',
+    '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
     verifier.address,
   )
   const c = await XDVNFT.deployed()
 
-  await verifier.setPaymentToken('0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867')
+  await verifier.setPaymentToken('0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa')
   await verifier.updateProtocolHeader('0x')
-  // await verifier.setProtocolFee(new BigNumber(500000000))
-  // await verifier.setAccountRegistrationFee(new BigNumber(500000000))
 
+
+  
   builder.addContract('XDVNFT', c, c.address, network)
 
   //  const provider = new ethers.providers.Web3Provider(web3.currentProvider);

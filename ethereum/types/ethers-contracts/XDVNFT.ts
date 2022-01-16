@@ -80,6 +80,9 @@ export type ExistenceProofStructOutput = [
 
 export interface XDVNFTInterface extends utils.Interface {
   functions: {
+    "TOKEN_AVAILABLE()": FunctionFragment;
+    "TOKEN_BURNED()": FunctionFragment;
+    "TOKEN_LOCKED()": FunctionFragment;
     "anconprotocol()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -102,6 +105,7 @@ export interface XDVNFTInterface extends utils.Interface {
     "stablecoin()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
+    "tokenLockStorage(uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "url()": FunctionFragment;
@@ -110,11 +114,26 @@ export interface XDVNFTInterface extends utils.Interface {
     "mint(address,uint256)": FunctionFragment;
     "mintWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "burnWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "lockWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "releaseWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "withdrawBalance(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
+    "islocked(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "TOKEN_AVAILABLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TOKEN_BURNED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TOKEN_LOCKED",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "anconprotocol",
     values?: undefined
@@ -177,6 +196,10 @@ export interface XDVNFTInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "tokenLockStorage",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
@@ -218,6 +241,26 @@ export interface XDVNFTInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "lockWithProof",
+    values: [
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct,
+      ExistenceProofStruct,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "releaseWithProof",
+    values: [
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct,
+      ExistenceProofStruct,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "tokenURI",
     values: [BigNumberish]
   ): string;
@@ -226,7 +269,23 @@ export interface XDVNFTInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "islocked",
+    values: [BigNumberish]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "TOKEN_AVAILABLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "TOKEN_BURNED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "TOKEN_LOCKED",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "anconprotocol",
     data: BytesLike
@@ -280,6 +339,10 @@ export interface XDVNFTInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "tokenLockStorage",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
@@ -305,19 +368,30 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "burnWithProof",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "lockWithProof",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "releaseWithProof",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawBalance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "islocked", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "Locked(uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "ProofAccepted(address,bytes32)": EventFragment;
+    "Released(uint256)": EventFragment;
     "ServiceFeePaid(address,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
     "Unpaused(address)": EventFragment;
@@ -326,9 +400,11 @@ export interface XDVNFTInterface extends utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Locked"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProofAccepted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Released"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ServiceFeePaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
@@ -349,6 +425,10 @@ export type ApprovalForAllEvent = TypedEvent<
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 
+export type LockedEvent = TypedEvent<[BigNumber], { id: BigNumber }>;
+
+export type LockedEventFilter = TypedEventFilter<LockedEvent>;
+
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string],
   { previousOwner: string; newOwner: string }
@@ -367,6 +447,10 @@ export type ProofAcceptedEvent = TypedEvent<
 >;
 
 export type ProofAcceptedEventFilter = TypedEventFilter<ProofAcceptedEvent>;
+
+export type ReleasedEvent = TypedEvent<[BigNumber], { id: BigNumber }>;
+
+export type ReleasedEventFilter = TypedEventFilter<ReleasedEvent>;
 
 export type ServiceFeePaidEvent = TypedEvent<
   [string, BigNumber, BigNumber],
@@ -420,6 +504,12 @@ export interface XDVNFT extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    TOKEN_AVAILABLE(overrides?: CallOverrides): Promise<[string]>;
+
+    TOKEN_BURNED(overrides?: CallOverrides): Promise<[string]>;
+
+    TOKEN_LOCKED(overrides?: CallOverrides): Promise<[string]>;
+
     anconprotocol(overrides?: CallOverrides): Promise<[string]>;
 
     /**
@@ -556,6 +646,11 @@ export interface XDVNFT extends BaseContract {
      */
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
+    tokenLockStorage(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     /**
      * See {IERC721-transferFrom}.
      */
@@ -610,6 +705,24 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -627,7 +740,18 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    islocked(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
+
+  TOKEN_AVAILABLE(overrides?: CallOverrides): Promise<string>;
+
+  TOKEN_BURNED(overrides?: CallOverrides): Promise<string>;
+
+  TOKEN_LOCKED(overrides?: CallOverrides): Promise<string>;
 
   anconprotocol(overrides?: CallOverrides): Promise<string>;
 
@@ -760,6 +884,11 @@ export interface XDVNFT extends BaseContract {
    */
   symbol(overrides?: CallOverrides): Promise<string>;
 
+  tokenLockStorage(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   /**
    * See {IERC721-transferFrom}.
    */
@@ -814,6 +943,24 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  lockWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  releaseWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   /**
    * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
    */
@@ -829,7 +976,18 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  islocked(
+    tokenId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
+    TOKEN_AVAILABLE(overrides?: CallOverrides): Promise<string>;
+
+    TOKEN_BURNED(overrides?: CallOverrides): Promise<string>;
+
+    TOKEN_LOCKED(overrides?: CallOverrides): Promise<string>;
+
     anconprotocol(overrides?: CallOverrides): Promise<string>;
 
     /**
@@ -950,6 +1108,11 @@ export interface XDVNFT extends BaseContract {
      */
     symbol(overrides?: CallOverrides): Promise<string>;
 
+    tokenLockStorage(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     /**
      * See {IERC721-transferFrom}.
      */
@@ -1004,6 +1167,24 @@ export interface XDVNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -1012,6 +1193,11 @@ export interface XDVNFT extends BaseContract {
     withdrawBalance(payee: string, overrides?: CallOverrides): Promise<void>;
 
     withdraw(payee: string, overrides?: CallOverrides): Promise<void>;
+
+    islocked(
+      tokenId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {
@@ -1037,6 +1223,9 @@ export interface XDVNFT extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
+    "Locked(uint256)"(id?: BigNumberish | null): LockedEventFilter;
+    Locked(id?: BigNumberish | null): LockedEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -1057,6 +1246,9 @@ export interface XDVNFT extends BaseContract {
       sender?: null,
       signatureHash?: null
     ): ProofAcceptedEventFilter;
+
+    "Released(uint256)"(id?: BigNumberish | null): ReleasedEventFilter;
+    Released(id?: BigNumberish | null): ReleasedEventFilter;
 
     "ServiceFeePaid(address,uint256,uint256)"(
       from?: string | null,
@@ -1094,6 +1286,12 @@ export interface XDVNFT extends BaseContract {
   };
 
   estimateGas: {
+    TOKEN_AVAILABLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TOKEN_BURNED(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TOKEN_LOCKED(overrides?: CallOverrides): Promise<BigNumber>;
+
     anconprotocol(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
@@ -1228,6 +1426,11 @@ export interface XDVNFT extends BaseContract {
      */
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
+    tokenLockStorage(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     /**
      * See {IERC721-transferFrom}.
      */
@@ -1282,6 +1485,24 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -1299,9 +1520,20 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    islocked(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    TOKEN_AVAILABLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    TOKEN_BURNED(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    TOKEN_LOCKED(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     anconprotocol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     /**
@@ -1445,6 +1677,11 @@ export interface XDVNFT extends BaseContract {
      */
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    tokenLockStorage(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     /**
      * See {IERC721-transferFrom}.
      */
@@ -1499,6 +1736,24 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -1514,6 +1769,11 @@ export interface XDVNFT extends BaseContract {
 
     withdraw(
       payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    islocked(
+      tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

@@ -172,8 +172,8 @@ contract XDVNFT is
         require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
         require(msg.sender == ownerOf(id));
         
-        // Set owner to contract, _beforeTokenTransfer will check if already locked
-        safeTransferFrom(msg.sender, address(this), id);
+        // Approve - will allowed contract to release just once
+        approve(address(this), id);
         
         // Set as locked
         lock(id);       

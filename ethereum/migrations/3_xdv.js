@@ -76,8 +76,8 @@ module.exports = async (deployer, network, accounts) => {
     XDVNFT,
     "XDVNFT",
     "XDVNFT",
-    "0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867",
-    "0x929367ff7A02B36f616cA4752F2b097CaD5f5FFB"
+    "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
+    "0xD5BA6f5eCfc80F13784446511B2be73f9d5e2707"
   );
   const c = await XDVNFT.deployed();
 
@@ -86,57 +86,4 @@ module.exports = async (deployer, network, accounts) => {
   
   builder.addContract("XDVNFT", c, c.address, network);
 
-  //  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-  //  const contract = await AnconProtocol.deployed();
-  // const contract2 = AnconProtocol__factory.connect(contract.address, provider);
-
-  // // z = toABIproofs();
-  // // console.log(z);
-  // // const resRootCalc = await contract2.callStatic.queryRootCalculation({
-  // //   ...z,
-  // // });
-
-  // // const restUpdtHeader = await contract.updateProtocolHeader(resRootCalc, {
-  // //   from: accounts[0],
-  // // });
-  // // console.log(resRootCalc);
-  // // console.log(restUpdtHeader);
-
-  // builder.addContract(
-  //   "AnconProtocol",
-  //   verifier,
-  //   verifier.address,
-  //   network
-  // );
 };
-
-function toABIproofs() {
-  let z = { ...proofCombined[0].exist };
-  z.key = hexlify(base64.decode(z.key));
-  z.value = hexlify(base64.decode(z.value));
-  z.leaf.prefix = hexlify(base64.decode(z.leaf.prefix));
-  z.leaf.hash = 1;
-  z.path = z.path.map((x) => {
-    let suffix;
-    if (!!x.suffix) {
-      suffix = hexlify(base64.decode(x.suffix));
-      return {
-        valid: true,
-        prefix: hexlify(base64.decode(x.prefix)),
-        suffix: suffix,
-        hash: 1,
-      };
-    } else {
-      return {
-        valid: true,
-        prefix: hexlify(base64.decode(x.prefix)),
-        hash: 1,
-        suffix: "0x",
-      };
-    }
-  });
-  z.leaf.prehash_key = 0;
-  z.leaf.len = z.leaf.length;
-
-  return z;
-}
