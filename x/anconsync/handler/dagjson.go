@@ -22,6 +22,7 @@ import (
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
+	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/ipld/go-ipld-prime/traversal"
 	"github.com/spf13/cast"
@@ -34,6 +35,11 @@ type DagJsonHandler struct {
 	Proof    *proofsignature.IavlProofService
 	IPFSHost string
 	RootKey  string
+}
+type Mutation struct {
+	Path          string
+	PreviousValue string
+	NextValue     interface{}
 }
 
 // @BasePath /v0
@@ -206,6 +212,186 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
 	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
+		"cid": res.String(),
+		"ipfs": map[string]interface{}{
+			"metadata": m,
+			"tx":       tx,
+		},
+	})
+}
+func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutations []Mutation) (datamodel.Node, error) {
+	var current datamodel.Node
+	var err error
+	current = node
+
+	prog := traversal.Progress{
+		Cfg: &traversal.Config{
+			LinkSystem:                     dagctx.Store.LinkSystem,
+			LinkTargetNodePrototypeChooser: basicnode.Chooser,
+		},
+	}
+	for _, m := range mutations {
+		current, err = prog.FocusedTransform(
+			current,
+			datamodel.ParsePath(m.Path),
+			func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+				if progress.Path.String() == m.Path && must.String(prev) == (m.PreviousValue) {
+					nb := prev.Prototype().NewBuilder()
+					switch prev.Kind() {
+					case datamodel.Kind_Bool:
+						nb.AssignBool(m.NextValue.(bool))
+						break
+					default:
+						nb.AssignString(m.NextValue.(string))
+					}
+					return nb.Build(), nil
+				}
+				return nil, fmt.Errorf("%s not found", m.Path)
+			}, false)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	return current, nil
+}
+
+// @BasePath /v0
+// Update godoc
+// @Summary Stores JSON as dag-json
+// @Schemes
+// @Description updates a dag-json block which syncs with IPFS. Returns a CID.
+// @Tags dag-json
+// @Accept json
+// @Produce json
+// @Success 200 {string} cid
+// @Router /v0/dagjson [put]
+func (dagctx *DagJsonHandler) Update(c *gin.Context) {
+
+	v, _ := c.GetRawData()
+
+	from, _ := jsonparser.GetString(v, "from")
+
+	if from == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing from").Error(),
+		})
+		return
+	}
+	signature, _ := jsonparser.GetString(v, "signature")
+
+	if signature == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing signature").Error(),
+		})
+		return
+	}
+
+	doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing did").Error(),
+		})
+		return
+	}
+
+	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+
+	temp, _ := jsonparser.GetUnsafeString(v, "data")
+	ok, err := types.Authenticate(doc, []byte(temp), signature)
+	if !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
+		})
+		return
+	}
+
+	data, err := hexutil.Decode(temp)
+	var buf bytes.Buffer
+	if err != nil {
+		err = json.Compact(&buf, []byte(temp))
+		data = buf.Bytes()
+	}
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing payload data source").Error(),
+		})
+		return
+	}
+
+	nodecid, _ := jsonparser.GetString(v, "cid")
+
+	if nodecid == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing cid").Error(),
+		})
+		return
+	}
+
+	currentCid, err := sdk.ParseCidLink(nodecid)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid cid").Error(),
+		})
+		return
+	}
+	current, err := dagctx.Store.Load(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(p),
+	}, currentCid)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing cid").Error(),
+		})
+		return
+	}
+	n, err := dagctx.ApplyFocusedTransform(current, mutations)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("mutation failed").Error(),
+		})
+		return
+	}
+	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	internalKey := fmt.Sprintf("%s/%s", p, cid)
+	dagctx.Proof.Set([]byte(internalKey), data)
+	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
+
+	hash, err := jsonparser.GetString(commit, "root_hash")
+	version, err := jsonparser.GetInt(commit, "version")
+	lastHash := []byte(hash)
+	blockNumber := cast.ToInt64(version)
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("invalid did %v", err).Error(),
+			})
+			return
+		}
+
+		na.AssembleEntry("issuer").AssignString(addrrec)
+		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
+		na.AssembleEntry("content").AssignLink(cid)
+		na.AssembleEntry("commitHash").AssignString(string(lastHash))
+		na.AssembleEntry("height").AssignInt(blockNumber)
+		na.AssembleEntry("signature").AssignString(signature)
+		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
+		na.AssembleEntry("parent").AssignString(p)
+	})
+
+	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
+
+	resp, _ := sdk.Encode(block)
+	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
+
+	resp2, _ := sdk.Encode(n)
+	m, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp2))
+
+	// c1, _ := sdk.ParseCidLink(m)
+	// c2, _ := sdk.ParseCidLink(tx)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
+	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
+	c.JSON(200, gin.H{
 		"cid": res.String(),
 		"ipfs": map[string]interface{}{
 			"metadata": m,
