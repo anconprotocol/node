@@ -27,6 +27,7 @@ contract XDVNFT is
     address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
+    mapping(uint256 => bool) public tokenLockStorage;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
 
@@ -98,6 +99,8 @@ contract XDVNFT is
         uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
+        //Newly minted NFTs are not locked
+        tokenLockStorage[newItemId] = false;
 
         return newItemId;
     }
@@ -140,6 +143,68 @@ contract XDVNFT is
     }
 
     /**
+     * @dev Locks a XDV Data Token
+     */
+    function lockWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
+    ) public returns (uint256) {
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
+        uint256 id = abi.decode(packet, (uint256));
+        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        lock(id);
+        return id;
+    }
+
+    function lock(uint256 tokenId) internal {
+        require(tokenLockStorage[tokenId] == false, "Token is already locked");
+        tokenLockStorage[tokenId] = true;
+    }
+
+    /**
+     * @dev Locks a XDV Data Token
+     */
+    function unlockWithProof(
+        bytes memory key,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory proof,
+        bytes32 hash
+    ) public returns (uint256) {
+        require(
+            anconprotocol.submitPacketWithProof(
+                msg.sender,
+                userProof,
+                key,
+                packet,
+                proof
+            ),
+            "invalid packet proof"
+        );
+        uint256 id = abi.decode(packet, (uint256));
+        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        unlock(id);
+        return id;
+    }
+
+    function unlock(uint256 tokenId) internal {
+        require(tokenLockStorage[tokenId] == true, "Token is already unlocked");
+        tokenLockStorage[tokenId] = false;
+    }
+
+    /**
      * @dev Just overrides the superclass' function. Fixes inheritance
      * source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -158,6 +223,7 @@ contract XDVNFT is
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Pausable) {
         require(!paused(), "XDV: Token execution is paused");
+        require(!islocked(tokenId), "XDV: This token is locked");
 
         if (from == address(0)) {
             paymentBeforeMint(msg.sender);
@@ -203,4 +269,34 @@ contract XDVNFT is
 
         emit Withdrawn(payee, b);
     }
+
+    // add two function modifiers
+    // a modifier to check the owner of the contract
+    // a modifier to determine if the locked flag is true of false
+    // modifier onlyOwner() {
+    //     require(msg.sender == owner, "Not Owner");
+    //     _;
+    // }
+
+    // Add a setter to change the locked flag
+    // only the owner of the contract can call because a modifier is specified
+    function islocked(uint256 tokenId) public returns (bool) {
+        return tokenLockStorage[tokenId];
+    }
+
+    // add the function modifier to the transfer function
+    // if the locked==false then one can not trade
+    // function transfer(address _to, uint256 _value)
+    //     public
+    //     returns (bool success)
+    // {
+    //     require(islocked() == false, "Token is locked");
+    //     if (_value > 0 && _value <= balanceOf(msg.sender)) {
+    //         __balanceOf[msg.sender] -= _value;
+    //         __balanceOf[_to] += _value;
+    //         emit Transfer(msg.sender, _to, _value);
+    //         return true;
+    //     }
+    //     return false;
+    // }
 }
