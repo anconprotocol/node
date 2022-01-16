@@ -21,16 +21,21 @@ contract XDVNFT is
     TrustedOffchainHelper
 {
     using Counters for Counters.Counter;
+    bytes32 public TOKEN_LOCKED = keccak256("TOKEN_LOCKED");
+    bytes32 public TOKEN_BURNED = keccak256("TOKEN_BURNED");
+    bytes32 public TOKEN_AVAILABLE = keccak256("TOKEN_AVAILABLE");
+
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
     IAnconProtocol public anconprotocol;
     address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
-    mapping(uint256 => bool) public tokenLockStorage;
+    mapping(uint256 => bytes32) public tokenLockStorage;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
-
+    event Locked(uint256 indexed id);
+    event Released(uint256 indexed id);
     event ServiceFeePaid(
         address indexed from,
         uint256 paidToContract,
@@ -100,7 +105,7 @@ contract XDVNFT is
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
         //Newly minted NFTs are not locked
-        tokenLockStorage[newItemId] = false;
+        tokenLockStorage[newItemId] = TOKEN_AVAILABLE;
 
         return newItemId;
     }
@@ -128,6 +133,7 @@ contract XDVNFT is
         uint256 id = abi.decode(packet, (uint256));
         require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
         _burn(id);
+        tokenLockStorage[id] = TOKEN_BURNED;
         return id;
     }
 
@@ -164,19 +170,28 @@ contract XDVNFT is
         );
         uint256 id = abi.decode(packet, (uint256));
         require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
-        lock(id);
+        require(msg.sender == ownerOf(id));
+        
+        // Set owner to contract, _beforeTokenTransfer will check if already locked
+        safeTransferFrom(msg.sender, address(this), id);
+        
+        // Set as locked
+        lock(id);       
+
+        emit Locked(id); 
         return id;
     }
 
     function lock(uint256 tokenId) internal {
-        require(tokenLockStorage[tokenId] == false, "Token is already locked");
-        tokenLockStorage[tokenId] = true;
+        require(tokenLockStorage[tokenId] == TOKEN_AVAILABLE, "Token is already locked");
+        tokenLockStorage[tokenId] = TOKEN_LOCKED;
     }
+    
 
     /**
-     * @dev Locks a XDV Data Token
+     * @dev Releases a XDV Data Token
      */
-    function unlockWithProof(
+    function releaseWithProof(
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
@@ -193,15 +208,22 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        uint256 id = abi.decode(packet, (uint256));
-        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        (uint256 id, string  memory metadataUri) = abi.decode(packet, (uint256, string));
+        require(address(this) == ownerOf(id));
+        
+        // Set as unlocked
         unlock(id);
+
+        // Set owner to contract, _beforeTokenTransfer will check if already locked
+        safeTransferFrom(address(this), msg.sender, id);
+        _setTokenURI(id, metadataUri);
+        emit Released(id); 
         return id;
     }
 
     function unlock(uint256 tokenId) internal {
-        require(tokenLockStorage[tokenId] == true, "Token is already unlocked");
-        tokenLockStorage[tokenId] = false;
+        require(tokenLockStorage[tokenId] == TOKEN_LOCKED, "Token is already unlocked");
+        tokenLockStorage[tokenId] = TOKEN_AVAILABLE;
     }
 
     /**
@@ -281,8 +303,8 @@ contract XDVNFT is
     // Add a setter to change the locked flag
     // only the owner of the contract can call because a modifier is specified
     function islocked(uint256 tokenId) public returns (bool) {
-        return tokenLockStorage[tokenId];
-    }
+        return tokenLockStorage[tokenId] == TOKEN_LOCKED;
+    } 
 
     // add the function modifier to the transfer function
     // if the locked==false then one can not trade
