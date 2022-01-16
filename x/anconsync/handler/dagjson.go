@@ -319,6 +319,11 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
+	var items []map[string]interface{}
+	json.Unmarshal(data, &items)
+
+	mutations := make([]Mutation, len(items))
+	json.Unmarshal(data, &mutations)
 	nodecid, _ := jsonparser.GetString(v, "cid")
 
 	if nodecid == "" {

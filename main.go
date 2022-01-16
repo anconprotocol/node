@@ -206,7 +206,7 @@ func main() {
 	api := r.Group("/v0")
 	{
 		api.POST("/file", fileHandler.FileWrite)
-		api.POST("/code", fileHandler.UploadContract)
+		// api.POST("/code", fileHandler.UploadContract)
 		api.GET("/graphql", g)
 		api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
@@ -214,6 +214,8 @@ func main() {
 		api.GET("/dag/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.POST("/dag", dagJsonHandler.DagJsonWrite)
 		api.POST("/dagjson", dagJsonHandler.DagJsonWrite)
+		api.PUT("/dag", dagJsonHandler.Update)
+		api.PUT("/dagjson", dagJsonHandler.Update)
 		// api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
 		// api.POST("/dagcbor", dagCborHandler.DagCborWrite)
 		api.POST("/did/key", didHandler.CreateDidKey)
@@ -231,7 +233,7 @@ func main() {
 	// }
 	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.POST("/rpc", handler.SmartContractHandler(*dagHandler, adapter, proofHandler.GetProofAPI()))
+	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)

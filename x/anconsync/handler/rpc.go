@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/rpc"
-
-	"github.com/anconprotocol/node/x/anconsync/handler/protocol"
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	gql "github.com/graphql-go/handler"
 
@@ -21,27 +18,21 @@ var (
 	dbPath string = ".ancon/db/proofs"
 )
 
-// Defining the dageth RPC handler
-func SmartContractHandler(anconCtx sdk.AnconSyncContext,
-	adapter *ethereum.OnchainAdapter, proofs *proofsignature.IavlProofAPI) gin.HandlerFunc {
-	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
-	server := rpc.NewServer()
+// func EVMHandler(anconCtx sdk.AnconSyncContext,
+// 	jsonHandler *DagJsonHandler,
+// 	didHandler *Did) gin.HandlerFunc {
+// 	// api := protocol.NewRPCApi(&anconCtx.Store)
+// 	// server := rpc.NewServer()
 
-	// err = server.RegisterName(proofs.Namespace, proofs.Service)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	err := server.RegisterName("ancon", api.Service)
+// 	// err := server.RegisterName("dag", api.Service)
 
-	if err != nil {
-		panic(err)
-	}
-	return func(c *gin.Context) {
-		ctx := context.WithValue(c.Request.Context(), "dag", anconCtx)
-		rq := c.Request.WithContext(ctx)
-		server.ServeHTTP(c.Writer, rq)
-	}
-}
+// 	// if err != nil {
+// 	// 	panic(err)
+// 	// }
+// 	// return func(c *gin.Context) {
+// 	// 	server.ServeHTTP(c.Writer, c.Request)
+// 	// }
+// }
 
 func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
 	adapter *ethereum.OnchainAdapter, proofs *proofsignature.IavlProofAPI) gin.HandlerFunc {
