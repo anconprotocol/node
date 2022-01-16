@@ -94,6 +94,27 @@ var doc = `{
             }
         },
         "/v0/dagjson": {
+            "put": {
+                "description": "updates a dag-json block which syncs with IPFS. Returns a CID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dag-json"
+                ],
+                "summary": "Stores JSON as dag-json",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Writes a dag-json block which syncs with IPFS. Returns a CID.",
                 "consumes": [
@@ -202,6 +223,46 @@ var doc = `{
                 }
             }
         },
+        "/v0/proofs/get/{path}": {
+            "get": {
+                "description": "Returns JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "proofs"
+                ],
+                "summary": "Reads an existing proof",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/v0/proofs/qr": {
+            "post": {
+                "description": "Returns JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "proofs"
+                ],
+                "summary": "Extracts a QR code",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/v0/proofs/verify": {
             "post": {
                 "description": "Verifies an ics23 proof",
@@ -221,26 +282,6 @@ var doc = `{
                         "schema": {
                             "type": "string"
                         }
-                    }
-                }
-            }
-        },
-        "/v0/proofs/{cid}/{path}": {
-            "get": {
-                "description": "Returns JSON",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "proofs"
-                ],
-                "summary": "Reads an existing proof",
-                "responses": {
-                    "200": {
-                        "description": ""
                     }
                 }
             }

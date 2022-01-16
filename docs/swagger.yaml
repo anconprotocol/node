@@ -67,6 +67,20 @@ paths:
       summary: Stores JSON as dag-json
       tags:
       - dag-json
+    put:
+      consumes:
+      - application/json
+      description: updates a dag-json block which syncs with IPFS. Returns a CID.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Stores JSON as dag-json
+      tags:
+      - dag-json
   /v0/dagjson/{cid}/{path}:
     get:
       consumes:
@@ -123,7 +137,7 @@ paths:
       summary: Create
       tags:
       - proofs
-  /v0/proofs/{cid}/{path}:
+  /v0/proofs/get/{path}:
     get:
       consumes:
       - application/json
@@ -134,6 +148,19 @@ paths:
         "200":
           description: ""
       summary: Reads an existing proof
+      tags:
+      - proofs
+  /v0/proofs/qr:
+    post:
+      consumes:
+      - application/json
+      description: Returns JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Extracts a QR code
       tags:
       - proofs
   /v0/proofs/verify:
