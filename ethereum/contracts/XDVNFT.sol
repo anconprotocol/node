@@ -210,25 +210,28 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        (uint256 id, string memory metadataUri) = abi.decode(
+        (uint256 id, string memory metadataUri, address newOwner) = abi.decode(
             packet,
-            (uint256, string)
+            (uint256, string, address)
         );
+        
         require(
-            hash == keccak256(abi.encodePacked(id, metadataUri)),
+            hash == keccak256(abi.encodePacked(id, metadataUri, newOwner)),
             "Invalid packet"
         );
+
+        require(msg.sender == newOwner);
 
         if (address(this) == ownerOf(id)) {
             // Set as unlocked
             unlock(id);
             // Set owner to contract, _beforeTokenTransfer will check if already locked
-            safeTransferFrom(address(this), msg.sender, id);
+            safeTransferFrom(address(this), newOwner, id);
         } else {
             // mint, should be XDVNFTWrapped
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
-            _safeMint(user, newItemId);
+            _safeMint(newOwner, newItemId);
         }
 
         _setTokenURI(id, metadataUri);
