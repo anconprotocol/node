@@ -180,7 +180,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
 		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -207,10 +207,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	resp2, _ := sdk.Encode(n)
 	m, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp2))
 
-	// c1, _ := sdk.ParseCidLink(m)
-	// c2, _ := sdk.ParseCidLink(tx)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
 		"cid": res.String(),
 		"ipfs": map[string]interface{}{
@@ -235,16 +231,34 @@ func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutatio
 			current,
 			datamodel.ParsePath(m.Path),
 			func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+
+				// update
 				if progress.Path.String() == m.Path && must.String(prev) == (m.PreviousValue) {
 					nb := prev.Prototype().NewBuilder()
 					switch prev.Kind() {
+					case datamodel.Kind_Float:
+						nb.AssignFloat(m.NextValue.(float64))
+					case datamodel.Kind_Bytes:
+						nb.AssignBytes(m.NextValue.([]byte))
+					case datamodel.Kind_Int:
+						nb.AssignInt(m.NextValue.(int64))
+					case datamodel.Kind_Link:
+						lnk, err := sdk.ParseCidLink(m.NextValue.(string))
+						if err != nil {
+							return nil, err
+						}
+						nb.AssignLink(lnk)
 					case datamodel.Kind_Bool:
 						nb.AssignBool(m.NextValue.(bool))
-						break
 					default:
 						nb.AssignString(m.NextValue.(string))
 					}
 					return nb.Build(), nil
+				} else if progress.Path.String() == m.Path && prev.IsAbsent() {
+					// previous is absent, add
+
+				} else if progress.Path.String() == m.Path && m.NextValue == "" { 
+					// next is absent, remove
 				}
 				return nil, fmt.Errorf("%s not found", m.Path)
 			}, false)
@@ -365,7 +379,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
 		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 		if err != nil {
 			c.JSON(400, gin.H{
@@ -399,10 +413,6 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	resp2, _ := sdk.Encode(n)
 	m, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp2))
 
-	// c1, _ := sdk.ParseCidLink(m)
-	// c2, _ := sdk.ParseCidLink(tx)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(200, gin.H{
 		"cid": res.String(),
 		"ipfs": map[string]interface{}{

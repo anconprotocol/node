@@ -293,7 +293,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 7, func(na fluent.MapAssembler) {
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
 		// addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 
 		na.AssembleEntry("issuer").AssignString(addr)
@@ -313,10 +313,6 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
 
-	// c1, _ := sdk.ParseCidLink(m)
-	// c2, _ := sdk.ParseCidLink(tx)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c1)
-	// impl.FetchBlock(c.Request.Context(), dagctx.Exchange, dagctx.IPFSPeer, c2)
 	c.JSON(201, gin.H{
 		"cid": res.String(),
 		"ipfs": map[string]interface{}{

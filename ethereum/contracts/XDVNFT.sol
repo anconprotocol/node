@@ -171,22 +171,24 @@ contract XDVNFT is
         uint256 id = abi.decode(packet, (uint256));
         require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
         require(msg.sender == ownerOf(id));
-        
+
         // Approve - will allowed contract to release just once
         approve(address(this), id);
-        
-        // Set as locked
-        lock(id);       
 
-        emit Locked(id); 
+        // Set as locked
+        lock(id);
+
+        emit Locked(id);
         return id;
     }
 
     function lock(uint256 tokenId) internal {
-        require(tokenLockStorage[tokenId] == TOKEN_AVAILABLE, "Token is already locked");
+        require(
+            tokenLockStorage[tokenId] == TOKEN_AVAILABLE,
+            "Token is already locked"
+        );
         tokenLockStorage[tokenId] = TOKEN_LOCKED;
     }
-    
 
     /**
      * @dev Releases a XDV Data Token
@@ -208,21 +210,40 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        (uint256 id, string  memory metadataUri) = abi.decode(packet, (uint256, string));
-        require(address(this) == ownerOf(id));
+        (uint256 id, string memory metadataUri, address newOwner) = abi.decode(
+            packet,
+            (uint256, string, address)
+        );
         
-        // Set as unlocked
-        unlock(id);
+        require(
+            hash == keccak256(abi.encodePacked(id, metadataUri, newOwner)),
+            "Invalid packet"
+        );
 
-        // Set owner to contract, _beforeTokenTransfer will check if already locked
-        safeTransferFrom(address(this), msg.sender, id);
+        require(msg.sender == newOwner);
+
+        if (address(this) == ownerOf(id)) {
+            // Set as unlocked
+            unlock(id);
+            // Set owner to contract, _beforeTokenTransfer will check if already locked
+            safeTransferFrom(address(this), newOwner, id);
+        } else {
+            // mint, should be XDVNFTWrapped
+            _tokenIds.increment();
+            uint256 newItemId = _tokenIds.current();
+            _safeMint(newOwner, newItemId);
+        }
+
         _setTokenURI(id, metadataUri);
-        emit Released(id); 
+        emit Released(id);
         return id;
     }
 
     function unlock(uint256 tokenId) internal {
-        require(tokenLockStorage[tokenId] == TOKEN_LOCKED, "Token is already unlocked");
+        require(
+            tokenLockStorage[tokenId] == TOKEN_LOCKED,
+            "Token is already unlocked"
+        );
         tokenLockStorage[tokenId] = TOKEN_AVAILABLE;
     }
 
@@ -304,7 +325,7 @@ contract XDVNFT is
     // only the owner of the contract can call because a modifier is specified
     function islocked(uint256 tokenId) public returns (bool) {
         return tokenLockStorage[tokenId] == TOKEN_LOCKED;
-    } 
+    }
 
     // add the function modifier to the transfer function
     // if the locked==false then one can not trade
