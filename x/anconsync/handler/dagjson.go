@@ -374,6 +374,12 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 			return
 		}
 
+		link, err := sdk.ParseCidLink(dagctx.RootKey)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("invalid did %v", err).Error(),
+			})
+		}
 		na.AssembleEntry("issuer").AssignString(addrrec)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
@@ -382,6 +388,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		na.AssembleEntry("signature").AssignString(signature)
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
 		na.AssembleEntry("parent").AssignString(p)
+		na.AssembleEntry("root").AssignLink(link)
 	})
 
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
