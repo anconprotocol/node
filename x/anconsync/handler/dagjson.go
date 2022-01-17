@@ -40,6 +40,7 @@ type Mutation struct {
 	Path          string
 	PreviousValue string
 	NextValue     interface{}
+	NextValueKind datamodel.Kind
 }
 
 // @BasePath /v0
@@ -164,6 +165,16 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		// TODO: fix
 		n = basicnode.NewBytes(data)
 	}
+
+	muts := []Mutation{{
+		Path:          "root",
+		PreviousValue: "",
+		NextValue:     dagctx.RootKey,
+		NextValueKind: datamodel.Kind_Link,
+	}}
+
+	n, err = dagctx.ApplyFocusedTransform(n, muts)
+
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("decode Error %v", err).Error(),
@@ -189,6 +200,13 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 			return
 		}
 
+		link, err := sdk.ParseCidLink(dagctx.RootKey)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("invalid did %v", err).Error(),
+			})
+		}
+
 		na.AssembleEntry("issuer").AssignString(addrrec)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("content").AssignLink(cid)
@@ -196,6 +214,8 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		na.AssembleEntry("height").AssignInt(blockNumber)
 		na.AssembleEntry("signature").AssignString(signature)
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
+		na.AssembleEntry("rootKey").AssignString(base64.StdEncoding.EncodeToString([]byte(p)))
+		na.AssembleEntry("root").AssignLink(link)
 		na.AssembleEntry("parent").AssignString(p)
 	})
 
@@ -215,6 +235,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		},
 	})
 }
+
 func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutations []Mutation) (datamodel.Node, error) {
 	var current datamodel.Node
 	var err error
@@ -233,7 +254,7 @@ func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutatio
 			func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
 
 				// update
-				if progress.Path.String() == m.Path && must.String(prev) == (m.PreviousValue) {
+				if prev != nil && !prev.IsAbsent() && progress.Path.String() == m.Path && must.String(prev) == (m.PreviousValue) {
 					nb := prev.Prototype().NewBuilder()
 					switch prev.Kind() {
 					case datamodel.Kind_Float:
@@ -254,10 +275,32 @@ func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutatio
 						nb.AssignString(m.NextValue.(string))
 					}
 					return nb.Build(), nil
-				} else if progress.Path.String() == m.Path && prev.IsAbsent() {
+				} else if progress.Path.String() == m.Path && m.PreviousValue == "" {
 					// previous is absent, add
 
-				} else if progress.Path.String() == m.Path && m.NextValue == "" { 
+					nb := basicnode.Prototype.Any.NewBuilder()
+					switch m.NextValueKind {
+					case datamodel.Kind_Float:
+						nb.AssignFloat(m.NextValue.(float64))
+					case datamodel.Kind_Bytes:
+						nb.AssignBytes(m.NextValue.([]byte))
+					case datamodel.Kind_Int:
+						nb.AssignInt(m.NextValue.(int64))
+					case datamodel.Kind_Link:
+						lnk, err := sdk.ParseCidLink(m.NextValue.(string))
+						if err != nil {
+							return nil, err
+						}
+						nb.AssignLink(lnk)
+					case datamodel.Kind_Bool:
+						nb.AssignBool(m.NextValue.(bool))
+					default:
+						nb.AssignString(m.NextValue.(string))
+					}
+
+					return nb.Build(), nil
+
+				} else if progress.Path.String() == m.Path && m.NextValue == "" {
 					// next is absent, remove
 				}
 				return nil, fmt.Errorf("%s not found", m.Path)
@@ -364,12 +407,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 	n, err := dagctx.ApplyFocusedTransform(current, mutations)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("mutation failed").Error(),
-		})
-		return
-	}
+
 	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
@@ -401,8 +439,9 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		na.AssembleEntry("height").AssignInt(blockNumber)
 		na.AssembleEntry("signature").AssignString(signature)
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
-		na.AssembleEntry("parent").AssignString(p)
+		na.AssembleEntry("rootKey").AssignString(base64.StdEncoding.EncodeToString([]byte(p)))
 		na.AssembleEntry("root").AssignLink(link)
+		na.AssembleEntry("parent").AssignLink(link)
 	})
 
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
@@ -434,6 +473,9 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 // @Router /v0/dagjson/{cid}/{path} [get]
 func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	lnk, err := sdk.ParseCidLink(c.Param("cid"))
+
+	linkQ := c.Query("onlyLinks")
+
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("%v", err),
@@ -472,6 +514,19 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		}
 
 	}
+
+	if linkQ == "true" {
+		tras, _ := traversal.SelectLinks(n)
+		// s := []string{"foo", "bar", "baz"}
+		// fmt.Println(strings.Join(s, ", "))
+		// trasPrint, _ := fmt.Printf("%+q", tras)
+
+		trasEnc, _ := json.Marshal(tras)
+		// trasPrint, _ := fmt.Println(strings.Join(tras, ""))
+		c.JSON(200, json.RawMessage(trasEnc))
+		return
+	}
+	// fmt.Printf("tras: %v\n", tras)
 
 	data, err := sdk.Encode(n)
 	if err != nil {

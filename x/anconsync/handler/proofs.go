@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"crypto/rand"
+	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
-	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/buger/jsonparser"
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
+	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
 	"github.com/makiuchi-d/gozxing/qrcode/encoder"
@@ -112,7 +112,7 @@ func (h *ProofHandler) VerifyGenesis(key string) ([]byte, error) {
 	return bz, nil
 }
 
-func InitGenesis(hostName string) (string, string, error) {
+func InitGenesis(hostName string, cidlink datamodel.Link, priv *ecdsa.PrivateKey) (string, string, error) {
 	userHomeDir, err := os.UserHomeDir()
 	version := 0
 	if err != nil {
@@ -133,21 +133,7 @@ func InitGenesis(hostName string) (string, string, error) {
 		return " ", " ", errors.Wrapf(err, "unable to load version %d", version)
 	}
 
-	// Set your own keypair
-	priv, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	var digest []byte
-
-	keccak.Keccak256(digest, []byte(hostName))
-	signed, err := priv.Sign(rand.Reader, digest, nil)
-
-	if err != nil {
-		return " ", " ", errors.Wrap(err, "Unable to sign")
-	}
-
-	cidlink := sdk.CreateCidLink(signed[0:32])
+	// cidlink := sdk.CreateCidLink(signed[0:32])
 
 	key := fmt.Sprintf("%s%s", GENESISKEY, cidlink.String())
 	value := fmt.Sprintf(
@@ -155,7 +141,7 @@ func InitGenesis(hostName string) (string, string, error) {
 		data: "%s",
 		signature: "%s",
 		}`,
-		hostName, signed,
+		hostName, cidlink.String(),
 	)
 
 	tree.Set([]byte(key), []byte(value))

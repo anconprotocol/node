@@ -2,18 +2,23 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"flag"
 	"fmt"
 	"strings"
 
+	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	gsync "github.com/ipfs/go-graphsync"
+	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/lucas-clemente/quic-go/http3"
 	multiaddr "github.com/multiformats/go-multiaddr"
@@ -104,21 +109,37 @@ func main() {
 	dagHandler := sdk.NewAnconSyncContext(s, exchange, ipfspeer)
 
 	if *init == true {
-		result, key, err := handler.InitGenesis(*hostName)
+
+		// Set your own keypair
+		priv, err := crypto.GenerateKey()
+		if err != nil {
+			panic(err)
+		}
+		var digest []byte
+
+		keccak.Keccak256(digest, []byte(*hostName))
+		signed, err := priv.Sign(rand.Reader, digest, nil)
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			panic(err)
 		}
 
-		err = dagHandler.Store.DataStore.Put(ctx, key, []byte(key))
+		lnkCtx := ipld.LinkContext{
+			LinkPath: ipld.ParsePath("/anconprotocol"),
+		}
+
+		n, err := sdk.Decode(basicnode.Prototype.Any, string(signed))
+
+		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
+
+		result, _, err := handler.InitGenesis(*hostName, link, priv)
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			panic(err)
 		}
 
 		fmt.Println(result)
+
 		return
 	}
 
