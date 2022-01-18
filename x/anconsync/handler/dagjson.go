@@ -354,7 +354,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
-	p := types.USER_PATH
+	p := fmt.Sprintf("%s/%s", types.USER_PATH, from)
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	ok, err := types.Authenticate(doc, []byte(temp), signature)

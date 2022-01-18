@@ -371,11 +371,63 @@ example of the returned object:
 
 
 
-## `GET /v0/dagjson/:cid/*path`
+## `GET /v0/dagjson/:cid/*path?`
 ## `GET /v0/dag/:cid/*path`
 
 > Reads a dag-json block
 
+### Query with namespaces, Ancon cids and IPFS cids
+
+DAG storage has the following namespaces available:
+
+#### anconprotocol 
+
+A DAG store creates at init time a genesis, which is called root key. This root key is found in the `anconprotocol` namespace.
+
+#### anconprotocol/users
+
+DIDs and DAG blocks are created under `anconprotocol/users` and the HTTP GET queries by default this namespace. Blocks created here return DAG results.
+
+
+#### anconprotocol/graphs
+
+Reserved space for subgraph networks
+
+### Enhanced Get query
+
+You can query any namespace by adding `namespace` as a query string
+
+```html
+https://api.ancon.did.pa/v0/dagjson/baguqeerac33uoqmawkru523zwubchxitrsinqskl7yjr67nqsxtocqv7to7q/?namespace=anconprotocol/users/0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+```
+
+### DAG Response
+
+
+```json
+ {
+  "commitHash": "/AzWS9kE67z+wRs8htT3G+bRYDLy8V/Jg/cGUBprV/s=",
+  "content": {
+    "/": "baguqeerafkyyjhrgfai6x6djd23ot2d6vytaf35uvg6s2egc7llqkuc7nfua"
+  },
+  "height": 4892,
+  "issuer": "0xeeC58E89996496640c8b5898A7e0218E9b6E90cB",
+  "key": "L2FuY29ucHJvdG9jb2wvYmFmeXJlaWJxaXFiY2FmbnptanFtdjNpeTd1emppaW1uZWlxMmNxc3AzYm1odGNqYnJ3eXF3dnl3YmkvdXNlci9iYWd1cWVlcmFma3l5amhyZ2ZhaTZ4NmRqZDIzb3QyZDZ2eXRhZjM1dXZnNnMyZWdjN2xscWt1YzduZnVh",
+  "parent": "/anconprotocol/bafyreibqiqbcafnzmjqmv3iy7uzjiimneiq2cqsp3bmhtcjbrwyqwvywbi/user",
+  "signature": "0x971d3282785c390336860c5f5e5e1c7058f028738da7a003b8d81da7182cd6880798f8608e74d381c77d071f88adfa20e528bed1afba05f3c564bc6b59ec2dc61c",
+  "timestamp": 1642350132
+}
+```
+
+If you query a link inside the response and if is unique, then you get the complete node response, otherwise you get a set of links.
+
+### Fallback
+
+Recommended usage is to create a client load balancer with fallback functionality:
+
+- Ancon Protocol Node
+- Pinning Service 
+- Public IPFS Gateway
 
 ### Parameters
 
