@@ -322,7 +322,7 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 		return
 	}
 
-	exportAs, _ := c.GetQuery("exportAs")
+	exportAs, _ := c.GetQuery("export")
 	if exportAs == "qr" {
 		q, err := encoder.Encoder_encode(string(data), gozxing.EncodeHintType_ERROR_CORRECTION, nil)
 		if err != nil {
@@ -334,7 +334,7 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"key":     internalKey,
 			"version": version,
-			"proof":   q,
+			"proof":   q.String(),
 		})
 	} else {
 		c.JSON(200, data)
@@ -369,7 +369,13 @@ func (dagctx *ProofHandler) ExtractQR(c *gin.Context) {
 	defer src.Close()
 	// var bz []byte
 
-	img, _, _ := image.Decode(src)
+	img, _, err := image.Decode(src)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("cannot open image. %v", err).Error(),
+		})
+		return
+	}
 	bmp, err := gozxing.NewBinaryBitmapFromImage(
 		img,
 	)
