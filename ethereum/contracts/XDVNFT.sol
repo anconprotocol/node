@@ -32,6 +32,7 @@ contract XDVNFT is
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
     mapping(uint256 => bytes32) public tokenLockStorage;
+    bytes32 moniker = keccak256("SUBMIT_PAYMENT");
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
     event Locked(uint256 indexed id);
@@ -84,6 +85,7 @@ contract XDVNFT is
     ) public returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
+                moniker,
                 msg.sender,
                 userProof,
                 key,
@@ -122,6 +124,7 @@ contract XDVNFT is
     ) public returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
+                moniker,
                 msg.sender,
                 userProof,
                 key,
@@ -160,6 +163,7 @@ contract XDVNFT is
     ) public returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
+                moniker,
                 msg.sender,
                 userProof,
                 key,
@@ -202,6 +206,7 @@ contract XDVNFT is
     ) public returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
+                moniker,
                 msg.sender,
                 userProof,
                 key,
@@ -214,7 +219,7 @@ contract XDVNFT is
             packet,
             (uint256, string, address)
         );
-        
+
         require(
             hash == keccak256(abi.encodePacked(id, metadataUri, newOwner)),
             "Invalid packet"
