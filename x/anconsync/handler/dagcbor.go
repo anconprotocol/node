@@ -128,7 +128,7 @@ func (dagctx *DagCborHandler) DagCborRead(c *gin.Context) {
 		})
 		return
 	}
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	p := types.USER_PATH
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, cidlink.Link{Cid: lnk})
 	if err != nil {

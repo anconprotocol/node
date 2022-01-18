@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/impl"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -125,10 +127,10 @@ func main() {
 		}
 
 		lnkCtx := ipld.LinkContext{
-			LinkPath: ipld.ParsePath("/anconprotocol"),
+			LinkPath: ipld.ParsePath(types.ROOT_PATH),
 		}
 
-		n, err := sdk.Decode(basicnode.Prototype.Any, string(signed))
+		n :=basicnode.NewString( base64.RawStdEncoding.EncodeToString(signed))
 
 		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
 

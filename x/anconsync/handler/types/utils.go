@@ -10,6 +10,13 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 )
 
+var (
+	ROOT_PATH = "anconprotocol"
+	GRAPH_PATH = "anconprotocol/graphs"
+	USER_PATH = "anconprotocol/users"
+
+)
+
 func GetDidDocument(data string) (*did.Doc, error) {
 	bz := []byte(data)
 	return did.ParseDocument(bz)

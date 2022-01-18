@@ -177,7 +177,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	p := types.USER_PATH
 
 	lnk, err := sdk.ParseCidLink(did)
 	if err != nil {
@@ -287,7 +287,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	}
 	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	p := types.USER_PATH
 
 	hash, err := jsonparser.GetString(commit, "root_hash")
 	version, err := jsonparser.GetInt(commit, "version")
@@ -358,7 +358,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	}
 
 	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
-	p := fmt.Sprintf("%s/%s/user", "/anconprotocol", dagctx.RootKey)
+	p := types.USER_PATH
 
 	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	if err != nil {
@@ -371,7 +371,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	dagctx.Store.DataStore.Put(ctx, addr, patch)
 
 	// proofs
-	internalKey := fmt.Sprintf("%s/%s/user/%s", "/anconprotocol", dagctx.RootKey, lnk.String())
+	internalKey := fmt.Sprintf("%s/%s", types.USER_PATH, lnk.String())
 	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid key")
