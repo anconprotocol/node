@@ -86,7 +86,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	ok, err := types.Authenticate(doc, []byte(temp), signature)
-	if ok {
+	if !ok {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("invalid signature").Error(),
 		})
@@ -173,7 +173,9 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		NextValueKind: datamodel.Kind_Link,
 	}}
 
-	n, err = dagctx.ApplyFocusedTransform(n, muts)
+	if n.Kind() != datamodel.Kind_List {
+		n, err = dagctx.ApplyFocusedTransform(n, muts)
+	}
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -487,10 +489,10 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	var n datamodel.Node
 	if path != "" {
 		var traversalPath ipld.Path
-		if  c.Query("namespace")!="" {
+		if c.Query("namespace") != "" {
 			traversalPath = ipld.ParsePath(c.Query("namespace"))
-		} else{
-		    traversalPath = ipld.ParsePath(p)
+		} else {
+			traversalPath = ipld.ParsePath(p)
 		}
 		prog := traversal.Progress{
 			Cfg: &traversal.Config{
@@ -536,8 +538,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		}
 
 	}
-	
-	
+
 	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
