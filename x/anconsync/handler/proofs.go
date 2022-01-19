@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"image"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -15,13 +17,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	"github.com/ipld/go-ipld-prime/datamodel"
-	"github.com/makiuchi-d/gozxing"
-	"github.com/makiuchi-d/gozxing/qrcode"
-	"github.com/makiuchi-d/gozxing/qrcode/encoder"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
+
 	"github.com/mr-tron/base58/base58"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	dbm "github.com/tendermint/tm-db"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/anconprotocol/sdk"
@@ -324,79 +327,60 @@ func (dagctx *ProofHandler) Read(c *gin.Context) {
 
 	exportAs, _ := c.GetQuery("export")
 	if exportAs == "qr" {
-		q, err := encoder.Encoder_encode(string(data), gozxing.EncodeHintType_ERROR_CORRECTION, nil)
+		qrc, err := qrcode.New(string(data))
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("decode Error %v", err).Error(),
 			})
 			return
 		}
+
+		bg := c.Query("bgcolor")
+		if bg == "" {
+			bg = "#ffffff"
+		} else {
+			bg = "#" + bg
+		}
+		fg := c.Query("fgcolor")
+		if fg == "" {
+			fg = "#000000"
+		} else {
+			fg = "#" + fg
+		}
+		buf := &bytes.Buffer{}
+		buf2 := &bytes.Buffer{}
+		wr := gzip.NewWriter(buf)
+
+		w := standard.NewWithWriter(wr,
+			standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
+			standard.WithBgColorRGBHex(bg),
+			standard.WithFgColorRGBHex(fg),
+		)
+		qrc.Save(w)
+		w.Close()
+		rdr, err := gzip.NewReader(buf)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("error %v", err).Error(),
+			})
+			return
+		}
+
+		data, err := io.ReadAll(rdr)
+		buf2.Write(data)
+		defer rdr.Close()
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("error %v", err).Error(),
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
-			"key":     internalKey,
-			"version": version,
-			"proof":   q.String(),
+			"qr": base64.StdEncoding.EncodeToString(buf2.Bytes()),
 		})
 	} else {
 		c.JSON(200, data)
 	}
-}
-
-// @BasePath /v0
-// ExtractQR godoc
-// @Summary Extracts a QR code
-// @Schemes
-// @Description Returns JSON
-// @Tags proofs
-// @Accept json
-// @Produce json
-// @Success 200
-// @Router /v0/proofs/qr [post]
-func (dagctx *ProofHandler) ExtractQR(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("error in form file %v", err).Error(),
-		})
-		return
-	}
-	src, err := file.Open()
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("cannot open file. %v", err).Error(),
-		})
-		return
-	}
-	defer src.Close()
-	// var bz []byte
-
-	img, _, err := image.Decode(src)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("cannot open image. %v", err).Error(),
-		})
-		return
-	}
-	bmp, err := gozxing.NewBinaryBitmapFromImage(
-		img,
-	)
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("failed reading file. %v", err).Error(),
-		})
-		return
-	}
-
-	r := qrcode.NewQRCodeReader()
-	result, err := r.Decode(bmp, nil)
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("decode Error %v", err).Error(),
-		})
-		return
-	}
-	c.JSON(200, gin.H{
-		"decoded": result,
-	})
 }
