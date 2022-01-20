@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
+import "./IWXDV.sol";
 import "./ics23/Ics23Helper.sol";
 
 //  a NFT secure document
@@ -27,12 +28,12 @@ contract XDVNFT is
 
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
-    IAnconProtocol public anconprotocol;
+    IWXDV public WXDV;
     address public dagContractOperator;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
     mapping(uint256 => bytes32) public tokenLockStorage;
-    bytes32 moniker = keccak256("SUBMIT_PAYMENT");
+    bytes32 moniker = keccak256("anconprotocol");
     uint256 chainId = 0;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
@@ -51,20 +52,12 @@ contract XDVNFT is
         string memory name,
         string memory symbol,
         address tokenERC20,
-        address anconprotocolAddr,
+        address IWXDVaddress,
         uint256 chain
     ) ERC721(name, symbol) {
         stablecoin = IERC20(tokenERC20);
-        anconprotocol = IAnconProtocol(anconprotocolAddr);
+        WXDV = IWXDV(IWXDVaddress);
         chainId = chain;
-    }
-
-    function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
-        serviceFeeForPaymentAddress = _fee;
-    }
-
-    function setServiceFeeForContract(uint256 _fee) public onlyOwner {
-        serviceFeeForContract = _fee;
     }
 
     function mint(address toAddress, uint256 tokenId)
@@ -86,61 +79,29 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) public returns (uint256) {
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
         require(
-            anconprotocol.submitPacketWithProof(
-                moniker,
+            WXDV.mintWithProof(
                 msg.sender,
-                userProof,
+                newItemId,
+                moniker,
                 key,
                 packet,
-                proof
+                userProof,
+                proof,
+                hash
             ),
-            "invalid packet proof"
+            "Invalid Proof"
         );
         (address user, string memory uri) = abi.decode(
             packet,
             (address, string)
         );
-        require(
-            hash == keccak256(abi.encodePacked(user, uri)),
-            "Invalid packet"
-        );
-        _tokenIds.increment();
-        uint256 newItemId = _tokenIds.current();
         _safeMint(user, newItemId);
         _setTokenURI(newItemId, uri);
         //Newly minted NFTs are not locked
-        tokenLockStorage[newItemId] = TOKEN_AVAILABLE;
-
         return newItemId;
-    }
-
-    /**
-     * @dev Burns a XDV Data Token
-     */
-    function burnWithProof(
-        bytes memory key,
-        bytes memory packet,
-        Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof,
-        bytes32 hash
-    ) public returns (uint256) {
-        require(
-            anconprotocol.submitPacketWithProof(
-                moniker,
-                msg.sender,
-                userProof,
-                key,
-                packet,
-                proof
-            ),
-            "invalid packet proof"
-        );
-        uint256 id = abi.decode(packet, (uint256));
-        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
-        _burn(id);
-        tokenLockStorage[id] = TOKEN_BURNED;
-        return id;
     }
 
     /**
@@ -164,44 +125,17 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
-    ) public returns (uint256) {
-        require(
-            anconprotocol.submitPacketWithProof(
-                moniker,
+    ) public payable returns (uint256) {
+        return
+            WXDV.lockWithProof(
                 msg.sender,
-                userProof,
+                moniker,
                 key,
                 packet,
-                proof
-            ),
-            "invalid packet proof"
-        );
-        (uint256 id, bytes32 contractIdentifier) = abi.decode(
-            packet,
-            (uint256, bytes32)
-        );
-        require(
-            hash == keccak256(abi.encodePacked(id, contractIdentifier)),
-            "invalid packet"
-        );
-        require(msg.sender == ownerOf(id));
-
-        if (
-            contractIdentifier ==
-            keccak256(abi.encodePacked(chainId, address(this)))
-        ) {
-            safeTransferFrom(msg.sender, address(this), id);
-
-            // Set as locked
-            lock(id);
-
-            emit Locked(id);
-        } else {
-            // todo:wrapped
-            // burn
-            _burn(id);
-        }
-        return id;
+                userProof,
+                proof,
+                hash
+            );
     }
 
     function lock(uint256 tokenId) internal {
@@ -222,59 +156,17 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
-    ) public returns (uint256) {
-        require(
-            anconprotocol.submitPacketWithProof(
-                moniker,
+    ) public payable returns (uint256) {
+        return
+            WXDV.releaseWithProof(
                 msg.sender,
-                userProof,
+                moniker,
                 key,
                 packet,
-                proof
-            ),
-            "invalid packet proof"
-        );
-        (
-            uint256 id,
-            string memory metadataUri,
-            address newOwner,
-            bytes32 contractIdentifier
-        ) = abi.decode(packet, (uint256, string, address, bytes32));
-
-        require(
-            hash ==
-                keccak256(
-                    abi.encodePacked(
-                        id,
-                        metadataUri,
-                        newOwner,
-                        contractIdentifier
-                    )
-                ),
-            "invalid packet"
-        );
-
-        require(msg.sender == newOwner, "invalid sender");
-
-        if (
-            contractIdentifier !=
-            keccak256(abi.encodePacked(chainId, address(this)))
-        ) {
-            // todo:wrapped
-            // mint, should be XDVNFTWrapped
-            _tokenIds.increment();
-            uint256 newItemId = _tokenIds.current();
-            _safeMint(newOwner, newItemId);
-        } else {
-            // Set as unlocked
-            unlock(id);
-            // Set owner to contract, _beforeTokenTransfer will check if already locked
-            safeTransferFrom(address(this), newOwner, id);
-        }
-
-        _setTokenURI(id, metadataUri);
-        emit Released(id);
-        return id;
+                userProof,
+                proof,
+                hash
+            );
     }
 
     function unlock(uint256 tokenId) internal {

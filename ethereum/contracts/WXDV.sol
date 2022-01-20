@@ -24,24 +24,25 @@ contract WXDV is
     bytes32 public TOKEN_LOCKED = keccak256("TOKEN_LOCKED");
     bytes32 public TOKEN_BURNED = keccak256("TOKEN_BURNED");
     bytes32 public TOKEN_AVAILABLE = keccak256("TOKEN_AVAILABLE");
+    bytes32 public ENROLL_NFT = keccak256("ENROLL_NFT");
 
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
     IAnconProtocol public anconprotocol;
     address public dagContractOperator;
+    uint256 public NFTRegistrationFee = 0;
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
-    mapping(uint256 => bytes32) public tokenLockStorage;
+    mapping(address => mapping(uint256 => bytes32)) public tokenLockStorage;
     uint256 chainId = 0;
+    mapping(address => bool) nftRegistry;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
-    event Locked(uint256 indexed id);
-    event Released(uint256 indexed id);
-    event ServiceFeePaid(
-        address indexed from,
-        uint256 paidToContract,
-        uint256 paidToPaymentAddress
-    );
+    event Locked(address nftContractAddress, uint256 indexed id);
+    event Released(address sender, uint256 indexed id);
+    event ServiceFeePaid(address indexed from, uint256 fee);
+
+    event NFTEnrolled(bool enrolledStatus, address NFTaddress);
 
     /**
      * WXDV
@@ -79,16 +80,19 @@ contract WXDV is
      * @dev Mints a XDV Data Token
      */
     function mintWithProof(
+        address sender,
+        uint256 newItemId,
+        bytes32 moniker,
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
-    ) public returns (uint256) {
+    ) external payable returns (bool) {
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
-                msg.sender,
+                sender,
                 userProof,
                 key,
                 packet,
@@ -104,43 +108,70 @@ contract WXDV is
             hash == keccak256(abi.encodePacked(user, uri)),
             "Invalid packet"
         );
-        _tokenIds.increment();
-        uint256 newItemId = _tokenIds.current();
-        _safeMint(user, newItemId);
-        _setTokenURI(newItemId, uri);
         //Newly minted NFTs are not locked
-        tokenLockStorage[newItemId] = TOKEN_AVAILABLE;
+        tokenLockStorage[msg.sender][newItemId] = TOKEN_AVAILABLE;
+        return true;
+    }
 
-        return newItemId;
+    // protocolPayment handles contract payment protocol fee types
+    function protocolPayment(bytes32 paymentType, address tokenHolder)
+        internal
+    {
+        require(
+            stablecoin.balanceOf(address(msg.sender)) > 0,
+            "no enough balance"
+        );
+        if ((paymentType) == ENROLL_NFT) {
+            require(
+                stablecoin.transferFrom(
+                    tokenHolder,
+                    address(this),
+                    NFTRegistrationFee
+                ),
+                "transfer failed for recipient"
+            );
+            emit ServiceFeePaid(tokenHolder, NFTRegistrationFee);
+        }
+    }
+
+    function enrollNFT(address NFTaddress) public payable returns (bool) {
+        require(nftRegistry[NFTaddress] == false, "NFT is already in registry");
+
+        protocolPayment(ENROLL_NFT, msg.sender);
+
+        nftRegistry[NFTaddress] = true;
+
+        emit NFTEnrolled(true, NFTaddress);
+        return true;
     }
 
     /**
      * @dev Burns a XDV Data Token
      */
-    function burnWithProof(
-        bytes memory key,
-        bytes memory packet,
-        Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof,
-        bytes32 hash
-    ) public returns (uint256) {
-        require(
-            anconprotocol.submitPacketWithProof(
-                moniker,
-                msg.sender,
-                userProof,
-                key,
-                packet,
-                proof
-            ),
-            "invalid packet proof"
-        );
-        uint256 id = abi.decode(packet, (uint256));
-        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
-        _burn(id);
-        tokenLockStorage[id] = TOKEN_BURNED;
-        return id;
-    }
+    // function burnWithProof(
+    //     bytes memory key,
+    //     bytes memory packet,
+    //     Ics23Helper.ExistenceProof memory userProof,
+    //     Ics23Helper.ExistenceProof memory proof,
+    //     bytes32 hash
+    // ) public returns (uint256) {
+    //     require(
+    //         anconprotocol.submitPacketWithProof(
+    //             moniker,
+    //             msg.sender,
+    //             userProof,
+    //             key,
+    //             packet,
+    //             proof
+    //         ),
+    //         "invalid packet proof"
+    //     );
+    //     uint256 id = abi.decode(packet, (uint256));
+    //     require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+    //     _burn(id);
+    //     tokenLockStorage[id] = TOKEN_BURNED;
+    //     return id;
+    // }
 
     /**
      * @dev Just overrides the superclass' function. Fixes inheritance
@@ -158,16 +189,18 @@ contract WXDV is
      * @dev Locks a XDV Data Token
      */
     function lockWithProof(
+        address sender,
+        bytes32 moniker,
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
-    ) public returns (uint256) {
+    ) external payable returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
-                msg.sender,
+                sender,
                 userProof,
                 key,
                 packet,
@@ -183,32 +216,38 @@ contract WXDV is
             hash == keccak256(abi.encodePacked(id, contractIdentifier)),
             "invalid packet"
         );
-        require(msg.sender == ownerOf(id));
+        require(sender == ownerOf(id));
+
+        ERC721 nftContractCaller = ERC721(msg.sender);
 
         if (
-            contractIdentifier ==
-            keccak256(abi.encodePacked(chainId, address(this)))
+            tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
+            nftContractCaller.ownerOf(id) == sender
         ) {
-            safeTransferFrom(msg.sender, address(this), id);
-
-            // Set as locked
-            lock(id);
-
-            emit Locked(id);
+            revert("Unsupported");
+        } else if (
+            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
+            nftContractCaller.ownerOf(id) == sender &&
+            tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
+        ) {
+            nftContractCaller.safeTransferFrom(sender, address(this), id);
+            // // Set as locked
+            lock(msg.sender, id);
+            emit Locked(msg.sender, id);
         } else {
-            // todo:wrapped
-            // burn
+            // if token doesnt exist I need to create a wrapped xdv token
+            require(ownerOf(id) == address(this), "Is not a wrapped token");
             _burn(id);
         }
         return id;
     }
 
-    function lock(uint256 tokenId) internal {
+    function lock(address nftContractAddress, uint256 tokenId) internal {
         require(
-            tokenLockStorage[tokenId] == TOKEN_AVAILABLE,
+            tokenLockStorage[nftContractAddress][tokenId] == TOKEN_AVAILABLE,
             "Token is already locked"
         );
-        tokenLockStorage[tokenId] = TOKEN_LOCKED;
+        tokenLockStorage[nftContractAddress][tokenId] = TOKEN_LOCKED;
     }
 
     /**
@@ -216,16 +255,18 @@ contract WXDV is
      * @dev Releases a XDV Data Token
      */
     function releaseWithProof(
+        address sender,
+        bytes32 moniker,
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
-    ) public returns (uint256) {
+    ) external payable returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
-                msg.sender,
+                sender,
                 userProof,
                 key,
                 packet,
@@ -253,35 +294,48 @@ contract WXDV is
             "invalid packet"
         );
 
-        require(msg.sender == newOwner, "invalid sender");
+        require(sender == newOwner, "invalid sender");
+
+        ERC721 nftContractCaller = ERC721(msg.sender);
 
         if (
-            contractIdentifier !=
-            keccak256(abi.encodePacked(chainId, address(this)))
+            tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
+            nftContractCaller.ownerOf(id) == sender
         ) {
-            // todo:wrapped
-            // mint, should be XDVNFTWrapped
+            // Set as unlocked
+            unlock(msg.sender, id);
+            // Set owner to contract, _beforeTokenTransfer will check if already locked
+            safeTransferFrom(address(this), newOwner, id);
+            emit Released(msg.sender, id);
+        } else if (
+            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
+            nftContractCaller.ownerOf(id) == sender &&
+            tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
+        ) {
+            // nftContractCaller._safeTransferFrom(sender, address(this), id);
+
+            // // Set as locked
+            // lock(msg.sender, id);
+
+            // emit Locked(msg.sender, id);
+            revert("Unsupported");
+        } else {
+            // if token doesnt exist I need to create a wrapped xdv token
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
             _safeMint(newOwner, newItemId);
-        } else {
-            // Set as unlocked
-            unlock(id);
-            // Set owner to contract, _beforeTokenTransfer will check if already locked
-            safeTransferFrom(address(this), newOwner, id);
+            _setTokenURI(id, metadataUri);
         }
 
-        _setTokenURI(id, metadataUri);
-        emit Released(id);
         return id;
     }
 
-    function unlock(uint256 tokenId) internal {
+    function unlock(address sender, uint256 tokenId) internal {
         require(
-            tokenLockStorage[tokenId] == TOKEN_LOCKED,
+            tokenLockStorage[msg.sender][tokenId] == TOKEN_LOCKED,
             "Token is already unlocked"
         );
-        tokenLockStorage[tokenId] = TOKEN_AVAILABLE;
+        tokenLockStorage[msg.sender][tokenId] = TOKEN_AVAILABLE;
     }
 
     /**
@@ -303,7 +357,7 @@ contract WXDV is
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Pausable) {
         require(!paused(), "XDV: Token execution is paused");
-        require(!islocked(tokenId), "XDV: This token is locked");
+        require(!islocked(tokenId, from), "XDV: This token is locked");
 
         if (from == address(0)) {
             paymentBeforeMint(msg.sender);
@@ -327,11 +381,7 @@ contract WXDV is
             "XDV: Transfer failed for recipient"
         );
 
-        emit ServiceFeePaid(
-            tokenHolder,
-            serviceFeeForContract,
-            serviceFeeForPaymentAddress
-        );
+        emit ServiceFeePaid(tokenHolder, serviceFeeForContract);
     }
 
     function withdrawBalance(address payable payee) public onlyOwner {
@@ -360,8 +410,8 @@ contract WXDV is
 
     // Add a setter to change the locked flag
     // only the owner of the contract can call because a modifier is specified
-    function islocked(uint256 tokenId) public returns (bool) {
-        return tokenLockStorage[tokenId] == TOKEN_LOCKED;
+    function islocked(uint256 tokenId, address sender) public returns (bool) {
+        return tokenLockStorage[sender][tokenId] == TOKEN_LOCKED;
     }
 
     // add the function modifier to the transfer function
