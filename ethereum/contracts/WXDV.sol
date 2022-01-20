@@ -13,7 +13,7 @@ import "./ancon/TrustedOffchainHelper.sol";
 import "./ics23/Ics23Helper.sol";
 
 //  a NFT secure document
-contract XDVNFT is
+contract WXDV is
     ERC721Burnable,
     ERC721Pausable,
     ERC721URIStorage,
@@ -32,7 +32,6 @@ contract XDVNFT is
     uint256 public serviceFeeForPaymentAddress = 0;
     uint256 public serviceFeeForContract = 0;
     mapping(uint256 => bytes32) public tokenLockStorage;
-    bytes32 moniker = keccak256("SUBMIT_PAYMENT");
     uint256 chainId = 0;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
@@ -45,7 +44,7 @@ contract XDVNFT is
     );
 
     /**
-     * XDVNFT Data Token
+     * WXDV
      */
     constructor(
         string memory name,

@@ -63,7 +63,7 @@ contract AnconProtocol is ICS23 {
     }
 
     // getContractIdentifier is used to identify an offchain proof in any chain  
-    function getContractIdentifier() public returns (bytes32) {
+    function getContractIdentifier() public view returns (bytes32) {
         return keccak256(abi.encodePacked(
                 chainId,
                 address(this)
@@ -239,7 +239,7 @@ contract AnconProtocol is ICS23 {
     }
 
 
-    // enrollL2Account registers packet onchain using ICS23 proofs, multi tenant using dag graph moniker
+    // submitPacketWithProof registers packet onchain using ICS23 proofs, multi tenant using dag graph moniker
     function submitPacketWithProof(
         bytes32 moniker,
         address sender,
