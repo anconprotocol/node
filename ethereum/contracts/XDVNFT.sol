@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ancon/IAnconProtocol.sol";
@@ -16,29 +15,19 @@ import "./ics23/Ics23Helper.sol";
 //  a NFT secure document
 contract XDVNFT is
     ERC721Burnable,
-    ERC721Pausable,
     ERC721URIStorage,
     Ownable,
     TrustedOffchainHelper
 {
     using Counters for Counters.Counter;
-    bytes32 public TOKEN_LOCKED = keccak256("TOKEN_LOCKED");
-    bytes32 public TOKEN_BURNED = keccak256("TOKEN_BURNED");
-    bytes32 public TOKEN_AVAILABLE = keccak256("TOKEN_AVAILABLE");
 
     Counters.Counter private _tokenIds;
     IERC20 public stablecoin;
     IWXDV public WXDV;
-    address public dagContractOperator;
-    uint256 public serviceFeeForPaymentAddress = 0;
-    uint256 public serviceFeeForContract = 0;
-    mapping(uint256 => bytes32) public tokenLockStorage;
     bytes32 moniker = keccak256("anconprotocol");
     uint256 chainId = 0;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
-    event Locked(uint256 indexed id);
-    event Released(uint256 indexed id);
     event ServiceFeePaid(
         address indexed from,
         uint256 paidToContract,
@@ -138,14 +127,6 @@ contract XDVNFT is
             );
     }
 
-    function lock(uint256 tokenId) internal {
-        require(
-            tokenLockStorage[tokenId] == TOKEN_AVAILABLE,
-            "Token is already locked"
-        );
-        tokenLockStorage[tokenId] = TOKEN_LOCKED;
-    }
-
     /**
      * More info at https://github.com/renproject/ren/wiki#cross-chain-transactions
      * @dev Releases a XDV Data Token
@@ -169,14 +150,6 @@ contract XDVNFT is
             );
     }
 
-    function unlock(uint256 tokenId) internal {
-        require(
-            tokenLockStorage[tokenId] == TOKEN_LOCKED,
-            "Token is already unlocked"
-        );
-        tokenLockStorage[tokenId] = TOKEN_AVAILABLE;
-    }
-
     /**
      * @dev Just overrides the superclass' function. Fixes inheritance
      * source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
@@ -188,43 +161,6 @@ contract XDVNFT is
         returns (string memory)
     {
         return super.tokenURI(tokenId);
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Pausable) {
-        require(!paused(), "XDV: Token execution is paused");
-        require(!islocked(tokenId), "XDV: This token is locked");
-
-        if (from == address(0)) {
-            paymentBeforeMint(msg.sender);
-        }
-
-        super._beforeTokenTransfer(from, to, tokenId);
-    }
-
-    /**
-     * @dev tries to execute the payment when the token is minted.
-     * Reverts if the payment procedure could not be completed.
-     */
-    function paymentBeforeMint(address tokenHolder) internal virtual {
-        // Transfer tokens to pay service fee
-        require(
-            stablecoin.transferFrom(
-                tokenHolder,
-                address(this),
-                serviceFeeForContract
-            ),
-            "XDV: Transfer failed for recipient"
-        );
-
-        emit ServiceFeePaid(
-            tokenHolder,
-            serviceFeeForContract,
-            serviceFeeForPaymentAddress
-        );
     }
 
     function withdrawBalance(address payable payee) public onlyOwner {
@@ -242,34 +178,4 @@ contract XDVNFT is
 
         emit Withdrawn(payee, b);
     }
-
-    // add two function modifiers
-    // a modifier to check the owner of the contract
-    // a modifier to determine if the locked flag is true of false
-    // modifier onlyOwner() {
-    //     require(msg.sender == owner, "Not Owner");
-    //     _;
-    // }
-
-    // Add a setter to change the locked flag
-    // only the owner of the contract can call because a modifier is specified
-    function islocked(uint256 tokenId) public returns (bool) {
-        return tokenLockStorage[tokenId] == TOKEN_LOCKED;
-    }
-
-    // add the function modifier to the transfer function
-    // if the locked==false then one can not trade
-    // function transfer(address _to, uint256 _value)
-    //     public
-    //     returns (bool success)
-    // {
-    //     require(islocked() == false, "Token is locked");
-    //     if (_value > 0 && _value <= balanceOf(msg.sender)) {
-    //         __balanceOf[msg.sender] -= _value;
-    //         __balanceOf[_to] += _value;
-    //         emit Transfer(msg.sender, _to, _value);
-    //         return true;
-    //     }
-    //     return false;
-    // }
 }
