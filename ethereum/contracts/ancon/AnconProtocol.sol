@@ -6,15 +6,25 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract AnconProtocol is ICS23 {
     bytes32 public ENROLL_PAYMENT = keccak256("ENROLL_PAYMENT");
+    bytes32 public ENROLL_DAG = keccak256("ENROLL_DAG");
     bytes32 public SUBMIT_PAYMENT = keccak256("SUBMIT_PAYMENT");
 
     address public owner;
     address public relayer;
     // bytes public relayNetworkHash;
+    struct Header {
+        bytes roothash;
+        uint256 height;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
 
     IERC20 public stablecoin;
     uint256 public protocolFee = 0;
     uint256 public accountRegistrationFee = 0;
+    uint256 public dagRegistrationFee = 0;
+    uint256 chainId = 0;
 
     mapping(bytes => bytes) public accountProofs; //did user-assigned proof key
     mapping(address => bytes) public accountByAddrProofs; //proof key-assigned eth address
@@ -25,50 +35,86 @@ contract AnconProtocol is ICS23 {
     //must do easy recover first & then set it
     mapping(bytes32 => address) public whitelistedDagGraph;
 
-    mapping(bytes32 => bytes) public relayerHashTable;
+    mapping(bytes32 => Header) public relayerHashTable;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
 
     event ServiceFeePaid(address indexed from, uint256 fee);
 
-    event HeaderUpdated(bytes hash);
-    event ProofPacketSubmitted(bytes key, bytes packet, bytes32 moniker);
-    event AccountRegistered(bool enrolledStatus, bytes key, bytes value);
+    event HeaderUpdated(bytes32 indexed moniker, Header header);
 
-    constructor(address tokenAddress) public {
+    event ProofPacketSubmitted(
+        bytes key,
+        bytes packet,
+        bytes32 moniker,
+        Header header
+    );
+
+    event AccountRegistered(
+        bool enrolledStatus,
+        bytes key,
+        bytes value,
+        bytes32 moniker,
+        Header header
+    );
+
+    constructor(address tokenAddress, uint256 network) public {
         owner = msg.sender;
         stablecoin = IERC20(tokenAddress);
+        chainId = network;
     }
 
-    //Must make payable
+    // getContractIdentifier is used to identify an offchain proof in any chain  
+    function getContractIdentifier() public returns (bytes32) {
+        return keccak256(abi.encodePacked(
+                chainId,
+                address(this)
+            ));
+    }
+
+    // setWhitelistedDagGraph registers offchain graphs by protocol admin
     function setWhitelistedDagGraph(
         bytes32 moniker,
         address dagAddress,
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public {
-        require(owner == msg.sender);
+    ) public payable {
+        require(owner == msg.sender, "invalid owner");
         address result = ecrecover(moniker, v, r, s);
-        require(dagAddress == result);
+        require(dagAddress == result, "invalid address");
+
+        protocolPayment(ENROLL_DAG, msg.sender);
+
         whitelistedDagGraph[moniker] = result;
     }
 
-    //Must make payable
-    function updateRelayerHeader(bytes32 moniker, bytes memory rootHash)
-        public
-    {
-        require(whitelistedDagGraph[moniker] == msg.sender);
-        // require(msg.sender == relayer);
-        relayerHashTable[moniker] = rootHash;
-        // emit HeaderUpdated(rootHash);
+    // updateRelayerHeader updates offchain dag graphs signed by dag graph key pair
+    function updateRelayerHeader(
+        bytes32 moniker,
+        bytes memory rootHash,
+        uint256 height,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        address result = ecrecover(moniker, v, r, s);
+        require(
+            whitelistedDagGraph[moniker] == result,
+            "invalid network moniker"
+        );
+        // TODO:  Check to  see if  signer has n amount of token staked
+        relayerHashTable[moniker] = Header(rootHash, height, v, r, s);
+        emit HeaderUpdated(moniker, relayerHashTable[moniker]);
     }
 
+    // setPaymentToken sets token used for protocol fees
     function setPaymentToken(address tokenAddress) public {
         require(owner == msg.sender);
         stablecoin = IERC20(tokenAddress);
     }
 
+    // withdraws gas token, must be admin 
     function withdraw(address payable payee) public {
         require(owner == msg.sender);
         uint256 b = address(this).balance;
@@ -78,6 +124,7 @@ contract AnconProtocol is ICS23 {
         emit Withdrawn(payee, b);
     }
 
+    // withdraws protocol fee token, must be admin 
     function withdrawToken(address payable payee, address erc20token) public {
         require(owner == msg.sender);
         uint256 balance = IERC20(erc20token).balanceOf(address(this));
@@ -88,6 +135,7 @@ contract AnconProtocol is ICS23 {
         emit Withdrawn(payee, balance);
     }
 
+    // protocolPayment handles contract payment protocol fee types 
     function protocolPayment(bytes32 paymentType, address tokenHolder)
         internal
     {
@@ -95,6 +143,17 @@ contract AnconProtocol is ICS23 {
             stablecoin.balanceOf(address(msg.sender)) > 0,
             "no enough balance"
         );
+        if ((paymentType) == ENROLL_DAG) {
+            require(
+                stablecoin.transferFrom(
+                    tokenHolder,
+                    address(this),
+                    dagRegistrationFee
+                ),
+                "transfer failed for recipient"
+            );
+            emit ServiceFeePaid(tokenHolder, dagRegistrationFee);
+        }
         if ((paymentType) == ENROLL_PAYMENT) {
             require(
                 stablecoin.transferFrom(
@@ -129,10 +188,15 @@ contract AnconProtocol is ICS23 {
         accountRegistrationFee = _fee;
     }
 
+    function setDagGraphFee(uint256 _fee) public {
+        require(owner == msg.sender);
+        dagRegistrationFee = _fee;
+    }
+
     function getProtocolHeader(bytes32 moniker)
         public
         view
-        returns (bytes memory)
+        returns (Header memory)
     {
         return relayerHashTable[moniker];
     }
@@ -145,13 +209,14 @@ contract AnconProtocol is ICS23 {
         return proofs[key];
     }
 
+    // enrollL2Account registers offchain did user onchain using ICS23 proofs, multi tenant using dag graph moniker 
     function enrollL2Account(
         bytes32 moniker,
         bytes memory key,
         bytes memory did,
         Ics23Helper.ExistenceProof memory proof
     ) public payable returns (bool) {
-        // require(keccak256(proof.key) == keccak256(key), "invalid key");
+        require(keccak256(proof.key) == keccak256(key), "invalid key");
 
         require(verifyProof(moniker, proof), "invalid proof");
 
@@ -165,17 +230,18 @@ contract AnconProtocol is ICS23 {
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
 
-        emit AccountRegistered(true, key, did);
+        emit AccountRegistered(
+            true,
+            key,
+            did,
+            moniker,
+            relayerHashTable[moniker]
+        );
         return true;
     }
 
-    // function updateProtocolHeader(bytes memory rootHash) public {
-    //     require(owner == msg.sender);
-    //     // require(msg.sender == relayer);
-    //     relayNetworkHash = rootHash;
-    //     emit HeaderUpdated(rootHash);
-    // }
 
+    // enrollL2Account registers packet onchain using ICS23 proofs, multi tenant using dag graph moniker
     function submitPacketWithProof(
         bytes32 moniker,
         address sender,
@@ -199,11 +265,18 @@ contract AnconProtocol is ICS23 {
         protocolPayment(SUBMIT_PAYMENT, sender);
 
         // 2. Submit event
-        emit ProofPacketSubmitted(key, packet, moniker);
+        emit ProofPacketSubmitted(
+            key,
+            packet,
+            moniker,
+            relayerHashTable[moniker]
+        );
 
         return true;
     }
 
+
+    // verifies ICS23 proofs, multi tenant using dag graph moniker
     function verifyProof(
         bytes32 moniker,
         Ics23Helper.ExistenceProof memory exProof
@@ -212,7 +285,7 @@ contract AnconProtocol is ICS23 {
         verify(
             exProof,
             getIavlSpec(),
-            relayerHashTable[moniker],
+            relayerHashTable[moniker].roothash,
             exProof.key,
             exProof.value
         );
@@ -220,6 +293,7 @@ contract AnconProtocol is ICS23 {
         return true;
     }
 
+    // verifies ICS23 proofs with key and value, multi tenant using dag graph moniker
     function verifyProofWithKV(
         bytes32 moniker,
         bytes memory key,
@@ -227,11 +301,18 @@ contract AnconProtocol is ICS23 {
         Ics23Helper.ExistenceProof memory exProof
     ) external view returns (bool) {
         // Verify membership
-        verify(exProof, getIavlSpec(), relayerHashTable[moniker], key, value);
+        verify(
+            exProof,
+            getIavlSpec(),
+            relayerHashTable[moniker].roothash,
+            key,
+            value
+        );
 
         return true;
     }
 
+    // calculates root hash
     function queryRootCalculation(Ics23Helper.ExistenceProof memory proof)
         internal
         pure

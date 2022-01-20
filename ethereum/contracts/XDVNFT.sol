@@ -33,6 +33,7 @@ contract XDVNFT is
     uint256 public serviceFeeForContract = 0;
     mapping(uint256 => bytes32) public tokenLockStorage;
     bytes32 moniker = keccak256("SUBMIT_PAYMENT");
+    uint256 chainId = 0;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
     event Locked(uint256 indexed id);
@@ -50,10 +51,12 @@ contract XDVNFT is
         string memory name,
         string memory symbol,
         address tokenERC20,
-        address anconprotocolAddr
+        address anconprotocolAddr,
+        uint256 chain
     ) ERC721(name, symbol) {
         stablecoin = IERC20(tokenERC20);
         anconprotocol = IAnconProtocol(anconprotocolAddr);
+        chainId = chain;
     }
 
     function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
@@ -152,6 +155,7 @@ contract XDVNFT is
     }
 
     /**
+    * More info at https://github.com/renproject/ren/wiki#cross-chain-transactions
      * @dev Locks a XDV Data Token
      */
     function lockWithProof(
@@ -172,17 +176,32 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        uint256 id = abi.decode(packet, (uint256));
-        require(hash == keccak256(abi.encodePacked(id)), "Invalid packet");
+        (uint256 id, bytes32 contractIdentifier) = abi.decode(
+            packet,
+            (uint256, bytes32)
+        );
+        require(
+            hash == keccak256(abi.encodePacked(id, contractIdentifier)),
+            "Invalid packet"
+        );
         require(msg.sender == ownerOf(id));
 
-        // Approve - will allowed contract to release just once
-        approve(address(this), id);
+        if (
+            contractIdentifier ==
+            keccak256(abi.encodePacked(chainId, address(this)))
+        ) {
+            // Approve - will allowed contract to release just once
+            approve(address(this), id);
 
-        // Set as locked
-        lock(id);
+            // Set as locked
+            lock(id);
 
-        emit Locked(id);
+            emit Locked(id);
+        } else {
+            // burn
+            _burn(id);
+
+        }
         return id;
     }
 
@@ -195,6 +214,7 @@ contract XDVNFT is
     }
 
     /**
+    * More info at https://github.com/renproject/ren/wiki#cross-chain-transactions
      * @dev Releases a XDV Data Token
      */
     function releaseWithProof(
@@ -215,9 +235,9 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        (uint256 id, string memory metadataUri, address newOwner) = abi.decode(
+        (uint256 id, string memory metadataUri, address newOwner, bytes32 contractIdentifier) = abi.decode(
             packet,
-            (uint256, string, address)
+            (uint256, string, address, bytes32)
         );
 
         require(
@@ -227,16 +247,20 @@ contract XDVNFT is
 
         require(msg.sender == newOwner);
 
-        if (address(this) == ownerOf(id)) {
-            // Set as unlocked
-            unlock(id);
-            // Set owner to contract, _beforeTokenTransfer will check if already locked
-            safeTransferFrom(address(this), newOwner, id);
-        } else {
+      
+        if (
+            contractIdentifier !=
+            keccak256(abi.encodePacked(chainId, address(this)))
+        ) {     
             // mint, should be XDVNFTWrapped
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
             _safeMint(newOwner, newItemId);
+        } else {
+            // Set as unlocked
+            unlock(id);
+            // Set owner to contract, _beforeTokenTransfer will check if already locked
+            safeTransferFrom(address(this), newOwner, id);
         }
 
         _setTokenURI(id, metadataUri);
