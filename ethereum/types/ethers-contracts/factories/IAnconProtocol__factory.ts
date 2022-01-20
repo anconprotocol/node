@@ -13,6 +13,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "moniker",
+        type: "bytes32",
+      },
+      {
         internalType: "address",
         name: "sender",
         type: "address",
@@ -214,6 +219,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "moniker",
+        type: "bytes32",
+      },
+      {
         components: [
           {
             internalType: "bool",
@@ -313,6 +323,11 @@ const _abi = [
   },
   {
     inputs: [
+      {
+        internalType: "bytes32",
+        name: "moniker",
+        type: "bytes32",
+      },
       {
         internalType: "bytes",
         name: "key",

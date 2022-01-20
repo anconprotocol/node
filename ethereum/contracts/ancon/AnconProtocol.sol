@@ -2,8 +2,6 @@
 pragma solidity ^0.8.7;
 import "../ics23/ics23.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 contract AnconProtocol is ICS23 {
     bytes32 public ENROLL_PAYMENT = keccak256("ENROLL_PAYMENT");
     bytes32 public ENROLL_DAG = keccak256("ENROLL_DAG");
