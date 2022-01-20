@@ -9,6 +9,7 @@ interface IAnconProtocol {
     // using ics23Helper for *;
     // ics23Helper.ExistenceProof ExistenceProof;
     function submitPacketWithProof(
+        bytes32 moniker,
         address sender,
         Ics23Helper.ExistenceProof memory userProof,
         bytes memory key,
@@ -16,12 +17,13 @@ interface IAnconProtocol {
         Ics23Helper.ExistenceProof memory proof
     ) external payable returns (bool);
 
-    function verifyProof(Ics23Helper.ExistenceProof memory exProof)
-        external
-        view
-        returns (bool);
+    function verifyProof(
+        bytes32 moniker,
+        Ics23Helper.ExistenceProof memory exProof
+    ) external view returns (bool);
 
     function verifyProofWithKV(
+        bytes32 moniker,
         bytes memory key,
         bytes memory value,
         Ics23Helper.ExistenceProof memory exProof
