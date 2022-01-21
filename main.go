@@ -68,6 +68,7 @@ func main() {
 	tlsKey := flag.String("tlscert", "", "TLS certificate")
 	tlsCert := flag.String("tlskey", "", "TLS key")
 	ipfshost := flag.String("ipfshost", "", "IPFS Host")
+	privateKeyPath := flag.String("privatekeypath", "", "")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -130,7 +131,7 @@ func main() {
 			LinkPath: ipld.ParsePath(types.ROOT_PATH),
 		}
 
-		n :=basicnode.NewString( base64.RawStdEncoding.EncodeToString(signed))
+		n := basicnode.NewString(base64.RawStdEncoding.EncodeToString(signed))
 
 		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
 
@@ -145,7 +146,7 @@ func main() {
 		return
 	}
 
-	proofHandler := handler.NewProofHandler(dagHandler)
+	proofHandler := handler.NewProofHandler(dagHandler, *privateKeyPath)
 
 	if *rootHash != "" && *sync == false {
 		hash, err := proofHandler.VerifyGenesis(*rootkey)
