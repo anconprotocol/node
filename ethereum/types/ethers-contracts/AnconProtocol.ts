@@ -18,22 +18,6 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export type HeaderStruct = {
-  roothash: BytesLike;
-  height: BigNumberish;
-  v: BigNumberish;
-  r: BytesLike;
-  s: BytesLike;
-};
-
-export type HeaderStructOutput = [string, BigNumber, number, string, string] & {
-  roothash: string;
-  height: BigNumber;
-  v: number;
-  r: string;
-  s: string;
-};
-
 export type LeafOpStruct = {
   valid: boolean;
   hash: BigNumberish;
@@ -149,17 +133,18 @@ export interface AnconProtocolInterface extends utils.Interface {
     "accountRegistrationFee()": FunctionFragment;
     "dagRegistrationFee()": FunctionFragment;
     "getIavlSpec()": FunctionFragment;
+    "latestRootHashTable(bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
     "proofs(bytes)": FunctionFragment;
     "protocolFee()": FunctionFragment;
     "relayer()": FunctionFragment;
-    "relayerHashTable(bytes32)": FunctionFragment;
+    "relayerHashTable(bytes32,uint256)": FunctionFragment;
     "stablecoin()": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
     "whitelistedDagGraph(bytes32)": FunctionFragment;
     "getContractIdentifier()": FunctionFragment;
     "setWhitelistedDagGraph(bytes32,address)": FunctionFragment;
-    "updateRelayerHeader(bytes32,bytes,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "updateRelayerHeader(bytes32,bytes,uint256)": FunctionFragment;
     "setPaymentToken(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
     "withdrawToken(address,address)": FunctionFragment;
@@ -206,6 +191,10 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "getIavlSpec",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "latestRootHashTable",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proofs", values: [BytesLike]): string;
   encodeFunctionData(
@@ -215,7 +204,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "relayer", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "relayerHashTable",
-    values: [BytesLike]
+    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "stablecoin",
@@ -245,14 +234,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateRelayerHeader",
-    values: [
-      BytesLike,
-      BytesLike,
-      BigNumberish,
-      BigNumberish,
-      BytesLike,
-      BytesLike
-    ]
+    values: [BytesLike, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setPaymentToken",
@@ -330,6 +312,10 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "getIavlSpec",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "latestRootHashTable",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proofs", data: BytesLike): Result;
   decodeFunctionResult(
@@ -400,9 +386,9 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "AccountRegistered(bool,bytes,bytes,bytes32,tuple)": EventFragment;
-    "HeaderUpdated(bytes32,tuple)": EventFragment;
-    "ProofPacketSubmitted(bytes,bytes,bytes32,tuple)": EventFragment;
+    "AccountRegistered(bool,bytes,bytes,bytes32)": EventFragment;
+    "HeaderUpdated(bytes32)": EventFragment;
+    "ProofPacketSubmitted(bytes,bytes,bytes32)": EventFragment;
     "ServiceFeePaid(address,uint256)": EventFragment;
     "Withdrawn(address,uint256)": EventFragment;
   };
@@ -415,29 +401,20 @@ export interface AnconProtocolInterface extends utils.Interface {
 }
 
 export type AccountRegisteredEvent = TypedEvent<
-  [boolean, string, string, string, HeaderStructOutput],
-  {
-    enrolledStatus: boolean;
-    key: string;
-    value: string;
-    moniker: string;
-    header: HeaderStructOutput;
-  }
+  [boolean, string, string, string],
+  { enrolledStatus: boolean; key: string; value: string; moniker: string }
 >;
 
 export type AccountRegisteredEventFilter =
   TypedEventFilter<AccountRegisteredEvent>;
 
-export type HeaderUpdatedEvent = TypedEvent<
-  [string, HeaderStructOutput],
-  { moniker: string; header: HeaderStructOutput }
->;
+export type HeaderUpdatedEvent = TypedEvent<[string], { moniker: string }>;
 
 export type HeaderUpdatedEventFilter = TypedEventFilter<HeaderUpdatedEvent>;
 
 export type ProofPacketSubmittedEvent = TypedEvent<
-  [string, string, string, HeaderStructOutput],
-  { key: string; packet: string; moniker: string; header: HeaderStructOutput }
+  [string, string, string],
+  { key: string; packet: string; moniker: string }
 >;
 
 export type ProofPacketSubmittedEventFilter =
@@ -506,6 +483,11 @@ export interface AnconProtocol extends BaseContract {
 
     getIavlSpec(overrides?: CallOverrides): Promise<[ProofSpecStructOutput]>;
 
+    latestRootHashTable(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
@@ -516,16 +498,9 @@ export interface AnconProtocol extends BaseContract {
 
     relayerHashTable(
       arg0: BytesLike,
+      arg1: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, number, string, string] & {
-        roothash: string;
-        height: BigNumber;
-        v: number;
-        r: string;
-        s: string;
-      }
-    >;
+    ): Promise<[string]>;
 
     stablecoin(overrides?: CallOverrides): Promise<[string]>;
 
@@ -555,9 +530,6 @@ export interface AnconProtocol extends BaseContract {
       moniker: BytesLike,
       rootHash: BytesLike,
       height: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -595,7 +567,7 @@ export interface AnconProtocol extends BaseContract {
     getProtocolHeader(
       moniker: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[HeaderStructOutput]>;
+    ): Promise<[string]>;
 
     getProof(did: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -644,6 +616,11 @@ export interface AnconProtocol extends BaseContract {
 
   getIavlSpec(overrides?: CallOverrides): Promise<ProofSpecStructOutput>;
 
+  latestRootHashTable(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -654,16 +631,9 @@ export interface AnconProtocol extends BaseContract {
 
   relayerHashTable(
     arg0: BytesLike,
+    arg1: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, number, string, string] & {
-      roothash: string;
-      height: BigNumber;
-      v: number;
-      r: string;
-      s: string;
-    }
-  >;
+  ): Promise<string>;
 
   stablecoin(overrides?: CallOverrides): Promise<string>;
 
@@ -693,9 +663,6 @@ export interface AnconProtocol extends BaseContract {
     moniker: BytesLike,
     rootHash: BytesLike,
     height: BigNumberish,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -733,7 +700,7 @@ export interface AnconProtocol extends BaseContract {
   getProtocolHeader(
     moniker: BytesLike,
     overrides?: CallOverrides
-  ): Promise<HeaderStructOutput>;
+  ): Promise<string>;
 
   getProof(did: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -785,6 +752,11 @@ export interface AnconProtocol extends BaseContract {
 
     getIavlSpec(overrides?: CallOverrides): Promise<ProofSpecStructOutput>;
 
+    latestRootHashTable(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -795,16 +767,9 @@ export interface AnconProtocol extends BaseContract {
 
     relayerHashTable(
       arg0: BytesLike,
+      arg1: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, number, string, string] & {
-        roothash: string;
-        height: BigNumber;
-        v: number;
-        r: string;
-        s: string;
-      }
-    >;
+    ): Promise<string>;
 
     stablecoin(overrides?: CallOverrides): Promise<string>;
 
@@ -834,9 +799,6 @@ export interface AnconProtocol extends BaseContract {
       moniker: BytesLike,
       rootHash: BytesLike,
       height: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -871,7 +833,7 @@ export interface AnconProtocol extends BaseContract {
     getProtocolHeader(
       moniker: BytesLike,
       overrides?: CallOverrides
-    ): Promise<HeaderStructOutput>;
+    ): Promise<string>;
 
     getProof(did: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -905,41 +867,33 @@ export interface AnconProtocol extends BaseContract {
   };
 
   filters: {
-    "AccountRegistered(bool,bytes,bytes,bytes32,tuple)"(
+    "AccountRegistered(bool,bytes,bytes,bytes32)"(
       enrolledStatus?: null,
       key?: null,
       value?: null,
-      moniker?: null,
-      header?: null
+      moniker?: null
     ): AccountRegisteredEventFilter;
     AccountRegistered(
       enrolledStatus?: null,
       key?: null,
       value?: null,
-      moniker?: null,
-      header?: null
+      moniker?: null
     ): AccountRegisteredEventFilter;
 
-    "HeaderUpdated(bytes32,tuple)"(
-      moniker?: BytesLike | null,
-      header?: null
+    "HeaderUpdated(bytes32)"(
+      moniker?: BytesLike | null
     ): HeaderUpdatedEventFilter;
-    HeaderUpdated(
-      moniker?: BytesLike | null,
-      header?: null
-    ): HeaderUpdatedEventFilter;
+    HeaderUpdated(moniker?: BytesLike | null): HeaderUpdatedEventFilter;
 
-    "ProofPacketSubmitted(bytes,bytes,bytes32,tuple)"(
+    "ProofPacketSubmitted(bytes,bytes,bytes32)"(
       key?: null,
       packet?: null,
-      moniker?: null,
-      header?: null
+      moniker?: null
     ): ProofPacketSubmittedEventFilter;
     ProofPacketSubmitted(
       key?: null,
       packet?: null,
-      moniker?: null,
-      header?: null
+      moniker?: null
     ): ProofPacketSubmittedEventFilter;
 
     "ServiceFeePaid(address,uint256)"(
@@ -981,6 +935,11 @@ export interface AnconProtocol extends BaseContract {
 
     getIavlSpec(overrides?: CallOverrides): Promise<BigNumber>;
 
+    latestRootHashTable(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
@@ -991,6 +950,7 @@ export interface AnconProtocol extends BaseContract {
 
     relayerHashTable(
       arg0: BytesLike,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1022,9 +982,6 @@ export interface AnconProtocol extends BaseContract {
       moniker: BytesLike,
       rootHash: BytesLike,
       height: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1122,6 +1079,11 @@ export interface AnconProtocol extends BaseContract {
 
     getIavlSpec(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    latestRootHashTable(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proofs(
@@ -1135,6 +1097,7 @@ export interface AnconProtocol extends BaseContract {
 
     relayerHashTable(
       arg0: BytesLike,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1168,9 +1131,6 @@ export interface AnconProtocol extends BaseContract {
       moniker: BytesLike,
       rootHash: BytesLike,
       height: BigNumberish,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

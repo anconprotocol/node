@@ -10,14 +10,6 @@ contract AnconProtocol is ICS23 {
 
     address public owner;
     address public relayer;
-    // bytes public relayNetworkHash;
-    struct Header {
-        bytes roothash;
-        uint256 height;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
 
     IERC20 public stablecoin;
     uint256 public protocolFee = 0;
@@ -29,32 +21,24 @@ contract AnconProtocol is ICS23 {
     mapping(address => bytes) public accountByAddrProofs; //proof key-assigned eth address
     mapping(bytes => bool) public proofs; //if proof key was submitted to the blockchain
 
-    //index is network rootkey, value= signature (chainAnumericIndex + chainBnumericIndex)
-    //chainId is not numeric, it must be translated
-    //must do easy recover first & then set it
     mapping(bytes32 => address) public whitelistedDagGraph;
 
-    mapping(bytes32 => Header) public relayerHashTable;
+    mapping(bytes32 => bytes) public latestRootHashTable;
+    mapping(bytes32 => mapping(uint256 => bytes)) public relayerHashTable;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
 
     event ServiceFeePaid(address indexed from, uint256 fee);
 
-    event HeaderUpdated(bytes32 indexed moniker, Header header);
+    event HeaderUpdated(bytes32 indexed moniker);
 
-    event ProofPacketSubmitted(
-        bytes key,
-        bytes packet,
-        bytes32 moniker,
-        Header header
-    );
+    event ProofPacketSubmitted(bytes key, bytes packet, bytes32 moniker);
 
     event AccountRegistered(
         bool enrolledStatus,
         bytes key,
         bytes value,
-        bytes32 moniker,
-        Header header
+        bytes32 moniker
     );
 
     constructor(address tokenAddress, uint256 network) public {
@@ -83,19 +67,14 @@ contract AnconProtocol is ICS23 {
     function updateRelayerHeader(
         bytes32 moniker,
         bytes memory rootHash,
-        uint256 height,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        uint256 height
     ) public {
-        address result = ecrecover(moniker, v, r, s);
-        require(
-            whitelistedDagGraph[moniker] == result,
-            "invalid network moniker"
-        );
+        require(msg.sender == whitelistedDagGraph[moniker], "invalid user");
+
         // TODO:  Check to  see if  signer has n amount of token staked
-        relayerHashTable[moniker] = Header(rootHash, height, v, r, s);
-        emit HeaderUpdated(moniker, relayerHashTable[moniker]);
+        relayerHashTable[moniker][height] = rootHash;
+        latestRootHashTable[moniker] = rootHash;
+        emit HeaderUpdated(moniker);
     }
 
     // setPaymentToken sets token used for protocol fees
@@ -186,9 +165,9 @@ contract AnconProtocol is ICS23 {
     function getProtocolHeader(bytes32 moniker)
         public
         view
-        returns (Header memory)
+        returns (bytes memory)
     {
-        return relayerHashTable[moniker];
+        return latestRootHashTable[moniker];
     }
 
     function getProof(bytes memory did) public view returns (bytes memory) {
@@ -220,13 +199,7 @@ contract AnconProtocol is ICS23 {
         accountProofs[(did)] = key;
         accountByAddrProofs[msg.sender] = key;
 
-        emit AccountRegistered(
-            true,
-            key,
-            did,
-            moniker,
-            relayerHashTable[moniker]
-        );
+        emit AccountRegistered(true, key, did, moniker);
         return true;
     }
 
@@ -254,12 +227,7 @@ contract AnconProtocol is ICS23 {
         protocolPayment(SUBMIT_PAYMENT, sender);
 
         // 2. Submit event
-        emit ProofPacketSubmitted(
-            key,
-            packet,
-            moniker,
-            relayerHashTable[moniker]
-        );
+        emit ProofPacketSubmitted(key, packet, moniker);
 
         return true;
     }
@@ -273,7 +241,7 @@ contract AnconProtocol is ICS23 {
         verify(
             exProof,
             getIavlSpec(),
-            relayerHashTable[moniker].roothash,
+            latestRootHashTable[moniker],
             exProof.key,
             exProof.value
         );
@@ -292,7 +260,7 @@ contract AnconProtocol is ICS23 {
         verify(
             exProof,
             getIavlSpec(),
-            relayerHashTable[moniker].roothash,
+            latestRootHashTable[moniker],
             key,
             value
         );
