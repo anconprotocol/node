@@ -65,6 +65,7 @@ func main() {
 	tlsKey := flag.String("tlscert", "", "TLS certificate")
 	tlsCert := flag.String("tlskey", "", "TLS key")
 	ipfshost := flag.String("ipfshost", "", "IPFS Host")
+	privateKeyPath := flag.String("privatekeypath", "", "")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -142,7 +143,7 @@ func main() {
 		return
 	}
 
-	proofHandler := handler.NewProofHandler(dagHandler)
+	proofHandler := handler.NewProofHandler(dagHandler, *privateKeyPath)
 
 	if *rootHash != "" {
 		hash, err := proofHandler.VerifyGenesis(*rootkey, *moniker)

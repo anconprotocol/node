@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
+	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/buger/jsonparser"
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -44,6 +46,7 @@ type ProofHandler struct {
 	api        proofsignature.IavlProofAPI
 	proofs     proofsignature.IavlProofService
 	RootKey    string
+	privateKey *ecdsa.PrivateKey
 }
 
 func (h *ProofHandler) Commit() (int64, string, error) {
@@ -73,11 +76,18 @@ func (h *ProofHandler) GetProofAPI() *proofsignature.IavlProofAPI {
 	return &h.api
 
 }
-func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
+func NewProofHandler(ctx *sdk.AnconSyncContext, privateKeyPath string) *ProofHandler {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
+
+	privateKey, err := crypto.GenerateOrReadPrivateKey(privateKeyPath)
+	if err != nil {
+		panic(err)
+	}
+
+	// os.OpenFile(,,privateKeyPath)
 
 	folder := filepath.Join(userHomeDir, dbPath)
 	db, err := dbm.NewGoLevelDB(dbName, folder)
@@ -85,7 +95,7 @@ func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 		panic(err)
 	}
 	proofs, _ := proofsignature.NewIavlAPI(ctx.Store, ctx.Exchange, db, 2000, 0)
-	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs}
+	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs, privateKey: privateKey}
 
 }
 func (h *ProofHandler) VerifyGenesis(moniker string, key string) ([]byte, error) {
@@ -228,6 +238,25 @@ func GenerateKeys() (string, error) {
 func (dagctx *ProofHandler) ReadCurrentRootHash(c *gin.Context) {
 
 	lastHash, err := dagctx.proofs.Hash(nil)
+	sig := c.Query("sig")
+
+	if sig == "true" {
+		var digest []byte
+		// priv, err := crypto.GenerateKey()
+		keccak.Keccak256(digest, []byte(lastHash))
+		signed, err := dagctx.PrivateKey.Sign(rand.Reader, digest, nil) //priv.Sign(rand.Reader, digest, nil)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("Sig query Error %v", err).Error(),
+			})
+			return
+		}
+		c.JSON(201, gin.H{
+			"lastHash":  lastHash,
+			"signature": signed,
+		})
+		return
+	}
 
 	if err != nil {
 		c.JSON(400, gin.H{
