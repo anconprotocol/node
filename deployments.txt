@@ -1,0 +1,18 @@
+BSCTESTNET
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0xb8bb52ddc395edf6fbc7cb45996f86971d6163257879d7a1ca39fe8e2eb54b08
+   > Blocks: 4            Seconds: 18
+   > contract address:    0x186eb08cc5A12E5c1B65d8402106CF67B9119B11
+
+   Deploying 'WXDV'
+   ----------------
+   > transaction hash:    0x7b6b55a0f46cc4ea9fb0e036355a48ec337ab5f37269b527adf2c8bb50008026
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x8c5F41943188Be9AC1aaBd1abFd4509722468a4f
+
+   Replacing 'XDVNFT'
+   ------------------
+   > transaction hash:    0xa82d124ad05f9deef3652d10fa039e18a168c8b14c12dce4dc64bba5bc2748fe
+   > Blocks: 5            Seconds: 13
+   > contract address:    0x9E7a7F21Dcf397a30c0ADa9ca709784033B19e29

@@ -31,7 +31,6 @@ import (
 	"github.com/anconprotocol/sdk/proofsignature"
 )
 
-var GENESISKEY = "/anconprotocol/"
 
 type Commit struct {
 	LastHash []byte
@@ -89,7 +88,7 @@ func NewProofHandler(ctx *sdk.AnconSyncContext) *ProofHandler {
 	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs}
 
 }
-func (h *ProofHandler) VerifyGenesis(key string) ([]byte, error) {
+func (h *ProofHandler) VerifyGenesis(moniker string, key string) ([]byte, error) {
 
 	version := 0
 	tree, err := iavl.NewMutableTree(h.db, int(2000))
@@ -99,7 +98,7 @@ func (h *ProofHandler) VerifyGenesis(key string) ([]byte, error) {
 	if _, err = tree.LoadVersion(int64(version)); err != nil {
 		return nil, errors.Wrapf(err, "unable to load version %d", version)
 	}
-	key = fmt.Sprintf("%s%s", GENESISKEY, key)
+	key = fmt.Sprintf("%s%s", moniker, key)
 
 	_, v, err := tree.GetWithProof([]byte(key))
 	if err != nil && v != nil {
@@ -115,7 +114,7 @@ func (h *ProofHandler) VerifyGenesis(key string) ([]byte, error) {
 	return bz, nil
 }
 
-func InitGenesis(hostName string, cidlink datamodel.Link, priv *ecdsa.PrivateKey) (string, string, error) {
+func InitGenesis(hostName string, moniker string, cidlink datamodel.Link, priv *ecdsa.PrivateKey) (string, string, error) {
 	userHomeDir, err := os.UserHomeDir()
 	version := 0
 	if err != nil {
@@ -138,7 +137,7 @@ func InitGenesis(hostName string, cidlink datamodel.Link, priv *ecdsa.PrivateKey
 
 	// cidlink := sdk.CreateCidLink(signed[0:32])
 
-	key := fmt.Sprintf("%s%s", GENESISKEY, cidlink.String())
+	key := fmt.Sprintf("%s%s", moniker, cidlink.String())
 	value := fmt.Sprintf(
 		`{
 		data: "%s",

@@ -59,10 +59,10 @@ module.exports = {
       port: 8546,
       network_id: '*', // Match any network id
     },    
-    ancon: {
+    mumbai: {
       provider: () =>
-        new HDWalletProvider(process.env.MNEMONIC, process.env.ANCON),
-      network_id: '*',
+        new HDWalletProvider(process.env.MNEMONIC, process.env.MUMBAI),
+      network_id: 80001,
       gas: 9721975, // You should change it based on your requirements
       gasPrice: 30000000000,
       
@@ -70,6 +70,28 @@ module.exports = {
       // gasPrice: 135000000000,
       skipDryRun: true
     },
+    auroratestnet: {
+      provider: () =>
+        new HDWalletProvider(process.env.MNEMONIC, process.env.AURORATESTNET),
+      network_id: 1313161555,
+      gas: 9721975, // You should change it based on your requirements
+      gasPrice: 30000000000,
+      
+      ///gas: 5000000,
+      // gasPrice: 135000000000,
+      skipDryRun: true
+    },
+    gnosis: {
+      provider: () =>
+        new HDWalletProvider(process.env.MNEMONIC, process.env.GNOSIS),
+      network_id: 100,
+      gas: 9721975, // You should change it based on your requirements
+      gasPrice: 30000000000,
+      
+      ///gas: 5000000,
+      // gasPrice: 135000000000,
+      skipDryRun: true
+    },    
     rinkeby: {
       provider: () =>
         new HDWalletProvider(process.env.MNEMONIC, process.env.RINKEBY),

@@ -543,9 +543,7 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getContractIdentifier(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getContractIdentifier(overrides?: CallOverrides): Promise<[string]>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,
@@ -686,9 +684,7 @@ export interface AnconProtocol extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getContractIdentifier(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getContractIdentifier(overrides?: CallOverrides): Promise<string>;
 
   setWhitelistedDagGraph(
     moniker: BytesLike,
@@ -1023,9 +1019,7 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getContractIdentifier(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getContractIdentifier(overrides?: CallOverrides): Promise<BigNumber>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,
@@ -1173,7 +1167,7 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getContractIdentifier(
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setWhitelistedDagGraph(

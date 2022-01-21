@@ -1,5 +1,6 @@
 const fs = require('fs')
 const ContractImportBuilder = require('../contract-import-builder')
+const WXDV = artifacts.require('WXDV')
 const XDVNFT = artifacts.require('XDVNFT')
 
 const { ethers } = require('ethers')
@@ -77,70 +78,47 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(Bytes)
   await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol)
 
-  await deployer.deploy(AnconProtocol,  '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa')
+  let chainId = 97
+  let token = '0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867'
+
+  if (network === 'bsctestnet') {
+    // no op
+  } else if (network === 'kovan') {
+    chainId = 42
+    token = '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa'
+  } else if (network === 'mumbai') {
+    chainId = 80001
+    token = '0x326c977e6efc84e512bb9c30f76e30c160ed06fb'
+  } else if (network === 'gnosis') {
+    chainId = 100
+    token = '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'
+  } else if (network === 'auroratestnet') {
+    chainId = 1313161555
+    token = '0xc115851ca60aed2ccc6ee3d5343f590834e4a3ab'
+  }
+  await deployer.deploy(AnconProtocol, token, chainId)
   const verifier = await AnconProtocol.deployed()
+  await deployer.deploy(WXDV, 'WXDV', 'WXDV', token, verifier.address, chainId)
+  const c = await WXDV.deployed()
+
+  await verifier.setPaymentToken(token)
+  // await verifier.updateProtocolHeader('0x')
+
+  await c.setServiceFeeForContract('50000')
+  await c.setServiceFeeForPaymentAddress('50000')
+
   await deployer.deploy(
     XDVNFT,
     'XDVNFT',
     'XDVNFT',
-    '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
+    token,
     verifier.address,
+    chainId,
   )
-  const c = await XDVNFT.deployed()
 
-  await verifier.setPaymentToken('0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa')
-  await verifier.updateProtocolHeader('0x')
+  const nft = await XDVNFT.deployed()
 
-
-  
-  builder.addContract('XDVNFT', c, c.address, network)
-
-  //  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-  //  const contract = await AnconProtocol.deployed();
-  // const contract2 = AnconProtocol__factory.connect(contract.address, provider);
-
-  // // z = toABIproofs();
-  // // console.log(z);
-  // // const resRootCalc = await contract2.callStatic.queryRootCalculation({
-  // //   ...z,
-  // // });
-
-  // // const restUpdtHeader = await contract.updateProtocolHeader(resRootCalc, {
-  // //   from: accounts[0],
-  // // });
-  // // console.log(resRootCalc);
-  // // console.log(restUpdtHeader);
-
+  builder.addContract('XDVNFT', nft, nft.address, network)
+  builder.addContract('WXDV', c, c.address, network)
   builder.addContract('AnconProtocol', verifier, verifier.address, network)
-}
-
-function toABIproofs() {
-  let z = { ...proofCombined[0].exist }
-  z.key = hexlify(base64.decode(z.key))
-  z.value = hexlify(base64.decode(z.value))
-  z.leaf.prefix = hexlify(base64.decode(z.leaf.prefix))
-  z.leaf.hash = 1
-  z.path = z.path.map((x) => {
-    let suffix
-    if (!!x.suffix) {
-      suffix = hexlify(base64.decode(x.suffix))
-      return {
-        valid: true,
-        prefix: hexlify(base64.decode(x.prefix)),
-        suffix: suffix,
-        hash: 1,
-      }
-    } else {
-      return {
-        valid: true,
-        prefix: hexlify(base64.decode(x.prefix)),
-        hash: 1,
-        suffix: '0x',
-      }
-    }
-  })
-  z.leaf.prehash_key = 0
-  z.leaf.len = z.leaf.length
-
-  return z
 }

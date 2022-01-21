@@ -10,12 +10,17 @@ import (
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 )
 
-var (
-	ROOT_PATH = "anconprotocol"
-	GRAPH_PATH = "anconprotocol/graphs"
-	USER_PATH = "anconprotocol/users"
+func GetNetworkPath(moniker string) string {
+	return fmt.Sprintf("%s", moniker)
+}
 
-)
+func GetGraphPath(moniker string) string {
+	return fmt.Sprintf("%s/graphs", moniker)
+}
+
+func GetUserPath(moniker string) string {
+	return fmt.Sprintf("%s/users", moniker)
+}
 
 func GetDidDocument(data string) (*did.Doc, error) {
 	bz := []byte(data)

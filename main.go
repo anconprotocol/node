@@ -18,12 +18,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	gsync "github.com/ipfs/go-graphsync"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
-	peer "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/lucas-clemente/quic-go/http3"
-	multiaddr "github.com/multiformats/go-multiaddr"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -62,8 +59,8 @@ func main() {
 	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
 	rootHash := flag.String("roothash", "", "root hash")
 	rootkey := flag.String("rootkey", "", "root key")
-	sync := flag.Bool("sync", false, "Syncronizes remote dag storage")
-	seedPeers := flag.String("peers", "", "Array of peer addresses ")
+	moniker := flag.String("moniker", "anconprotocol", "DAG Store rootname")
+	//	seedPeers := flag.String("peers", "", "Array of peer addresses ")
 	quic := flag.Bool("quic", false, "Enable QUIC")
 	tlsKey := flag.String("tlscert", "", "TLS certificate")
 	tlsCert := flag.String("tlskey", "", "TLS key")
@@ -127,14 +124,14 @@ func main() {
 		}
 
 		lnkCtx := ipld.LinkContext{
-			LinkPath: ipld.ParsePath(types.ROOT_PATH),
+			LinkPath: ipld.ParsePath(types.GetNetworkPath(*moniker)),
 		}
 
-		n :=basicnode.NewString( base64.RawStdEncoding.EncodeToString(signed))
+		n := basicnode.NewString(base64.RawStdEncoding.EncodeToString(signed))
 
 		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
 
-		result, _, err := handler.InitGenesis(*hostName, link, priv)
+		result, _, err := handler.InitGenesis(*hostName, *moniker, link, priv)
 
 		if err != nil {
 			panic(err)
@@ -147,8 +144,8 @@ func main() {
 
 	proofHandler := handler.NewProofHandler(dagHandler)
 
-	if *rootHash != "" && *sync == false {
-		hash, err := proofHandler.VerifyGenesis(*rootkey)
+	if *rootHash != "" {
+		hash, err := proofHandler.VerifyGenesis(*rootkey, *moniker)
 
 		if err != nil {
 			fmt.Println(err)
@@ -159,42 +156,13 @@ func main() {
 
 	}
 
-	splitPeers := strings.Split(*seedPeers, ",")
-
-	if *sync && len(splitPeers) > 0 {
-		items := make([]peer.AddrInfo, len(splitPeers))
-		for i, value := range splitPeers {
-
-			multiCast := multiaddr.StringCast(value)
-			currentAddrInfo, err := peer.AddrInfoFromP2pAddr(multiCast)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			items[i] = *currentAddrInfo
-
-		}
-		rootKeyLink, err := sdk.ParseCidLink(*rootkey)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(rootKeyLink)
-
-		go func() {
-			impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
-		}()
-
-		///	impl.PushBlockWithExtData(ctx, exchange, &items[0], rootKeyLink, gsync.ExtensionData{}, impl.SelectAll)
-	}
-
 	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
 		IPFSHost:         *ipfshost,
+		Moniker: *moniker,
 	}
 
 	didHandler := handler.Did{
@@ -202,11 +170,13 @@ func main() {
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
 		IPFSHost:         *ipfshost,
+		Moniker: *moniker,
 	}
 
 	fileHandler := handler.FileHandler{
 		RootKey:          *rootkey,
 		AnconSyncContext: dagHandler,
+		Moniker: *moniker,
 	}
 	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 

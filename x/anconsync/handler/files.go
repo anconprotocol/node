@@ -24,6 +24,7 @@ import (
 type FileHandler struct {
 	*sdk.AnconSyncContext
 	RootKey string
+	Moniker string
 }
 
 // @BasePath /v0
@@ -64,7 +65,7 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	}
 
 	n, err := DecodeNode(w.Bytes())
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 
 	if err != nil {
@@ -98,7 +99,7 @@ func (dagctx *FileHandler) FileRead(c *gin.Context) {
 		})
 		return
 	}
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 
 	n, err := dagctx.Store.Load(ipld.LinkContext{
 		LinkPath: ipld.ParsePath(p),
@@ -207,7 +208,7 @@ func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 		return
 	}
 
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	c.JSON(201, gin.H{
 		"address": lnk.String(),
