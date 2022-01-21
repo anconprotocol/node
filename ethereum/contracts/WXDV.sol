@@ -145,6 +145,16 @@ contract WXDV is
         return true;
     }
 
+    function deactivateNFT(address NFTaddress) public onlyOwner returns (bool) {
+        require(nftRegistry[NFTaddress] == true, "missing nft address");
+
+
+        nftRegistry[NFTaddress] = false;
+
+        emit NFTEnrolled(false, NFTaddress);
+        return true;
+    }
+
     /**
      * @dev Burns a XDV Data Token
      */
@@ -197,6 +207,7 @@ contract WXDV is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) external payable returns (uint256) {
+        require(nftRegistry[msg.sender] == true, "nft must be registered");
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
@@ -263,6 +274,7 @@ contract WXDV is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) external payable returns (uint256) {
+        require(nftRegistry[msg.sender] == true, "nft must be registered");
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,

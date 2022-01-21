@@ -46,6 +46,7 @@ type Did struct {
 	Proof    *proofsignature.IavlProofService
 	IPFSHost string
 	RootKey  string
+	Moniker  string
 }
 
 // BuildDidWeb ....
@@ -177,7 +178,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 
 	lnk, err := sdk.ParseCidLink(did)
 	if err != nil {
@@ -287,7 +288,7 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 	}
 	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 
 	hash, err := jsonparser.GetString(commit, "root_hash")
 	version, err := jsonparser.GetInt(commit, "version")
@@ -358,7 +359,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	}
 
 	n, err := sdk.Decode(basicnode.Prototype.Any, string(patch))
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 
 	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
 	if err != nil {
@@ -371,7 +372,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	dagctx.Store.DataStore.Put(ctx, addr, patch)
 
 	// proofs
-	internalKey := fmt.Sprintf("%s/%s", types.USER_PATH, lnk.String())
+	internalKey := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), lnk.String())
 	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid key")

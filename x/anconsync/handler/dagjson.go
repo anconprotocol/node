@@ -35,6 +35,7 @@ type DagJsonHandler struct {
 	Proof    *proofsignature.IavlProofService
 	IPFSHost string
 	RootKey  string
+	Moniker  string
 }
 type Mutation struct {
 	Path          string
@@ -82,7 +83,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s", types.USER_PATH, from)
+	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	ok, err := types.Authenticate(doc, []byte(temp), signature)
@@ -221,7 +222,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		na.AssembleEntry("parent").AssignString(p)
 	})
 
-	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.USER_PATH)}, block)
+	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
 	resp, _ := sdk.Encode(block)
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
@@ -354,7 +355,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s", types.USER_PATH, from)
+	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 	ok, err := types.Authenticate(doc, []byte(temp), signature)
@@ -482,7 +483,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	p := types.USER_PATH
+	p := types.GetUserPath(dagctx.Moniker)
 
 	path := c.Param("path")
 
