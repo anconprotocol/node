@@ -117,6 +117,7 @@ export interface WXDVInterface extends utils.Interface {
     "mint(address,uint256)": FunctionFragment;
     "mintWithProof(address,uint256,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "enrollNFT(address)": FunctionFragment;
+    "deactivateNFT(address)": FunctionFragment;
     "lockWithProof(address,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "releaseWithProof(address,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
@@ -245,6 +246,10 @@ export interface WXDVInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "enrollNFT", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "deactivateNFT",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "lockWithProof",
     values: [
@@ -379,6 +384,10 @@ export interface WXDVInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "enrollNFT", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "deactivateNFT",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "lockWithProof",
     data: BytesLike
@@ -735,6 +744,11 @@ export interface WXDV extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    deactivateNFT(
+      NFTaddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     lockWithProof(
       sender: string,
       moniker: BytesLike,
@@ -982,6 +996,11 @@ export interface WXDV extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  deactivateNFT(
+    NFTaddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   lockWithProof(
     sender: string,
     moniker: BytesLike,
@@ -1211,6 +1230,11 @@ export interface WXDV extends BaseContract {
     ): Promise<boolean>;
 
     enrollNFT(NFTaddress: string, overrides?: CallOverrides): Promise<boolean>;
+
+    deactivateNFT(
+      NFTaddress: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     lockWithProof(
       sender: string,
@@ -1552,6 +1576,11 @@ export interface WXDV extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    deactivateNFT(
+      NFTaddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     lockWithProof(
       sender: string,
       moniker: BytesLike,
@@ -1812,6 +1841,11 @@ export interface WXDV extends BaseContract {
     enrollNFT(
       NFTaddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deactivateNFT(
+      NFTaddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     lockWithProof(
