@@ -256,3 +256,27 @@ Starting migrations...
 
    Replacing 'Memory'
    ------------------
+UnhandledRejections detected
+Promise {
+  <rejected> Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+      at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+      at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+      at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+      at Array.forEach (<anonymous>)
+      at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+      at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+      at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+      at Generator.next (<anonymous>)
+      at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+} Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+    at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+    at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+    at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+    at Array.forEach (<anonymous>)
+    at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+    at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+    at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+    at Generator.next (<anonymous>)
+    at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
