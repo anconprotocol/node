@@ -119,7 +119,7 @@ module.exports = async (deployer, network, accounts) => {
     'XDVNFT',
     'XDVNFT',
     token,
-    verifier.address,
+    c.address,
     chainId,
   )
 
