@@ -317,6 +317,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -330,6 +331,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -343,6 +345,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -356,6 +359,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -369,6 +373,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -382,6 +387,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -419,6 +425,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -445,6 +452,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -464,6 +472,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -477,6 +486,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -501,6 +511,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -514,6 +525,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -527,6 +539,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -546,6 +559,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -559,6 +573,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -630,6 +645,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -643,6 +659,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -700,6 +717,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -719,6 +737,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [],
@@ -732,6 +751,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -756,6 +776,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -805,6 +826,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [
@@ -1071,6 +1093,7 @@ const _abi = [
     ],
     stateMutability: "payable",
     type: "function",
+    payable: true,
   },
   {
     inputs: [
@@ -1090,6 +1113,7 @@ const _abi = [
     ],
     stateMutability: "payable",
     type: "function",
+    payable: true,
   },
   {
     inputs: [
@@ -1301,6 +1325,7 @@ const _abi = [
     ],
     stateMutability: "payable",
     type: "function",
+    payable: true,
   },
   {
     inputs: [
@@ -1512,6 +1537,7 @@ const _abi = [
     ],
     stateMutability: "payable",
     type: "function",
+    payable: true,
   },
   {
     inputs: [
@@ -1531,6 +1557,7 @@ const _abi = [
     ],
     stateMutability: "view",
     type: "function",
+    constant: true,
   },
   {
     inputs: [

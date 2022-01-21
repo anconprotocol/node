@@ -74,8 +74,8 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(process.env.MNEMONIC, process.env.AURORATESTNET),
       network_id: 1313161555,
-      gas: 9721975, // You should change it based on your requirements
-      gasPrice: 30000000000,
+      // gas: 9721975, // You should change it based on your requirements
+      // gasPrice: 30000000000,
       
       ///gas: 5000000,
       // gasPrice: 135000000000,

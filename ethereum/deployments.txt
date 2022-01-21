@@ -1,0 +1,380 @@
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'bsctestnet'
+> Network id:      97
+> Block gas limit: 29882814 (0x1c7f9be)
+
+
+2_ics23.js
+==========
+
+   Replacing 'Memory'
+   ------------------
+   > transaction hash:    0x478854e1521e7fdf06a0b67c35debf398ca38af518c19158eb82eb63d9cc5393
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x4990ddfA91A1316a11941Bc980C7F7DE4f1eBeB2
+   > block number:        16057422
+   > block timestamp:     1642767733
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.422714222
+   > gas used:            72217 (0x11a19)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00072217 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16057425)
+   > confirmation number: 3 (block: 16057426)
+   > confirmation number: 4 (block: 16057427)
+   > confirmation number: 6 (block: 16057429)
+   > confirmation number: 7 (block: 16057430)
+   > confirmation number: 8 (block: 16057431)
+   > confirmation number: 10 (block: 16057433)
+
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x475311b09653b288bbfec6de60b5ed0ba8f4a962ad0fefe2a4ff52341cc75e06
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x6b4711703505e82e14dEc1B8bA4b17eA8bb67868
+   > block number:        16057436
+   > block timestamp:     1642767775
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.421992052
+   > gas used:            72217 (0x11a19)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00072217 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16057439)
+   > confirmation number: 3 (block: 16057440)
+   > confirmation number: 5 (block: 16057442)
+   > confirmation number: 6 (block: 16057443)
+   > confirmation number: 7 (block: 16057444)
+   > confirmation number: 9 (block: 16057446)
+   > confirmation number: 10 (block: 16057447)
+
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0x2add0f3bf29f41c6e8fca4bfbecb88786b1c4189f850d39836dccd05f9b3e9f1
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x9d9AE440564DC487BC8168B568a774923DB7f444
+   > block number:        16057451
+   > block timestamp:     1642767820
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.387952002
+   > gas used:            3404005 (0x33f0e5)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.03404005 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16057454)
+   > confirmation number: 3 (block: 16057455)
+   > confirmation number: 4 (block: 16057456)
+   > confirmation number: 5 (block: 16057457)
+   > confirmation number: 7 (block: 16057459)
+   > confirmation number: 8 (block: 16057460)
+   > confirmation number: 10 (block: 16057462)
+
+   Replacing 'WXDV'
+   ----------------
+   > transaction hash:    0x8da22425ef8fafc74e710cf74cd69e8cd211276ccd4f346f9e8f187fc88d9e9f
+   > Blocks: 3            Seconds: 9
+   > contract address:    0xB068a4eFfbB71b3ea86292296Ba3941A3149095e
+   > block number:        16057466
+   > block timestamp:     1642767865
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.348740552
+   > gas used:            3921145 (0x3bd4f9)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.03921145 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16057469)
+   > confirmation number: 3 (block: 16057470)
+   > confirmation number: 4 (block: 16057471)
+   > confirmation number: 6 (block: 16057473)
+   > confirmation number: 7 (block: 16057474)
+   > confirmation number: 8 (block: 16057475)
+   > confirmation number: 10 (block: 16057477)
+
+   Replacing 'XDVNFT'
+   ------------------
+   > transaction hash:    0xcc8c0c0a6a292e2847ba434ba960598165db28e128dc1fa1093f6e1835d517d3
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x4C4670F5E1126C4E58E07230F43c0ceB6FE1cF2B
+   > block number:        16057490
+   > block timestamp:     1642767937
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.319691982
+   > gas used:            2795802 (0x2aa91a)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.02795802 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 1 (block: 16057493)
+   > confirmation number: 2 (block: 16057494)
+   > confirmation number: 4 (block: 16057496)
+   > confirmation number: 5 (block: 16057497)
+   > confirmation number: 6 (block: 16057498)
+   > confirmation number: 8 (block: 16057500)
+   > confirmation number: 9 (block: 16057501)
+   > confirmation number: 10 (block: 16057502)
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.10265386 ETH
+
+
+Summary
+=======
+> Total deployments:   5
+> Final cost:          0.10265386 ETH
+
+
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'auroratestnet'
+> Network id:      1313161555
+> Block gas limit: 0 (0x0)
+
+
+2_ics23.js
+==========
+UnhandledRejections detected
+Promise {
+  <rejected> Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+      at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+      at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+      at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+      at Array.forEach (<anonymous>)
+      at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+      at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+      at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+      at Generator.next (<anonymous>)
+      at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+} Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+    at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+    at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+    at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+    at Array.forEach (<anonymous>)
+    at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+    at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+    at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+    at Generator.next (<anonymous>)
+    at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'auroratestnet'
+> Network id:      1313161555
+> Block gas limit: 0 (0x0)
+
+
+2_ics23.js
+==========
+
+   Replacing 'Memory'
+   ------------------
+UnhandledRejections detected
+Promise {
+  <rejected> Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+      at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+      at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+      at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+      at Array.forEach (<anonymous>)
+      at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+      at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+      at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+      at Generator.next (<anonymous>)
+      at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+} Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+    at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+    at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+    at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+    at Array.forEach (<anonymous>)
+    at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+    at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+    at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+    at Generator.next (<anonymous>)
+    at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'mumbai'
+> Network id:      80001
+> Block gas limit: 20000000 (0x1312d00)
+
+
+2_ics23.js
+==========
+
+   Replacing 'Memory'
+   ------------------
+   > transaction hash:    0x08f968e540669771627cd01729751fb42ebd1c4b4d4ce327898e9abe0f49e0c2
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x71E56696Eb1A1d0b0e96A01A03DA7481e0008F3F
+   > block number:        24116238
+   > block timestamp:     1642769741
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.15657452
+   > gas used:            72217 (0x11a19)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00216651 ETH
+
+
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x1ea5421729f7fd9abcacdf5719e8290c8fa5e89334efc35e763da34ed74055fc
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x29F4BA75B8BD3CF70a853271E0351e9dA4112AC3
+   > block number:        24116244
+   > block timestamp:     1642769753
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.15440801
+   > gas used:            72217 (0x11a19)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00216651 ETH
+
+
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0xadc572f78f9126a4969b06edc67f18b333932e327b2dc1dfb84c857f7ab1f9db
+   > Blocks: 3            Seconds: 5
+   > contract address:    0xE491c0CdA6E95EF3D9751C95A62668a1D375f1b1
+   > block number:        24116250
+   > block timestamp:     1642769765
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.05185214
+   > gas used:            3418529 (0x3429a1)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.10255587 ETH
+
+
+   Replacing 'WXDV'
+   ----------------
+   > transaction hash:    0x3206e9dcffd6ec3178495153e2ef99494a4be255fd19a9114f01f5149694137e
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x69b0dD2b7E2F71a88999f4fEe3e676e33255f792
+   > block number:        24116256
+   > block timestamp:     1642769777
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             1.93358407
+   > gas used:            3942269 (0x3c277d)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.11826807 ETH
+
+
+   Replacing 'XDVNFT'
+   ------------------
+   > transaction hash:    0xa76ad07641c70622b189d84f719225e998b3f5c6fa233f62d7b84f0597fc3961
+   > Blocks: 4            Seconds: 9
+   > contract address:    0x0143e339d2f57721d3990F20E2413ccB27C111BB
+   > block number:        24116273
+   > block timestamp:     1642769811
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             1.84587664
+   > gas used:            2805826 (0x2ad042)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.08417478 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.30933174 ETH
+
+
+Summary
+=======
+> Total deployments:   5
+> Final cost:          0.30933174 ETH
+
+
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'auroratestnet'
+> Network id:      1313161555
+> Block gas limit: 0 (0x0)
+
+
+2_ics23.js
+==========
+
+   Replacing 'Memory'
+   ------------------
+UnhandledRejections detected
+Promise {
+  <rejected> Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+      at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+      at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+      at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+      at Array.forEach (<anonymous>)
+      at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+      at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+      at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+      at Generator.next (<anonymous>)
+      at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+      at processTicksAndRejections (node:internal/process/task_queues:96:5)
+} Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
+    at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
+    at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
+    at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
+    at Array.forEach (<anonymous>)
+    at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
+    at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
+    at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
+    at Generator.next (<anonymous>)
+    at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 import "../ics23/ics23.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract AnconProtocol is ICS23 {
     bytes32 public ENROLL_PAYMENT = keccak256("ENROLL_PAYMENT");
     bytes32 public ENROLL_DAG = keccak256("ENROLL_DAG");
@@ -62,29 +63,20 @@ contract AnconProtocol is ICS23 {
         chainId = network;
     }
 
-    // getContractIdentifier is used to identify an offchain proof in any chain  
+    // getContractIdentifier is used to identify an offchain proof in any chain
     function getContractIdentifier() public view returns (bytes32) {
-        return keccak256(abi.encodePacked(
-                chainId,
-                address(this)
-            ));
+        return keccak256(abi.encodePacked(chainId, address(this)));
     }
 
     // setWhitelistedDagGraph registers offchain graphs by protocol admin
-    function setWhitelistedDagGraph(
-        bytes32 moniker,
-        address dagAddress,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public payable {
-        require(owner == msg.sender, "invalid owner");
-        address result = ecrecover(moniker, v, r, s);
-        require(dagAddress == result, "invalid address");
-
+    function setWhitelistedDagGraph(bytes32 moniker, address dagAddress)
+        public
+        payable
+    {
+        require(whitelistedDagGraph[moniker] == address(0), "exists");
         protocolPayment(ENROLL_DAG, msg.sender);
 
-        whitelistedDagGraph[moniker] = result;
+        whitelistedDagGraph[moniker] = dagAddress;
     }
 
     // updateRelayerHeader updates offchain dag graphs signed by dag graph key pair
@@ -112,7 +104,7 @@ contract AnconProtocol is ICS23 {
         stablecoin = IERC20(tokenAddress);
     }
 
-    // withdraws gas token, must be admin 
+    // withdraws gas token, must be admin
     function withdraw(address payable payee) public {
         require(owner == msg.sender);
         uint256 b = address(this).balance;
@@ -122,7 +114,7 @@ contract AnconProtocol is ICS23 {
         emit Withdrawn(payee, b);
     }
 
-    // withdraws protocol fee token, must be admin 
+    // withdraws protocol fee token, must be admin
     function withdrawToken(address payable payee, address erc20token) public {
         require(owner == msg.sender);
         uint256 balance = IERC20(erc20token).balanceOf(address(this));
@@ -133,7 +125,7 @@ contract AnconProtocol is ICS23 {
         emit Withdrawn(payee, balance);
     }
 
-    // protocolPayment handles contract payment protocol fee types 
+    // protocolPayment handles contract payment protocol fee types
     function protocolPayment(bytes32 paymentType, address tokenHolder)
         internal
     {
@@ -207,7 +199,7 @@ contract AnconProtocol is ICS23 {
         return proofs[key];
     }
 
-    // enrollL2Account registers offchain did user onchain using ICS23 proofs, multi tenant using dag graph moniker 
+    // enrollL2Account registers offchain did user onchain using ICS23 proofs, multi tenant using dag graph moniker
     function enrollL2Account(
         bytes32 moniker,
         bytes memory key,
@@ -237,7 +229,6 @@ contract AnconProtocol is ICS23 {
         );
         return true;
     }
-
 
     // submitPacketWithProof registers packet onchain using ICS23 proofs, multi tenant using dag graph moniker
     function submitPacketWithProof(
@@ -272,7 +263,6 @@ contract AnconProtocol is ICS23 {
 
         return true;
     }
-
 
     // verifies ICS23 proofs, multi tenant using dag graph moniker
     function verifyProof(

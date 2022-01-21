@@ -158,7 +158,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
     "whitelistedDagGraph(bytes32)": FunctionFragment;
     "getContractIdentifier()": FunctionFragment;
-    "setWhitelistedDagGraph(bytes32,address,uint8,bytes32,bytes32)": FunctionFragment;
+    "setWhitelistedDagGraph(bytes32,address)": FunctionFragment;
     "updateRelayerHeader(bytes32,bytes,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "setPaymentToken(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
@@ -241,7 +241,7 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setWhitelistedDagGraph",
-    values: [BytesLike, string, BigNumberish, BytesLike, BytesLike]
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "updateRelayerHeader",
@@ -548,9 +548,6 @@ export interface AnconProtocol extends BaseContract {
     setWhitelistedDagGraph(
       moniker: BytesLike,
       dagAddress: string,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -689,9 +686,6 @@ export interface AnconProtocol extends BaseContract {
   setWhitelistedDagGraph(
     moniker: BytesLike,
     dagAddress: string,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -833,9 +827,6 @@ export interface AnconProtocol extends BaseContract {
     setWhitelistedDagGraph(
       moniker: BytesLike,
       dagAddress: string,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1024,9 +1015,6 @@ export interface AnconProtocol extends BaseContract {
     setWhitelistedDagGraph(
       moniker: BytesLike,
       dagAddress: string,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1173,9 +1161,6 @@ export interface AnconProtocol extends BaseContract {
     setWhitelistedDagGraph(
       moniker: BytesLike,
       dagAddress: string,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
