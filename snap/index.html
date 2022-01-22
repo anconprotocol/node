@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  </head>
+    <title>Hello Ancon Protocol!</title>
+  </head>
+
+  <body>
+    <h1>Hello Ancon Protocol!</h1>
+    <details>
+      <summary>Instructions</summary>
+      <ul>
+        <li>First, click "Connect". Then, try out the other buttons!</li>
+        <li>Please note that:</li>
+        <ul>
+          <li>
+            The <code>snap.manifest.json</code> and <code>package.json</code> must be located in located in the server root directory.
+          </li>
+          <li>
+            The Snap bundle must be hosted at the location specified by the <code>location</code> field of <code>snap.manifest.json</code>.
+          </li>
+        </ul>
+      </ul>
+    </details>
+    <br/>
+
+    <button class="connect">Connect</button>
+    <button class="getAddress">Sign Ancon Protocol Data</button>
+    <button class="send">Send Hello</button>
+  </body>
+
+  <script>
+    const snapId = `local:${window.location.href}`;
+
+    const connectButton = document.querySelector('button.connect')
+    const sendButton = document.querySelector('button.send')
+    const getAddressButton = document.querySelector('button.getAddress')
+
+    connectButton.addEventListener('click', connect)
+    sendButton.addEventListener('click', send)
+    getAddressButton.addEventListener('click', getAddress)
+
+    // here we get permissions to interact with and install the snap
+    async function connect () {
+      await ethereum.request({
+        method: 'wallet_enable',
+        params: [{
+          wallet_snap: { [snapId]: {} },
+        }]
+      })
+    }
+
+
+    async function getAddress () {
+      try {
+        const response = await ethereum.request({
+          method: 'wallet_invokeSnap',
+          params: [snapId, {
+            method: 'signMessage',
+            params: ['sign message']
+          }]
+        })
+        console.log('responded: ' + response)
+      } catch (err) {
+        console.error(err)
+        alert('Problem happened: ' + err.message || err)
+      }
+    }
+    async function send () {
+      try {
+        const response = await ethereum.request({
+          method: 'wallet_invokeSnap',
+          params: [snapId, {
+            method: 'signer',
+          }]
+        })
+      } catch (err) {
+        console.error(err)
+        alert('Problem happened: ' + err.message || err)
+      }
+    }
+  </script>
+</html>

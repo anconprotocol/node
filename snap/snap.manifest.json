@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "description": "The anconsnap Snap.",
+  "proposedName": "anconsnap",
+  "source": {
+    "shasum": "XoPH9VhvKAfyV4018L9FiHL8EM81f+pQNMFXeSu4Czk=",
+    "location": {
+      "npm": {
+        "filePath": "dist/bundle.js",
+        "packageName": "anconsnap",
+        "registry": "https://registry.npmjs.org"
+      }
+    }
+  },
+  "initialPermissions": {
+    "snap_confirm": {},
+    "endowment:network-access": {}
+  },
+  "manifestVersion": "0.1"
+}
