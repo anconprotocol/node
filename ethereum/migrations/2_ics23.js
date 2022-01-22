@@ -99,34 +99,40 @@ module.exports = async (deployer, network, accounts) => {
   await deployer.deploy(AnconProtocol, token, chainId)
   const verifier = await AnconProtocol.deployed()
   await deployer.deploy(WXDV, 'WXDV', 'WXDV', token, verifier.address, chainId)
-  const c = await WXDV.deployed()
+  const wxdv = await WXDV.deployed()
 
-  await verifier.setPaymentToken(token)
+  await verifier.setPaymentToken(token, { from: accounts[0] })
   await verifier.setWhitelistedDagGraph(
     web3.utils.keccak256('tensta'),
     '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
+    { from: accounts[0] },
   )
   await verifier.setWhitelistedDagGraph(
     web3.utils.keccak256('anconprotocol'),
     '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
+    { from: accounts[0] },
   )
-  
-  await c.setServiceFeeForContract('50000')
-  await c.setServiceFeeForPaymentAddress('50000')
+
+  await verifier.setAccountRegistrationFee('500000000', { from: accounts[0] })
+  await verifier.setDagGraphFee('500000000', { from: accounts[0] })
+  await verifier.setProtocolFee('500000000', { from: accounts[0] })
+
+  await wxdv.setServiceFeeForContract('50000', { from: accounts[0] })
+  await wxdv.setServiceFeeForPaymentAddress('50000', { from: accounts[0] })
 
   await deployer.deploy(
     XDVNFT,
     'XDVNFT',
     'XDVNFT',
     token,
-    c.address,
+    wxdv.address,
     chainId,
   )
 
   const nft = await XDVNFT.deployed()
 
-  await c.enrollNFT(nft.address)
+  await wxdv.enrollNFT(nft.address)
   builder.addContract('XDVNFT', nft, nft.address, network)
-  builder.addContract('WXDV', c, c.address, network)
+  builder.addContract('WXDV', wxdv, wxdv.address, network)
   builder.addContract('AnconProtocol', verifier, verifier.address, network)
 }

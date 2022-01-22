@@ -77,7 +77,7 @@ module.exports = {
       // gas: 9721975, // You should change it based on your requirements
       // gasPrice: 30000000000,
       
-      ///gas: 5000000,
+      gas: 10000000,
       // gasPrice: 135000000000,
       skipDryRun: true
     },

@@ -148,7 +148,6 @@ contract WXDV is
     function deactivateNFT(address NFTaddress) public onlyOwner returns (bool) {
         require(nftRegistry[NFTaddress] == true, "missing nft address");
 
-
         nftRegistry[NFTaddress] = false;
 
         emit NFTEnrolled(false, NFTaddress);
@@ -227,9 +226,9 @@ contract WXDV is
             hash == keccak256(abi.encodePacked(id, contractIdentifier)),
             "invalid packet"
         );
-        require(sender == ownerOf(id));
 
         ERC721 nftContractCaller = ERC721(msg.sender);
+        require(sender == nftContractCaller.ownerOf(id), "invalid owner");
 
         if (
             tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
@@ -241,12 +240,15 @@ contract WXDV is
             nftContractCaller.ownerOf(id) == sender &&
             tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
         ) {
+            require(
+                nftContractCaller.getApproved(id) == address(this),
+                "WXDV needs to be approved for lock operation"
+            );
             nftContractCaller.safeTransferFrom(sender, address(this), id);
             // // Set as locked
             lock(msg.sender, id);
             emit Locked(msg.sender, id);
         } else {
-            // if token doesnt exist I need to create a wrapped xdv token
             require(ownerOf(id) == address(this), "Is not a wrapped token");
             _burn(id);
         }
@@ -314,22 +316,17 @@ contract WXDV is
             tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
             nftContractCaller.ownerOf(id) == sender
         ) {
+            // require(nftContractCaller.getApproved(id) == address(this, "WXDV needs to be approved for lock operation"));
             // Set as unlocked
             unlock(msg.sender, id);
             // Set owner to contract, _beforeTokenTransfer will check if already locked
-            safeTransferFrom(address(this), newOwner, id);
+            nftContractCaller.safeTransferFrom(address(this), newOwner, id);
             emit Released(msg.sender, id);
         } else if (
             // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
             nftContractCaller.ownerOf(id) == sender &&
             tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
         ) {
-            // nftContractCaller._safeTransferFrom(sender, address(this), id);
-
-            // // Set as locked
-            // lock(msg.sender, id);
-
-            // emit Locked(msg.sender, id);
             revert("Unsupported");
         } else {
             // if token doesnt exist I need to create a wrapped xdv token

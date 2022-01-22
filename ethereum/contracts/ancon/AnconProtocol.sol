@@ -109,7 +109,7 @@ contract AnconProtocol is ICS23 {
         internal
     {
         require(
-            stablecoin.balanceOf(address(msg.sender)) > 0,
+            stablecoin.balanceOf(address(tokenHolder)) > 0,
             "no enough balance"
         );
         if ((paymentType) == ENROLL_DAG) {

@@ -17,13 +17,13 @@ Starting migrations...
 
    Replacing 'Memory'
    ------------------
-   > transaction hash:    0x93e33505a16f0ec4fd9aa9c2b0064ac24719811340b89032123a15e4e4c0d5a8
+   > transaction hash:    0x825eb09b070ecf33fbc8b295a583a5b5fe6e0d63dc286a271833430aa7f5d83e
    > Blocks: 3            Seconds: 9
-   > contract address:    0xE09607b22136F74C95af3716C72441746A3e65B0
-   > block number:        16065978
-   > block timestamp:     1642793401
+   > contract address:    0x38B8d060415C3C7A4eC9E5596030C054B5dC9620
+   > block number:        16086521
+   > block timestamp:     1642855048
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.649059026
+   > balance:             1.886007816
    > gas used:            72217 (0x11a19)
    > gas price:           10 gwei
    > value sent:          0 ETH
@@ -31,23 +31,22 @@ Starting migrations...
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16065981)
-   > confirmation number: 3 (block: 16065982)
-   > confirmation number: 5 (block: 16065984)
-   > confirmation number: 6 (block: 16065985)
-   > confirmation number: 7 (block: 16065986)
-   > confirmation number: 9 (block: 16065988)
-   > confirmation number: 10 (block: 16065989)
+   > confirmation number: 2 (block: 16086524)
+   > confirmation number: 3 (block: 16086525)
+   > confirmation number: 5 (block: 16086527)
+   > confirmation number: 7 (block: 16086529)
+   > confirmation number: 9 (block: 16086531)
+   > confirmation number: 10 (block: 16086532)
 
    Replacing 'Bytes'
    -----------------
-   > transaction hash:    0xd7b250bee46cd66f44a0b99cf36dbf2ec86759ef59cb3ef7b4587dfa94e57447
+   > transaction hash:    0x97eb31a4c8844351303ad81686e1a8556b4d11563680bdd55573d508387c6fc8
    > Blocks: 3            Seconds: 9
-   > contract address:    0x62E0EAbc9669982057ca7d09802Defc80a5b8034
-   > block number:        16065993
-   > block timestamp:     1642793446
+   > contract address:    0x20438C54B977067D689674e610a59E3E89f16731
+   > block number:        16086536
+   > block timestamp:     1642855093
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.648336856
+   > balance:             1.885285646
    > gas used:            72217 (0x11a19)
    > gas price:           10 gwei
    > value sent:          0 ETH
@@ -55,73 +54,71 @@ Starting migrations...
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16065996)
-   > confirmation number: 3 (block: 16065997)
-   > confirmation number: 5 (block: 16065999)
-   > confirmation number: 6 (block: 16066000)
-   > confirmation number: 7 (block: 16066001)
-   > confirmation number: 9 (block: 16066003)
-   > confirmation number: 10 (block: 16066004)
+   > confirmation number: 2 (block: 16086539)
+   > confirmation number: 3 (block: 16086540)
+   > confirmation number: 5 (block: 16086542)
+   > confirmation number: 6 (block: 16086543)
+   > confirmation number: 7 (block: 16086544)
+   > confirmation number: 9 (block: 16086546)
+   > confirmation number: 10 (block: 16086547)
 
    Replacing 'AnconProtocol'
    -------------------------
-   > transaction hash:    0x2f39bc68bc7e1e4ab074b799bf899996f4d8086b9fa556ca0d9a811cd134e482
+   > transaction hash:    0x1f3861fea7337927725da63962afc2e1159001f62486f9dd26d00c34e19697c0
    > Blocks: 3            Seconds: 9
-   > contract address:    0x694aDce4A53a134ec074CB57cF76Ac2B3A4876e7
-   > block number:        16066008
-   > block timestamp:     1642793491
+   > contract address:    0x022500728778062cce604D5FA34ee3c2112f1340
+   > block number:        16086551
+   > block timestamp:     1642855138
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.616313256
-   > gas used:            3202360 (0x30dd38)
+   > balance:             1.853258926
+   > gas used:            3202672 (0x30de70)
    > gas price:           10 gwei
    > value sent:          0 ETH
-   > total cost:          0.0320236 ETH
+   > total cost:          0.03202672 ETH
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 1 (block: 16066011)
-   > confirmation number: 2 (block: 16066012)
-   > confirmation number: 4 (block: 16066014)
-   > confirmation number: 5 (block: 16066015)
-   > confirmation number: 6 (block: 16066016)
-   > confirmation number: 8 (block: 16066018)
-   > confirmation number: 9 (block: 16066019)
-   > confirmation number: 10 (block: 16066020)
+   > confirmation number: 3 (block: 16086555)
+   > confirmation number: 4 (block: 16086556)
+   > confirmation number: 5 (block: 16086557)
+   > confirmation number: 6 (block: 16086558)
+   > confirmation number: 7 (block: 16086559)
+   > confirmation number: 8 (block: 16086560)
+   > confirmation number: 10 (block: 16086562)
 
    Replacing 'WXDV'
    ----------------
-   > transaction hash:    0xdf205c8fd46177f1bfc37439febbe2545aec732a5a779dec28f16d3ae03e8350
-   > Blocks: 3            Seconds: 9
-   > contract address:    0x500436FaC6B081A338156Bfc43048Bd9d3605377
-   > block number:        16066025
-   > block timestamp:     1642793542
+   > transaction hash:    0x73010866e93655113f3f7b740ab6626e19cf58d319a3da22dd5949e483cfef79
+   > Blocks: 5            Seconds: 13
+   > contract address:    0xffC6ed1489FdEeE0eb23A22E6DcD0227A69e581b
+   > block number:        16086567
+   > block timestamp:     1642855186
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.575958026
-   > gas used:            4035523 (0x3d93c3)
+   > balance:             1.811875756
+   > gas used:            4138317 (0x3f254d)
    > gas price:           10 gwei
    > value sent:          0 ETH
-   > total cost:          0.04035523 ETH
+   > total cost:          0.04138317 ETH
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 1 (block: 16066028)
-   > confirmation number: 3 (block: 16066030)
-   > confirmation number: 4 (block: 16066031)
-   > confirmation number: 5 (block: 16066032)
-   > confirmation number: 7 (block: 16066034)
-   > confirmation number: 8 (block: 16066035)
-   > confirmation number: 9 (block: 16066036)
-   > confirmation number: 10 (block: 16066037)
+   > confirmation number: 3 (block: 16086572)
+   > confirmation number: 4 (block: 16086573)
+   > confirmation number: 5 (block: 16086574)
+   > confirmation number: 6 (block: 16086575)
+   > confirmation number: 7 (block: 16086576)
+   > confirmation number: 9 (block: 16086578)
+   > confirmation number: 10 (block: 16086579)
 
    Replacing 'XDVNFT'
    ------------------
-   > transaction hash:    0x1f17fdcd8e5108bef4efe47090d8cc9dd9f2b9de372dfc434e455a69a6a69580
-   > Blocks: 5            Seconds: 14
-   > contract address:    0x3c706928b9951192F35E6231bCe5fFa439ffBe1a
-   > block number:        16066062
-   > block timestamp:     1642793653
+   > transaction hash:    0xef16f96e3a5844851514f414e08c56f74b8b65bc8137ba3bd4197acf1f8cb2cf
+   > Blocks: 4            Seconds: 14
+   > contract address:    0x5Cfe7383A7adD9FD833b15Fa05d0523E0F7fbfF8
+   > block number:        16086627
+   > block timestamp:     1642855366
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.545595726
+   > balance:             1.780241666
    > gas used:            2795802 (0x2aa91a)
    > gas price:           10 gwei
    > value sent:          0 ETH
@@ -129,9 +126,14 @@ Starting migrations...
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16066066)
-   > confirmation number: 3 (block: 16066067)
-   > confirmation number: 4 (block: 16066068)
+   > confirmation number: 2 (block: 16086633)
+   > confirmation number: 3 (block: 16086634)
+   > confirmation number: 4 (block: 16086635)
+   > confirmation number: 6 (block: 16086637)
+   > confirmation number: 7 (block: 16086638)
+   > confirmation number: 8 (block: 16086639)
+   > confirmation number: 11 (block: 16086642)
+
 
 Compiling your contracts...
 ===========================
@@ -151,13 +153,13 @@ Starting migrations...
 
    Replacing 'Memory'
    ------------------
-   > transaction hash:    0xc479a92ced4e58aa580005676979e22e1f77bd97819e5a91bd5a85c02091c885
-   > Blocks: 2            Seconds: 10
-   > contract address:    0xa7d5480444362af7fc1d5315F3bB51C539e43a34
-   > block number:        24126454
-   > block timestamp:     1642793735
+   > transaction hash:    0xba5a9eb5ed9069427789a05b54233d96155b84c90ac9f20115d40ad898423759
+   > Blocks: 3            Seconds: 5
+   > contract address:    0x62239d4161A7E492a6Ad16AD2F9773e1D9bFBB41
+   > block number:        24150852
+   > block timestamp:     1642855469
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.193089229999979
+   > balance:             0.967925985999979
    > gas used:            72217 (0x11a19)
    > gas price:           30 gwei
    > value sent:          0 ETH
@@ -166,14 +168,13 @@ Starting migrations...
 
    Replacing 'Bytes'
    -----------------
-   > transaction hash:    0x353a7e201b9ceae7414bf89d03d5901eb2d71dd6b00d9cd0253b741cc87dedae
-
-   > Blocks: 2            Seconds: 9
-   > contract address:    0xaf7FFF14b8CaF04e93476dBF9fB3AE7dFBc91acD
-   > block number:        24126458
-   > block timestamp:     1642793751
+   > transaction hash:    0x97910276db9e1a61c1579999c3a486b029e1d4493a2b307bb1725a659051273e
+   > Blocks: 3            Seconds: 5
+   > contract address:    0x742e7FC23e629F18b0687Ac4c1b11FC5c9117B15
+   > block number:        24150858
+   > block timestamp:     1642855481
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.190922719999979
+   > balance:             0.965759475999979
    > gas used:            72217 (0x11a19)
    > gas price:           30 gwei
    > value sent:          0 ETH
@@ -182,59 +183,59 @@ Starting migrations...
 
    Replacing 'AnconProtocol'
    -------------------------
-   > transaction hash:    0xb578485c09c4e771891e0ca0b897a1985d62f8147b1ee5629b7f74839963f64f
-   > Blocks: 2            Seconds: 10
-   > contract address:    0x00372fD1b2817F9Bf15eb1F3D3151ce212aDF251
-   > block number:        24126462
-   > block timestamp:     1642793767
+   > transaction hash:    0x68dd3a5e96bbcebefda4883f0afdcbbc988ba8066a7068b2667e0a101c3b825e
+   > Blocks: 7            Seconds: 13
+   > contract address:    0xA26a70dC58C02177367b12d3d6Ab6F60120D3B1F
+   > block number:        24150864
+   > block timestamp:     1642855493
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.094416199999979
-   > gas used:            3216884 (0x3115f4)
+   > balance:             0.869243595999979
+   > gas used:            3217196 (0x31172c)
    > gas price:           30 gwei
    > value sent:          0 ETH
-   > total cost:          0.09650652 ETH
+   > total cost:          0.09651588 ETH
 
 
    Replacing 'WXDV'
    ----------------
-   > transaction hash:    0xd9493b1be551e1a1b9e8dfe316371b1280fd45d35965bbc5041985557aa40cdd
-   > Blocks: 3            Seconds: 7
-   > contract address:    0xA9f9d318dc53Da608A5FFDbaeb394F93B2D1DCb1
-   > block number:        24126467
-   > block timestamp:     1642793783
+   > transaction hash:    0x2bf164b9bf3439358c11118cb69682e2881050c66b954aadbf943ee1c926269a
+   > Blocks: 2            Seconds: 5
+   > contract address:    0xa1F456237d568E2F12F951af5da9CE356cBFCB61
+   > block number:        24150874
+   > block timestamp:     1642855513
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.972717149999979
-   > gas used:            4056635 (0x3de63b)
+   > balance:             0.744460005999979
+   > gas used:            4159453 (0x3f77dd)
    > gas price:           30 gwei
    > value sent:          0 ETH
-   > total cost:          0.12169905 ETH
+   > total cost:          0.12478359 ETH
 
 
    Replacing 'XDVNFT'
    ------------------
-   > transaction hash:    0xbf4f70e34558ed1bef17a8bfccb6a1abd11542c037f079babade2b9f4fbc6ce3
-   > Blocks: 4            Seconds: 9
-   > contract address:    0x202433a3bEa700D101059c7E9c3c9f5301dcACC1
-   > block number:        24126493
-   > block timestamp:     1642793835
+   > transaction hash:    0x97bd2806471f5d467a10ade32b30a30dfcc4faccc56627cd96461762f7e6a3dd
+   > Blocks: 2            Seconds: 5
+   > contract address:    0xD4582e764801d33703Deb156180C4c3a27738cB3
+   > block number:        24150918
+   > block timestamp:     1642855605
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.880737749999979
-   > gas used:            2805814 (0x2ad036)
+   > balance:             0.648358875999979
+   > gas used:            2805826 (0x2ad042)
    > gas price:           30 gwei
    > value sent:          0 ETH
-   > total cost:          0.08417442 ETH
+   > total cost:          0.08417478 ETH
 
 
    > Saving migration to chain.
    > Saving artifacts
    -------------------------------------
-   > Total cost:          0.30671301 ETH
+   > Total cost:          0.30980727 ETH
 
 
 Summary
 =======
 > Total deployments:   5
-> Final cost:          0.30671301 ETH
+> Final cost:          0.30980727 ETH
 
 
 
@@ -256,27 +257,75 @@ Starting migrations...
 
    Replacing 'Memory'
    ------------------
-UnhandledRejections detected
-Promise {
-  <rejected> Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
-      at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
-      at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
-      at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
-      at Array.forEach (<anonymous>)
-      at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
-      at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
-      at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
-      at Generator.next (<anonymous>)
-      at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
-      at processTicksAndRejections (node:internal/process/task_queues:96:5)
-} Error: Cannot convert string to buffer. toBuffer only supports 0x-prefixed hex strings and this string was given: -0x1
-    at Object.exports.toBuffer (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/bytes.ts:78:15)
-    at Transaction.setter [as gasLimit] (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:44:11)
-    at /home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:110:62
-    at Array.forEach (<anonymous>)
-    at Object.exports.defineProperties (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/ethereumjs-util/src/object.ts:109:14)
-    at new Transaction (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/node_modules/ethereumjs-tx/src/transaction.ts:149:5)
-    at HookedWalletSubprovider.<anonymous> (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/src/index.ts:163:22)
-    at Generator.next (<anonymous>)
-    at fulfilled (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/node_modules/@truffle/hdwallet-provider/dist/index.js:24:58)
+   > transaction hash:    0xa2d55c6fc3a4ad2febf4c80d744b4ea6c328836260ea6755e9f806634915f4aa
+   > Blocks: 0            Seconds: 0
+   > contract address:    0x65c33Cf8d06FA391e79ee1126EFDeB3F1A372403
+   > block number:        79793956
+   > block timestamp:     1642855673
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            72217 (0x11a19)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
+
+
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x5371931573ca5f19ef09f3d2c047dd2d0751fe4a20b8a5a8b3d7d47295c2426c
+   > Blocks: 20           Seconds: 20
+   > contract address:    0xf505e53cA66d108E16f8B4619c89eEF2D018a042
+   > block number:        79793977
+   > block timestamp:     1642855695
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            72217 (0x11a19)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
+
+
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0xc5d8bc2ff5f52d285c3204aadf3b235fe9c84774885c87dcdca6773504495bb1
+   > Blocks: 18           Seconds: 16
+   > contract address:    0x2d70536FC2e96a603dA2ba35ef388C374bf2FD9e
+   > block number:        79794000
+   > block timestamp:     1642855716
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            3217208 (0x311738)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
+
+
+   Replacing 'WXDV'
+   ----------------
+   > transaction hash:    0xdd7a28b359a49ea8db14379d34229f1a5dd19655d6357685f7bdcc2df2353d33
+   > Blocks: 16           Seconds: 12
+   > contract address:    0xFD1c258C0410630C2773f405225d26545eef43e0
+   > block number:        79794015
+   > block timestamp:     1642855731
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            4159465 (0x3f77e9)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
+
+
+Error: execution reverted
+    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:105:18)
+    at runMicrotasks (<anonymous>)
     at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
+    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
+    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
+    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
+    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
+    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
+    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
+    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
+Truffle v5.4.22 (core: 5.4.22)
+Node v16.2.0
