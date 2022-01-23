@@ -212,8 +212,8 @@ func main() {
 		api.PUT("/dagjson", dagJsonHandler.Update)
 		// api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
 		// api.POST("/dagcbor", dagCborHandler.DagCborWrite)
-		api.POST("/did/key", didHandler.CreateDidKey)
-		api.POST("/did/web", didHandler.CreateDidWeb)
+		api.POST("/did", didHandler.CreateDid)
+		api.POST("/did/web", didHandler.CreateDid)
 		api.GET("/did/:did", didHandler.ReadDid)
 		api.GET("/proof/:key", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
@@ -224,7 +224,7 @@ func main() {
 	// 	r.GET("/indexer/cosmos/tip", indexer.TipEvent)
 	// 	indexer.Subscribe(ctx, cosmos.NewBlock)
 	// }
-	r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
+	// r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 

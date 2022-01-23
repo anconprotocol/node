@@ -22,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
@@ -32,8 +33,9 @@ import (
 type AvailableDid string
 
 const (
-	DidTypeWeb AvailableDid = "web"
-	DidTypeKey AvailableDid = "key"
+	DidTypeEthr AvailableDid = "ethr"
+	DidTypeWeb  AvailableDid = "web"
+	DidTypeKey  AvailableDid = "key"
 )
 
 const (
@@ -54,6 +56,44 @@ func (dagctx *Did) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, erro
 	ti := time.Now()
 	// did web
 	base := append([]byte("did:web:ipfs:user:"), []byte(vanityName)...)
+	// did web # id
+
+	//Authentication method 2018
+	didWebVer := did.NewVerificationMethodFromBytes(
+		string(base),
+		"Secp256k1VerificationKey2018",
+		string(base),
+		pubkey,
+	)
+
+	ver := []did.VerificationMethod{}
+	ver = append(ver, *didWebVer)
+
+	//	serv := []did.Service{{}, {}}
+
+	// Secp256k1SignatureAuthentication2018
+	auth := []did.Verification{{}}
+
+	didWebAuthVerification := did.NewEmbeddedVerification(didWebVer, did.Authentication)
+
+	auth = append(auth, *didWebAuthVerification)
+
+	doc := did.BuildDoc(
+		did.WithVerificationMethod(ver),
+		///		did.WithService(serv),
+		did.WithAuthentication(auth),
+		did.WithCreatedTime(ti),
+		did.WithUpdatedTime(ti),
+	)
+	doc.ID = string(base)
+	return doc, nil
+}
+
+// BuildDidWeb ....
+func (dagctx *Did) BuildEthrDid(name string, pubkey []byte) (*did.Doc, error) {
+	ti := time.Now()
+	// did web
+	base := []byte(name)
 	// did web # id
 
 	//Authentication method 2018
@@ -134,9 +174,9 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 
-	path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
+	// path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
 
-	value, err := dagctx.Store.DataStore.Get(c.Request.Context(), path)
+	value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("did web not found %v", err),
@@ -191,7 +231,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 			return
 		}
 
-		if strings.HasPrefix(did, "raw:") {
+		if strings.HasPrefix(did, "raw:") ||  strings.HasPrefix(did, "did:"){
 			c.JSON(200, json.RawMessage(value))
 			return
 		}
@@ -219,47 +259,10 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	c.JSON(200, json.RawMessage(data))
 }
 
-func (dagctx *Did) CreateDidKey(c *gin.Context) {
+func (dagctx *Did) CreateDid(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
-	// if v["pub"] == "" {
-	// 	c.JSON(400, gin.H{
-	// 		"error": fmt.Errorf("missing pub").Error(),
-	// 	})
-	// 	return
-	// }
-
-	domainName := ""
-	pub := []byte{}
-	cid, proof, err := dagctx.AddDid(DidTypeKey, "", domainName, pub)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("failed to create did").Error(),
-		})
-	}
-	c.JSON(201, gin.H{
-		"cid":   cid,
-		"proof": proof,
-	})
-}
-
-func (dagctx *Did) CreateDidWeb(c *gin.Context) {
-	var v map[string]string
-
-	c.BindJSON(&v)
-	if v["domainName"] == "" {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing domainName").Error(),
-		})
-		return
-	}
-	if v["pub"] == "" {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing pub").Error(),
-		})
-		return
-	}
 	if v["signature"] == "" {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing signature").Error(),
@@ -273,14 +276,33 @@ func (dagctx *Did) CreateDidWeb(c *gin.Context) {
 		return
 	}
 
+	pub := v["pub"]
+	ethrdid := v["ethrdid"]
 	domainName := v["domainName"]
-	pub, addr, err := types.RecoverKey((v["message"]), (v["signature"]))
+	ethrpub, addr, err := types.RecoverKey((v["message"]), (v["signature"]))
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
+		return
 	}
-	cid, key, err := dagctx.AddDid(DidTypeWeb, domainName, addr, pub)
+	var cid datamodel.Link
+	var key string
+	if pub == "" {
+		cid, key, err = dagctx.AddDid(DidTypeKey, "", addr, []byte{})
+	} else if ethrdid != "" && pub != "" {
+		cid, key, err = dagctx.AddDid(DidTypeEthr, ethrdid, addr, ethrpub)
+	} else if domainName != "" && pub != "" {
+		cid, key, err = dagctx.AddDid(DidTypeWeb, domainName, addr, ethrpub)
+
+	} else {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("failed to create did").Error(),
+		})
+
+		return
+
+	}
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("failed to create did").Error(),
@@ -343,6 +365,13 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 			return nil, "", err
 		}
 
+	} else if didType == DidTypeEthr {
+
+		didDoc, err = dagctx.BuildEthrDid(domainName, pubbytes)
+		if err != nil {
+			return nil, "", err
+		}
+
 	} else if didType == DidTypeKey {
 		didDoc, err = dagctx.BuildDidKey()
 		if err != nil {
@@ -369,7 +398,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	impl.PushBlock(ctx, dagctx.IPFSHost, []byte(resp))
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
-	dagctx.Store.DataStore.Put(ctx, addr, patch)
+	dagctx.Store.DataStore.Put(ctx, domainName, patch)
 
 	// proofs
 	internalKey := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), lnk.String())

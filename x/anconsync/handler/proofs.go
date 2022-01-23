@@ -84,7 +84,7 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, privateKeyPath string) *ProofHan
 
 	privateKey, err := crypto.GenerateOrReadPrivateKey(privateKeyPath)
 	if err != nil {
-		panic(err)
+//		panic(err)
 	}
 
 	// os.OpenFile(,,privateKeyPath)
