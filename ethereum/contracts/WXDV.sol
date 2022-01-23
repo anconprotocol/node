@@ -323,7 +323,7 @@ contract WXDV is
 
         if (
             tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
-            nftContractCaller.ownerOf(id) == sender
+            nftContractCaller.ownerOf(id) == address(this)
         ) {
             // require(nftContractCaller.getApproved(id) == address(this, "WXDV needs to be approved for lock operation"));
             // Set as unlocked
@@ -332,8 +332,7 @@ contract WXDV is
             nftContractCaller.safeTransferFrom(address(this), newOwner, id);
             emit Released(msg.sender, id);
         } else if (
-            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
-            nftContractCaller.ownerOf(id) == sender &&
+            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&            
             tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
         ) {
             revert("Unsupported");
