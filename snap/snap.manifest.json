@@ -3,7 +3,7 @@
   "description": "The anconsnap Snap.",
   "proposedName": "anconsnap",
   "source": {
-    "shasum": "XoPH9VhvKAfyV4018L9FiHL8EM81f+pQNMFXeSu4Czk=",
+    "shasum": "mLiUqlD3vN06WemYBSelin8SjHOyw97L5Nme0x0a1yU=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

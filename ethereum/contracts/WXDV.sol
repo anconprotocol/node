@@ -11,11 +11,13 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
 import "./ics23/Ics23Helper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 //  a NFT secure document
 contract WXDV is
     ERC721Burnable,
     ERC721Pausable,
+    IERC721Receiver,
     ERC721URIStorage,
     Ownable,
     TrustedOffchainHelper
@@ -62,7 +64,14 @@ contract WXDV is
     function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
         serviceFeeForPaymentAddress = _fee;
     }
-
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
     function setServiceFeeForContract(uint256 _fee) public onlyOwner {
         serviceFeeForContract = _fee;
     }

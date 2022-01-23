@@ -317,7 +317,7 @@ wallet.registerRpcMessageHandler(async (_originString, requestObject) => {
         const result = await wallet.request({
           method: 'snap_confirm',
           params: [{
-            prompt: 'Please sign message to store in Ancon Protocol',
+            prompt: 'Please sign message - Ancon Protocol',
             description: 'Signs message',
             textAreaContent: 'Name: Test playground \r\nDescription: NFT\r\nUser DID: did:ethr:bnbt:0x00\r\nChain: Binance Smart Chain'
           }]

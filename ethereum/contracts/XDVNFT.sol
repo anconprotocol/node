@@ -11,11 +11,13 @@ import "./ancon/IAnconProtocol.sol";
 import "./ancon/TrustedOffchainHelper.sol";
 import "./IWXDV.sol";
 import "./ics23/Ics23Helper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 //  a NFT secure document
 contract XDVNFT is
     ERC721Burnable,
     ERC721URIStorage,
+    IERC721Receiver,
     Ownable,
     TrustedOffchainHelper
 {
@@ -57,7 +59,14 @@ contract XDVNFT is
             "Requires anconprotocol proof to execute minting. See https://github.com/anconprotocol for more info"
         );
     }
-
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
     /**
      * @dev Mints a XDV Data Token
      */
