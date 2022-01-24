@@ -41,54 +41,23 @@ https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
 # API Reference
 
 
-## `POST /v0/did/key`
-
-> Creates a new did-key
-
-
-### Parameters
-
-None
-
-
-### Returns
-
-| Type | Description |
-| -------- | -------- |
-| `Promise<Response>` | An object that contains the CID |
-
-example of the returned object:
-
-```json
-{
-  "commitHash": "/AzWS9kE67z+wRs8htT3G+bRYDLy8V/Jg/cGUBprV/s=",
-  "content": {
-    "/": "baguqeerafkyyjhrgfai6x6djd23ot2d6vytaf35uvg6s2egc7llqkuc7nfua"
-  },
-  "height": 4892,
-  "issuer": "0xeeC58E89996496640c8b5898A7e0218E9b6E90cB",
-  "key": "L2FuY29ucHJvdG9jb2wvYmFmeXJlaWJxaXFiY2FmbnptanFtdjNpeTd1emppaW1uZWlxMmNxc3AzYm1odGNqYnJ3eXF3dnl3YmkvdXNlci9iYWd1cWVlcmFma3l5amhyZ2ZhaTZ4NmRqZDIzb3QyZDZ2eXRhZjM1dXZnNnMyZWdjN2xscWt1YzduZnVh",
-  "parent": "/anconprotocol/bafyreibqiqbcafnzmjqmv3iy7uzjiimneiq2cqsp3bmhtcjbrwyqwvywbi/user",
-  "signature": "0x971d3282785c390336860c5f5e5e1c7058f028738da7a003b8d81da7182cd6880798f8608e74d381c77d071f88adfa20e528bed1afba05f3c564bc6b59ec2dc61c",
-  "timestamp": 1642350132
-}
-```
-
 
 
 ## `POST /v0/did/web`
+## `POST /v0/did`
 
-> Creates a new did-web
+> Creates a new Decentralized Identity
 
 
 ### Parameters
 
+Set `etherdid` to create a DID-web with ethereum support (ethr-did). Set `pub` to empty for auto generated identity based on did-key. For did-web, use `domainName`.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | `domainName` | `string` | Subdomain eg alice.ipfs.pa |
+| `etherdid` | `string` | Eg did:ethr:mumbai:0x.... |
 | `pub` | `string` | (hex) public key  |
-
 
 
 ### Returns
@@ -119,6 +88,10 @@ example of the returned object:
 
 > Returns did document as json
 
+Supports following responses:
+
+- DAG Transaction response use `raw:<did-id>` eg `v0/did/raw:did:ethr:mumbai:0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6`
+- DID JSON use did eg `v0/did/did:ethr:mumbai:0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6`
 
 ### Parameters
 
