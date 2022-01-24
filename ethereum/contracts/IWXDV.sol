@@ -4,7 +4,7 @@ import "./ics23/ics23.sol";
 import "./ics23/Ics23Helper.sol";
 
 interface IWXDV {
-    function mintWithProof(
+    function submitMintWithProof(
         address sender,
         uint256 newItemId,
         bytes32 moniker,

@@ -231,7 +231,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 			return
 		}
 
-		if strings.HasPrefix(did, "raw:") ||  strings.HasPrefix(did, "did:"){
+		if strings.HasPrefix(did, "raw:") || strings.HasPrefix(did, "did:") {
 			c.JSON(200, json.RawMessage(value))
 			return
 		}
@@ -331,9 +331,9 @@ func (dagctx *Did) CreateDid(c *gin.Context) {
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
 
 	resp, _ := sdk.Encode(block)
-
-	dagctx.Store.DataStore.Put(c.Request.Context(), "raw:"+addr, []byte(resp))
-
+	if ethrdid != "" {
+		dagctx.Store.DataStore.Put(c.Request.Context(), "raw:"+ethrdid, []byte(resp))
+	}
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
 
 	c.JSON(201, gin.H{

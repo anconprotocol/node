@@ -61,9 +61,6 @@ contract WXDV is
         chainId = chain;
     }
 
-    function setServiceFeeForPaymentAddress(uint256 _fee) public onlyOwner {
-        serviceFeeForPaymentAddress = _fee;
-    }
     function onERC721Received(
         address operator,
         address from,
@@ -71,9 +68,6 @@ contract WXDV is
         bytes calldata data
     ) external returns (bytes4) {
         return this.onERC721Received.selector;
-    }
-    function setServiceFeeForContract(uint256 _fee) public onlyOwner {
-        serviceFeeForContract = _fee;
     }
 
     function mint(address toAddress, uint256 tokenId)
@@ -88,7 +82,7 @@ contract WXDV is
     /**
      * @dev Mints a XDV Data Token
      */
-    function mintWithProof(
+    function submitMintWithProof(
         address sender,
         uint256 newItemId,
         bytes32 moniker,
@@ -118,7 +112,7 @@ contract WXDV is
             "Invalid packet"
         );
         //Newly minted NFTs are not locked
-        tokenLockStorage[msg.sender][newItemId] = TOKEN_AVAILABLE;
+        tokenLockStorage[sender][newItemId] = TOKEN_AVAILABLE;
         return true;
     }
 
@@ -240,14 +234,8 @@ contract WXDV is
         require(sender == nftContractCaller.ownerOf(id), "invalid owner");
 
         if (
-            tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
-            nftContractCaller.ownerOf(id) == sender
-        ) {
-            revert("Unsupported");
-        } else if (
             // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
-            nftContractCaller.ownerOf(id) == sender &&
-            tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
+            nftContractCaller.ownerOf(id) == sender
         ) {
             require(
                 nftContractCaller.getApproved(id) == address(this),
@@ -255,8 +243,7 @@ contract WXDV is
             );
             nftContractCaller.safeTransferFrom(sender, address(this), id);
             // // Set as locked
-            lock(msg.sender, id);
-            emit Locked(msg.sender, id);
+            emit Locked(sender, id);
         } else {
             require(ownerOf(id) == address(this), "Is not a wrapped token");
             _burn(id);
@@ -264,12 +251,12 @@ contract WXDV is
         return id;
     }
 
-    function lock(address nftContractAddress, uint256 tokenId) internal {
+    function lock(address holder, uint256 tokenId) internal {
         require(
-            tokenLockStorage[nftContractAddress][tokenId] == TOKEN_AVAILABLE,
+            tokenLockStorage[holder][tokenId] == TOKEN_AVAILABLE,
             "Token is already locked"
         );
-        tokenLockStorage[nftContractAddress][tokenId] = TOKEN_LOCKED;
+        tokenLockStorage[holder][tokenId] = TOKEN_LOCKED;
     }
 
     /**
@@ -301,6 +288,7 @@ contract WXDV is
             uint256 id,
             string memory metadataUri,
             address newOwner,
+            //            bytes32 lockTransactionHash,
             bytes32 contractIdentifier
         ) = abi.decode(packet, (uint256, string, address, bytes32));
 
@@ -311,6 +299,7 @@ contract WXDV is
                         id,
                         metadataUri,
                         newOwner,
+                        //                        lockTransactionHash,
                         contractIdentifier
                     )
                 ),
@@ -322,37 +311,30 @@ contract WXDV is
         ERC721 nftContractCaller = ERC721(msg.sender);
 
         if (
-            tokenLockStorage[msg.sender][id] == TOKEN_LOCKED &&
             nftContractCaller.ownerOf(id) == address(this)
         ) {
-            // require(nftContractCaller.getApproved(id) == address(this, "WXDV needs to be approved for lock operation"));
-            // Set as unlocked
-            unlock(msg.sender, id);
-            // Set owner to contract, _beforeTokenTransfer will check if already locked
-            nftContractCaller.safeTransferFrom(address(this), newOwner, id);
-            emit Released(msg.sender, id);
-        } else if (
-            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&            
-            tokenLockStorage[msg.sender][id] != TOKEN_LOCKED
-        ) {
-            revert("Unsupported");
+            nftContractCaller.approve(msg.sender, id);
+
+            emit Released(sender, id);
+            return 2;
         } else {
             // if token doesnt exist I need to create a wrapped xdv token
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
             _safeMint(newOwner, newItemId);
             _setTokenURI(id, metadataUri);
+            return 1;
         }
 
-        return id;
+        return 0;
     }
 
     function unlock(address sender, uint256 tokenId) internal {
         require(
-            tokenLockStorage[msg.sender][tokenId] == TOKEN_LOCKED,
+            tokenLockStorage[sender][tokenId] == TOKEN_LOCKED,
             "Token is already unlocked"
         );
-        tokenLockStorage[msg.sender][tokenId] = TOKEN_AVAILABLE;
+        tokenLockStorage[sender][tokenId] = TOKEN_AVAILABLE;
     }
 
     /**

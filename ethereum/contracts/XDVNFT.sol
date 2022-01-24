@@ -59,6 +59,7 @@ contract XDVNFT is
             "Requires anconprotocol proof to execute minting. See https://github.com/anconprotocol for more info"
         );
     }
+
     function onERC721Received(
         address operator,
         address from,
@@ -67,6 +68,7 @@ contract XDVNFT is
     ) external returns (bytes4) {
         return this.onERC721Received.selector;
     }
+
     /**
      * @dev Mints a XDV Data Token
      */
@@ -80,7 +82,7 @@ contract XDVNFT is
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         require(
-            WXDV.mintWithProof(
+            WXDV.submitMintWithProof(
                 msg.sender,
                 newItemId,
                 moniker,
@@ -147,16 +149,31 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) public payable returns (uint256) {
-        return
-            WXDV.releaseWithProof(
-                msg.sender,
-                moniker,
-                key,
-                packet,
-                userProof,
-                proof,
-                hash
-            );
+        uint256 flag = WXDV.releaseWithProof(
+            msg.sender,
+            moniker,
+            key,
+            packet,
+            userProof,
+            proof,
+            hash
+        );
+
+        if (flag == 2) {
+            (
+                uint256 id,
+                string memory metadataUri,
+                address newOwner,
+                //            bytes32 lockTransactionHash,
+                bytes32 contractIdentifier
+            ) = abi.decode(packet, (uint256, string, address, bytes32));
+
+            safeTransferFrom(address(this), newOwner, id);
+            _setTokenURI(id, metadataUri);
+
+            return 1;
+        }
+        return 0;
     }
 
     /**

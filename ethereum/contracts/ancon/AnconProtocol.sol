@@ -22,7 +22,8 @@ contract AnconProtocol is ICS23 {
     mapping(bytes => bool) public proofs; //if proof key was submitted to the blockchain
 
     mapping(bytes32 => address) public whitelistedDagGraph;
-
+    uint256 public seq;
+    mapping(address => uint256) public nonce;
     mapping(bytes32 => bytes) public latestRootHashTable;
     mapping(bytes32 => mapping(uint256 => bytes)) public relayerHashTable;
 
@@ -52,6 +53,21 @@ contract AnconProtocol is ICS23 {
         return keccak256(abi.encodePacked(chainId, address(this)));
     }
 
+    // getContractIdentifier is used to identify an offchain proof in any chain
+    function verifyContractIdentifier(
+        uint256 usernonce,
+        address sender,
+        bytes32 hash
+    ) public view returns (bool) {
+        return
+            keccak256(abi.encodePacked(chainId, address(this))) == hash &&
+            nonce[sender] == usernonce;
+    }
+    
+    function getNonce() public view returns (uint256) {
+        return nonce[msg.sender];
+    }
+
     // setWhitelistedDagGraph registers offchain graphs by protocol admin
     function setWhitelistedDagGraph(bytes32 moniker, address dagAddress)
         public
@@ -74,6 +90,8 @@ contract AnconProtocol is ICS23 {
         // TODO:  Check to  see if  signer has n amount of token staked
         relayerHashTable[moniker][height] = rootHash;
         latestRootHashTable[moniker] = rootHash;
+
+        seq = seq + 1;
         emit HeaderUpdated(moniker);
     }
 
@@ -145,6 +163,7 @@ contract AnconProtocol is ICS23 {
             );
             emit ServiceFeePaid(tokenHolder, protocolFee);
         } // Transfer tokens to pay service fee
+        nonce[tokenHolder] = nonce[tokenHolder] + 1;
     }
 
     function setProtocolFee(uint256 _fee) public {
