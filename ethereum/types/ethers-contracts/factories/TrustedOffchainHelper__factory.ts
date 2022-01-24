@@ -27,17 +27,6 @@ const _abi = [
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "string",
-        name: "message",
-        type: "string",
-      },
-    ],
-    name: "UsageInformation",
-    type: "error",
-  },
-  {
     anonymous: false,
     inputs: [
       {
@@ -158,6 +147,30 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "digest",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "authenticate",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

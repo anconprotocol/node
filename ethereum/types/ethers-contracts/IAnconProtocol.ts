@@ -80,29 +80,22 @@ export type ExistenceProofStructOutput = [
 
 export interface IAnconProtocolInterface extends utils.Interface {
   functions: {
-    "submitPacketWithProof(bytes32,address,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "verifyProof(bytes32,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "verifyProofWithKV(bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "submitPacketWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "verifyProofWithKV(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "submitPacketWithProof",
-    values: [
-      BytesLike,
-      string,
-      ExistenceProofStruct,
-      BytesLike,
-      BytesLike,
-      ExistenceProofStruct
-    ]
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
-    values: [BytesLike, ExistenceProofStruct]
+    values: [ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "verifyProofWithKV",
-    values: [BytesLike, BytesLike, BytesLike, ExistenceProofStruct]
+    values: [BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
 
   decodeFunctionResult(
@@ -149,9 +142,6 @@ export interface IAnconProtocol extends BaseContract {
 
   functions: {
     submitPacketWithProof(
-      moniker: BytesLike,
-      sender: string,
-      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -159,13 +149,11 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<ContractTransaction>;
 
     verifyProof(
-      moniker: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     verifyProofWithKV(
-      moniker: BytesLike,
       key: BytesLike,
       value: BytesLike,
       exProof: ExistenceProofStruct,
@@ -174,9 +162,6 @@ export interface IAnconProtocol extends BaseContract {
   };
 
   submitPacketWithProof(
-    moniker: BytesLike,
-    sender: string,
-    userProof: ExistenceProofStruct,
     key: BytesLike,
     packet: BytesLike,
     proof: ExistenceProofStruct,
@@ -184,13 +169,11 @@ export interface IAnconProtocol extends BaseContract {
   ): Promise<ContractTransaction>;
 
   verifyProof(
-    moniker: BytesLike,
     exProof: ExistenceProofStruct,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   verifyProofWithKV(
-    moniker: BytesLike,
     key: BytesLike,
     value: BytesLike,
     exProof: ExistenceProofStruct,
@@ -199,9 +182,6 @@ export interface IAnconProtocol extends BaseContract {
 
   callStatic: {
     submitPacketWithProof(
-      moniker: BytesLike,
-      sender: string,
-      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -209,13 +189,11 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<boolean>;
 
     verifyProof(
-      moniker: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     verifyProofWithKV(
-      moniker: BytesLike,
       key: BytesLike,
       value: BytesLike,
       exProof: ExistenceProofStruct,
@@ -227,9 +205,6 @@ export interface IAnconProtocol extends BaseContract {
 
   estimateGas: {
     submitPacketWithProof(
-      moniker: BytesLike,
-      sender: string,
-      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -237,13 +212,11 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<BigNumber>;
 
     verifyProof(
-      moniker: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     verifyProofWithKV(
-      moniker: BytesLike,
       key: BytesLike,
       value: BytesLike,
       exProof: ExistenceProofStruct,
@@ -253,9 +226,6 @@ export interface IAnconProtocol extends BaseContract {
 
   populateTransaction: {
     submitPacketWithProof(
-      moniker: BytesLike,
-      sender: string,
-      userProof: ExistenceProofStruct,
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
@@ -263,13 +233,11 @@ export interface IAnconProtocol extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifyProof(
-      moniker: BytesLike,
       exProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     verifyProofWithKV(
-      moniker: BytesLike,
       key: BytesLike,
       value: BytesLike,
       exProof: ExistenceProofStruct,
