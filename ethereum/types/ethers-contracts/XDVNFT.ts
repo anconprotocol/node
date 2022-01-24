@@ -9,6 +9,7 @@ import {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -80,23 +81,18 @@ export type ExistenceProofStructOutput = [
 
 export interface XDVNFTInterface extends utils.Interface {
   functions: {
-    "anconprotocol()": FunctionFragment;
+    "WXDV()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
-    "authenticate(bytes32,bytes)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
-    "dagContractOperator()": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getSigner()": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
-    "paused()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
-    "serviceFeeForContract()": FunctionFragment;
-    "serviceFeeForPaymentAddress()": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "setSigner(address)": FunctionFragment;
     "setUrl(string)": FunctionFragment;
@@ -106,35 +102,23 @@ export interface XDVNFTInterface extends utils.Interface {
     "transferFrom(address,address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "url()": FunctionFragment;
-    "setServiceFeeForPaymentAddress(uint256)": FunctionFragment;
-    "setServiceFeeForContract(uint256)": FunctionFragment;
-    "transferURI(address,uint256)": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
-    "transferMetadataOwnership(string,address,uint256)": FunctionFragment;
-    "mintWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "onERC721Received(address,address,uint256,bytes)": FunctionFragment;
+    "mintWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "lockWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "releaseWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "withdrawBalance(address)": FunctionFragment;
+    "withdraw(address)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "anconprotocol",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "WXDV", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "authenticate",
-    values: [BytesLike, BytesLike]
-  ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "dagContractOperator",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -150,7 +134,6 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "ownerOf",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -158,14 +141,6 @@ export interface XDVNFTInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "safeTransferFrom",
     values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "serviceFeeForContract",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "serviceFeeForPaymentAddress",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
@@ -192,24 +167,12 @@ export interface XDVNFTInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "url", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "setServiceFeeForPaymentAddress",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setServiceFeeForContract",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferURI",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "mint",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferMetadataOwnership",
-    values: [string, string, BigNumberish]
+    functionFragment: "onERC721Received",
+    values: [string, string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "mintWithProof",
@@ -222,8 +185,24 @@ export interface XDVNFTInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "onERC721Received",
-    values: [string, string, BigNumberish, BytesLike]
+    functionFragment: "lockWithProof",
+    values: [
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct,
+      ExistenceProofStruct,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "releaseWithProof",
+    values: [
+      BytesLike,
+      BytesLike,
+      ExistenceProofStruct,
+      ExistenceProofStruct,
+      BytesLike
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenURI",
@@ -233,22 +212,12 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "withdrawBalance",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
 
-  decodeFunctionResult(
-    functionFragment: "anconprotocol",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "WXDV", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "authenticate",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "dagContractOperator",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -261,21 +230,12 @@ export interface XDVNFTInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "serviceFeeForContract",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "serviceFeeForPaymentAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -299,21 +259,9 @@ export interface XDVNFTInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "url", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setServiceFeeForPaymentAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setServiceFeeForContract",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferURI",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "transferMetadataOwnership",
+    functionFragment: "onERC721Received",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -321,7 +269,11 @@ export interface XDVNFTInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "onERC721Received",
+    functionFragment: "lockWithProof",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "releaseWithProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
@@ -329,27 +281,24 @@ export interface XDVNFTInterface extends utils.Interface {
     functionFragment: "withdrawBalance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
-    "Paused(address)": EventFragment;
     "ProofAccepted(address,bytes32)": EventFragment;
     "ServiceFeePaid(address,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
-    "Unpaused(address)": EventFragment;
     "Withdrawn(address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProofAccepted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ServiceFeePaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
 
@@ -375,10 +324,6 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export type PausedEvent = TypedEvent<[string], { account: string }>;
-
-export type PausedEventFilter = TypedEventFilter<PausedEvent>;
-
 export type ProofAcceptedEvent = TypedEvent<
   [string, string],
   { sender: string; signatureHash: string }
@@ -399,10 +344,6 @@ export type TransferEvent = TypedEvent<
 >;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
-
-export type UnpausedEvent = TypedEvent<[string], { account: string }>;
-
-export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export type WithdrawnEvent = TypedEvent<
   [string, BigNumber],
@@ -438,7 +379,7 @@ export interface XDVNFT extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    anconprotocol(overrides?: CallOverrides): Promise<[string]>;
+    WXDV(overrides?: CallOverrides): Promise<[string]>;
 
     /**
      * See {IERC721-approve}.
@@ -446,12 +387,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -467,8 +402,6 @@ export interface XDVNFT extends BaseContract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    dagContractOperator(overrides?: CallOverrides): Promise<[string]>;
 
     /**
      * See {IERC721-getApproved}.
@@ -508,11 +441,6 @@ export interface XDVNFT extends BaseContract {
     ): Promise<[string]>;
 
     /**
-     * Returns true if the contract is paused, and false otherwise.
-     */
-    paused(overrides?: CallOverrides): Promise<[boolean]>;
-
-    /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
     renounceOwnership(
@@ -539,12 +467,6 @@ export interface XDVNFT extends BaseContract {
       _data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    serviceFeeForContract(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    serviceFeeForPaymentAddress(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     /**
      * See {IERC721-setApprovalForAll}.
@@ -600,47 +522,9 @@ export interface XDVNFT extends BaseContract {
 
     url(overrides?: CallOverrides): Promise<[string]>;
 
-    setServiceFeeForPaymentAddress(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setServiceFeeForContract(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     mint(
       toAddress: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    mintWithProof(
-      key: BytesLike,
-      packet: BytesLike,
-      userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -655,6 +539,33 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    mintWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -667,9 +578,14 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    withdraw(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
-  anconprotocol(overrides?: CallOverrides): Promise<string>;
+  WXDV(overrides?: CallOverrides): Promise<string>;
 
   /**
    * See {IERC721-approve}.
@@ -677,12 +593,6 @@ export interface XDVNFT extends BaseContract {
   approve(
     to: string,
     tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  authenticate(
-    digest: BytesLike,
-    signature: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -698,8 +608,6 @@ export interface XDVNFT extends BaseContract {
     tokenId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  dagContractOperator(overrides?: CallOverrides): Promise<string>;
 
   /**
    * See {IERC721-getApproved}.
@@ -736,11 +644,6 @@ export interface XDVNFT extends BaseContract {
   ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   /**
-   * Returns true if the contract is paused, and false otherwise.
-   */
-  paused(overrides?: CallOverrides): Promise<boolean>;
-
-  /**
    * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
    */
   renounceOwnership(
@@ -767,10 +670,6 @@ export interface XDVNFT extends BaseContract {
     _data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  serviceFeeForContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-  serviceFeeForPaymentAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
   /**
    * See {IERC721-setApprovalForAll}.
@@ -826,47 +725,9 @@ export interface XDVNFT extends BaseContract {
 
   url(overrides?: CallOverrides): Promise<string>;
 
-  setServiceFeeForPaymentAddress(
-    _fee: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setServiceFeeForContract(
-    _fee: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  /**
-   * Requests a DAG contract offchain execution
-   */
-  transferURI(
-    toAddress: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   mint(
     toAddress: string,
     tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  /**
-   * Requests a DAG contract offchain execution
-   */
-  transferMetadataOwnership(
-    metadataUri: string,
-    transferTo: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  mintWithProof(
-    key: BytesLike,
-    packet: BytesLike,
-    userProof: ExistenceProofStruct,
-    proof: ExistenceProofStruct,
-    hash: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -881,6 +742,33 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  mintWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  lockWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  releaseWithProof(
+    key: BytesLike,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    proof: ExistenceProofStruct,
+    hash: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   /**
    * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
    */
@@ -891,8 +779,13 @@ export interface XDVNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  withdraw(
+    payee: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
-    anconprotocol(overrides?: CallOverrides): Promise<string>;
+    WXDV(overrides?: CallOverrides): Promise<string>;
 
     /**
      * See {IERC721-approve}.
@@ -903,12 +796,6 @@ export interface XDVNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     /**
      * See {IERC721-balanceOf}.
      */
@@ -918,8 +805,6 @@ export interface XDVNFT extends BaseContract {
      * Burns `tokenId`. See {ERC721-_burn}. Requirements: - The caller must own `tokenId` or be an approved operator.
      */
     burn(tokenId: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    dagContractOperator(overrides?: CallOverrides): Promise<string>;
 
     /**
      * See {IERC721-getApproved}.
@@ -956,11 +841,6 @@ export interface XDVNFT extends BaseContract {
     ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     /**
-     * Returns true if the contract is paused, and false otherwise.
-     */
-    paused(overrides?: CallOverrides): Promise<boolean>;
-
-    /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
@@ -985,10 +865,6 @@ export interface XDVNFT extends BaseContract {
       _data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    serviceFeeForContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    serviceFeeForPaymentAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * See {IERC721-setApprovalForAll}.
@@ -1038,49 +914,11 @@ export interface XDVNFT extends BaseContract {
 
     url(overrides?: CallOverrides): Promise<string>;
 
-    setServiceFeeForPaymentAddress(
-      _fee: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setServiceFeeForContract(
-      _fee: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     mint(
       toAddress: string,
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    mintWithProof(
-      key: BytesLike,
-      packet: BytesLike,
-      userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     /**
      * Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom} by `operator` from `from`, this function is called. It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted. The selector can be obtained in Solidity with `IERC721.onERC721Received.selector`.
@@ -1093,12 +931,41 @@ export interface XDVNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    mintWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
     tokenURI(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     withdrawBalance(payee: string, overrides?: CallOverrides): Promise<void>;
+
+    withdraw(payee: string, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -1133,9 +1000,6 @@ export interface XDVNFT extends BaseContract {
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
-    "Paused(address)"(account?: null): PausedEventFilter;
-    Paused(account?: null): PausedEventFilter;
-
     "ProofAccepted(address,bytes32)"(
       sender?: null,
       signatureHash?: null
@@ -1167,9 +1031,6 @@ export interface XDVNFT extends BaseContract {
       tokenId?: BigNumberish | null
     ): TransferEventFilter;
 
-    "Unpaused(address)"(account?: null): UnpausedEventFilter;
-    Unpaused(account?: null): UnpausedEventFilter;
-
     "Withdrawn(address,uint256)"(
       paymentAddress?: string | null,
       amount?: null
@@ -1181,7 +1042,7 @@ export interface XDVNFT extends BaseContract {
   };
 
   estimateGas: {
-    anconprotocol(overrides?: CallOverrides): Promise<BigNumber>;
+    WXDV(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * See {IERC721-approve}.
@@ -1189,12 +1050,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1210,8 +1065,6 @@ export interface XDVNFT extends BaseContract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    dagContractOperator(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * See {IERC721-getApproved}.
@@ -1251,11 +1104,6 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     /**
-     * Returns true if the contract is paused, and false otherwise.
-     */
-    paused(overrides?: CallOverrides): Promise<BigNumber>;
-
-    /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
     renounceOwnership(
@@ -1282,10 +1130,6 @@ export interface XDVNFT extends BaseContract {
       _data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    serviceFeeForContract(overrides?: CallOverrides): Promise<BigNumber>;
-
-    serviceFeeForPaymentAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * See {IERC721-setApprovalForAll}.
@@ -1341,47 +1185,9 @@ export interface XDVNFT extends BaseContract {
 
     url(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setServiceFeeForPaymentAddress(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setServiceFeeForContract(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     mint(
       toAddress: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    mintWithProof(
-      key: BytesLike,
-      packet: BytesLike,
-      userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1396,6 +1202,33 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    mintWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -1408,10 +1241,15 @@ export interface XDVNFT extends BaseContract {
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    withdraw(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    anconprotocol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    WXDV(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     /**
      * See {IERC721-approve}.
@@ -1419,12 +1257,6 @@ export interface XDVNFT extends BaseContract {
     approve(
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    authenticate(
-      digest: BytesLike,
-      signature: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1442,10 +1274,6 @@ export interface XDVNFT extends BaseContract {
     burn(
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    dagContractOperator(
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     /**
@@ -1486,11 +1314,6 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     /**
-     * Returns true if the contract is paused, and false otherwise.
-     */
-    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
     renounceOwnership(
@@ -1516,14 +1339,6 @@ export interface XDVNFT extends BaseContract {
       tokenId: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    serviceFeeForContract(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    serviceFeeForPaymentAddress(
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     /**
@@ -1580,47 +1395,9 @@ export interface XDVNFT extends BaseContract {
 
     url(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    setServiceFeeForPaymentAddress(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setServiceFeeForContract(
-      _fee: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferURI(
-      toAddress: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     mint(
       toAddress: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    /**
-     * Requests a DAG contract offchain execution
-     */
-    transferMetadataOwnership(
-      metadataUri: string,
-      transferTo: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mintWithProof(
-      key: BytesLike,
-      packet: BytesLike,
-      userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1635,6 +1412,33 @@ export interface XDVNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    mintWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    lockWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    releaseWithProof(
+      key: BytesLike,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      proof: ExistenceProofStruct,
+      hash: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     /**
      * Just overrides the superclass' function. Fixes inheritance source: https://forum.openzeppelin.com/t/how-do-inherit-from-erc721-erc721enumerable-and-erc721uristorage-in-v4-of-openzeppelin-contracts/6656/4
      */
@@ -1644,6 +1448,11 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     withdrawBalance(
+      payee: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdraw(
       payee: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

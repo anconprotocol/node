@@ -135,3 +135,6 @@ Summary
 > Final cost:          0.06834756 ETH
 
 
+
+Compiling your contracts...
+===========================
