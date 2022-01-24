@@ -98,8 +98,8 @@ module.exports = async (deployer, network, accounts) => {
   }
   //  await deployer.deploy(AnconProtocol, token, chainId)
   const verifier = await AnconProtocol.deployed()
-  await deployer.deploy(WXDV, 'WXDV', 'WXDV', token, verifier.address, chainId)
-  const wxdv = await WXDV.deployed()
+  // await deployer.deploy(WXDV, 'WXDV', 'WXDV', token, verifier.address, chainId)
+  // const wxdv = await WXDV.deployed()
 
   // await verifier.setPaymentToken(token, { from: accounts[0] })
   // await verifier.setWhitelistedDagGraph(
@@ -122,14 +122,14 @@ module.exports = async (deployer, network, accounts) => {
     'XDVNFT',
     'XDVNFT',
     token,
-    wxdv.address,
+    verifier.address,
     chainId,
   )
 
   const nft = await XDVNFT.deployed()
 
-  await wxdv.enrollNFT(nft.address)
+//  await wxdv.enrollNFT(nft.address)
   builder.addContract('XDVNFT', nft, nft.address, network)
-  builder.addContract('WXDV', wxdv, wxdv.address, network)
+ // builder.addContract('WXDV', wxdv, wxdv.address, network)
   builder.addContract('AnconProtocol', verifier, verifier.address, network)
 }

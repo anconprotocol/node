@@ -81,7 +81,7 @@ export type ExistenceProofStructOutput = [
 
 export interface XDVNFTInterface extends utils.Interface {
   functions: {
-    "WXDV()": FunctionFragment;
+    "anconprotocol()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
@@ -112,7 +112,10 @@ export interface XDVNFTInterface extends utils.Interface {
     "withdraw(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "WXDV", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "anconprotocol",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
@@ -214,7 +217,10 @@ export interface XDVNFTInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
 
-  decodeFunctionResult(functionFragment: "WXDV", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "anconprotocol",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
@@ -379,7 +385,7 @@ export interface XDVNFT extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    WXDV(overrides?: CallOverrides): Promise<[string]>;
+    anconprotocol(overrides?: CallOverrides): Promise<[string]>;
 
     /**
      * See {IERC721-approve}.
@@ -585,7 +591,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  WXDV(overrides?: CallOverrides): Promise<string>;
+  anconprotocol(overrides?: CallOverrides): Promise<string>;
 
   /**
    * See {IERC721-approve}.
@@ -785,7 +791,7 @@ export interface XDVNFT extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    WXDV(overrides?: CallOverrides): Promise<string>;
+    anconprotocol(overrides?: CallOverrides): Promise<string>;
 
     /**
      * See {IERC721-approve}.
@@ -1042,7 +1048,7 @@ export interface XDVNFT extends BaseContract {
   };
 
   estimateGas: {
-    WXDV(overrides?: CallOverrides): Promise<BigNumber>;
+    anconprotocol(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * See {IERC721-approve}.
@@ -1249,7 +1255,7 @@ export interface XDVNFT extends BaseContract {
   };
 
   populateTransaction: {
-    WXDV(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    anconprotocol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     /**
      * See {IERC721-approve}.
