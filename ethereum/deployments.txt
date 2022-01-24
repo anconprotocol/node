@@ -1,3 +1,62 @@
+ 
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'mumbai'
+> Network id:      80001
+> Block gas limit: 20000000 (0x1312d00)
+
+
+2_ics23.js
+==========
+
+   Replacing 'WXDV'
+   ----------------
+   > transaction hash:    0x4be370194e40b69d544610575d75102222dae73c1b0f2a2f5f27955f4d328440
+   > Blocks: 3            Seconds: 6
+   > contract address:    0x416c69fc4FE81829688A785e6F76842b19A48615
+   > block number:        24223506
+   > block timestamp:     1643052293
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.891201915999979
+   > gas used:            3906193 (0x3b9a91)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.11718579 ETH
+
+
+   Replacing 'XDVNFT'
+   ------------------
+   > transaction hash:    0x3f13a9d1e06040a29a4d73eeddadb11d018de4a122a8c86d100492fef06fb7cd
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x4649934BbDB6309F3505fc1cae838B7B14aAb890
+   > block number:        24223513
+   > block timestamp:     1643052307
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.802410225999979
+   > gas used:            2959723 (0x2d296b)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.08879169 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.20597748 ETH
+
+
+Summary
+=======
+> Total deployments:   2
+> Final cost:          0.20597748 ETH
+
+
 
 Compiling your contracts...
 ===========================
@@ -9,7 +68,7 @@ Starting migrations...
 ======================
 > Network name:    'bsctestnet'
 > Network id:      97
-> Block gas limit: 29999542 (0x1c9c1b6)
+> Block gas limit: 30000000 (0x1c9c380)
 
 
 2_ics23.js
@@ -17,188 +76,62 @@ Starting migrations...
 
    Replacing 'WXDV'
    ----------------
-   > transaction hash:    0xe2c8cf28f89de3adf708194fd540e4556af3693aba232db14bbe22096b893a7f
-   > Blocks: 4            Seconds: 13
-   > contract address:    0x6F22D9227A56d0159cDAae929B200c87B772C435
-   > block number:        16147880
-   > block timestamp:     1643039299
+   > transaction hash:    0xb026e30b1beb464739b1596f3674c05c0a705e5431259c56e87211b1e08acdbc
+   > Blocks: 2            Seconds: 9
+   > contract address:    0x24DC80116D016496Cc237553Bebe654200C49577
+   > block number:        16152246
+   > block timestamp:     1643052397
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             2.016173268
-   > gas used:            3966202 (0x3c84fa)
+   > balance:             1.79730542
+   > gas used:            3885069 (0x3b480d)
    > gas price:           10 gwei
    > value sent:          0 ETH
-   > total cost:          0.03966202 ETH
+   > total cost:          0.03885069 ETH
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16147885)
-   > confirmation number: 3 (block: 16147886)
-   > confirmation number: 4 (block: 16147887)
-   > confirmation number: 5 (block: 16147888)
-   > confirmation number: 7 (block: 16147890)
-   > confirmation number: 8 (block: 16147891)
-   > confirmation number: 10 (block: 16147893)
+   > confirmation number: 2 (block: 16152249)
+   > confirmation number: 3 (block: 16152250)
+   > confirmation number: 5 (block: 16152252)
+   > confirmation number: 6 (block: 16152253)
+   > confirmation number: 7 (block: 16152254)
+   > confirmation number: 8 (block: 16152255)
+   > confirmation number: 9 (block: 16152256)
+   > confirmation number: 11 (block: 16152258)
 
    Replacing 'XDVNFT'
    ------------------
-   > transaction hash:    0xd1388809b7659ea556380f6014c98fef70eed974bf6eac1e7f460a18f8386c58
+   > transaction hash:    0xcaa23b3cdc989d020ac8913208cada35bcd8e6cc96339338436f024e625f5f18
    > Blocks: 3            Seconds: 9
-   > contract address:    0xF89C19cda9220aaeaBcdDBC33f87f09CeCCe3f1b
-   > block number:        16147897
-   > block timestamp:     1643039350
+   > contract address:    0x13a01D38c83C4FA509BD9bEd948F7817AECBa872
+   > block number:        16152263
+   > block timestamp:     1643052448
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.987121638
-   > gas used:            2905163 (0x2c544b)
+   > balance:             1.76780855
+   > gas used:            2949687 (0x2d0237)
    > gas price:           10 gwei
    > value sent:          0 ETH
-   > total cost:          0.02905163 ETH
+   > total cost:          0.02949687 ETH
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16147900)
-   > confirmation number: 3 (block: 16147901)
-   > confirmation number: 5 (block: 16147903)
-   > confirmation number: 6 (block: 16147904)
-   > confirmation number: 7 (block: 16147905)
-   > confirmation number: 8 (block: 16147906)
-   > confirmation number: 10 (block: 16147908)
+   > confirmation number: 2 (block: 16152266)
+   > confirmation number: 3 (block: 16152267)
+   > confirmation number: 5 (block: 16152269)
+   > confirmation number: 6 (block: 16152270)
+   > confirmation number: 7 (block: 16152271)
+   > confirmation number: 9 (block: 16152273)
+   > confirmation number: 10 (block: 16152274)
 
    > Saving migration to chain.
    > Saving artifacts
    -------------------------------------
-   > Total cost:          0.06871365 ETH
+   > Total cost:          0.06834756 ETH
 
 
 Summary
 =======
 > Total deployments:   2
-> Final cost:          0.06871365 ETH
+> Final cost:          0.06834756 ETH
 
 
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-
-Starting migrations...
-======================
-> Network name:    'mumbai'
-> Network id:      80001
-> Block gas limit: 20000000 (0x1312d00)
-
-
-2_ics23.js
-==========
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-
-Starting migrations...
-======================
-> Network name:    'auroratestnet'
-> Network id:      1313161555
-> Block gas limit: 0 (0x0)
-
-
-2_ics23.js
-==========
-
-   Replacing 'WXDV'
-   ----------------
-   > transaction hash:    0x9508ba688bb7a973cd1fe1c99cbb48cec288d2e5ad32c9c7197e48924f7ba938
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x0d17E7b60C094A47413b2514f1420BA877536f47
-   > block number:        80031217
-   > block timestamp:     1643039480
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.01
-   > gas used:            3987338 (0x3cd78a)
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0x21133b8029ae009429d20d782823617273096195ef5bdcd7550074f90fa4dcfc
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x2cFBD78C66f8c17B0104F31BDC6bA58941cab6A1
-   > block number:        80031232
-   > block timestamp:     1643039490
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.01
-   > gas used:            2915199 (0x2c7b7f)
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-
-Error: execution reverted
-    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:131:14)
-    at runMicrotasks (<anonymous>)
-    at processTicksAndRejections (node:internal/process/task_queues:96:5)
-    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
-    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
-    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
-    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
-    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
-    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
-    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
-    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
-Truffle v5.4.22 (core: 5.4.22)
-Node v16.2.0
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-
-Starting migrations...
-======================
-> Network name:    'mumbai'
-> Network id:      80001
-> Block gas limit: 20000000 (0x1312d00)
-
-
-2_ics23.js
-==========
-
-   Replacing 'WXDV'
-   ----------------
-   > transaction hash:    0xc6bb6af33d8b889d0e5550dde189646bcd3887d070312164963f45fb434f9ae1
-   > Blocks: 2            Seconds: 5
-   > contract address:    0x51167f0Cf97a35D8502B3829b5f80B8F3397D606
-   > block number:        24218660
-   > block timestamp:     1643039609
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.309982175999979
-   > gas used:            3987326 (0x3cd77e)
-   > gas price:           30 gwei
-   > value sent:          0 ETH
-   > total cost:          0.11961978 ETH
-
-
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0xd095fee7eec9ffda1736da711cdca337a3705bc3661d674280805e3404835656
-   > Blocks: 3            Seconds: 5
-   > contract address:    0x243aFE3BB903d1ae39a8128D82dA4B05E7253Ef0
-   > block number:        24218667
-   > block timestamp:     1643039623
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.222526565999979
-   > gas used:            2915187 (0x2c7b73)
-   > gas price:           30 gwei
-   > value sent:          0 ETH
-   > total cost:          0.08745561 ETH
-
-
-insufficient funds for gas * price + value
-Truffle v5.4.22 (core: 5.4.22)
-Node v16.2.0

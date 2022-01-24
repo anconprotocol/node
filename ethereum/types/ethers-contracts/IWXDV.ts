@@ -80,13 +80,13 @@ export type ExistenceProofStructOutput = [
 
 export interface IWXDVInterface extends utils.Interface {
   functions: {
-    "mintWithProof(address,uint256,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "submitMintWithProof(address,uint256,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "lockWithProof(address,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
     "releaseWithProof(address,bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "mintWithProof",
+    functionFragment: "submitMintWithProof",
     values: [
       string,
       BigNumberish,
@@ -124,7 +124,7 @@ export interface IWXDVInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "mintWithProof",
+    functionFragment: "submitMintWithProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -166,7 +166,7 @@ export interface IWXDV extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    mintWithProof(
+    submitMintWithProof(
       sender: string,
       newItemId: BigNumberish,
       moniker: BytesLike,
@@ -201,7 +201,7 @@ export interface IWXDV extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  mintWithProof(
+  submitMintWithProof(
     sender: string,
     newItemId: BigNumberish,
     moniker: BytesLike,
@@ -236,7 +236,7 @@ export interface IWXDV extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    mintWithProof(
+    submitMintWithProof(
       sender: string,
       newItemId: BigNumberish,
       moniker: BytesLike,
@@ -274,7 +274,7 @@ export interface IWXDV extends BaseContract {
   filters: {};
 
   estimateGas: {
-    mintWithProof(
+    submitMintWithProof(
       sender: string,
       newItemId: BigNumberish,
       moniker: BytesLike,
@@ -310,7 +310,7 @@ export interface IWXDV extends BaseContract {
   };
 
   populateTransaction: {
-    mintWithProof(
+    submitMintWithProof(
       sender: string,
       newItemId: BigNumberish,
       moniker: BytesLike,

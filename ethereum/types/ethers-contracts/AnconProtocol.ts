@@ -134,15 +134,19 @@ export interface AnconProtocolInterface extends utils.Interface {
     "dagRegistrationFee()": FunctionFragment;
     "getIavlSpec()": FunctionFragment;
     "latestRootHashTable(bytes32)": FunctionFragment;
+    "nonce(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "proofs(bytes)": FunctionFragment;
     "protocolFee()": FunctionFragment;
     "relayer()": FunctionFragment;
     "relayerHashTable(bytes32,uint256)": FunctionFragment;
+    "seq()": FunctionFragment;
     "stablecoin()": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
     "whitelistedDagGraph(bytes32)": FunctionFragment;
     "getContractIdentifier()": FunctionFragment;
+    "verifyContractIdentifier(uint256,address,bytes32)": FunctionFragment;
+    "getNonce()": FunctionFragment;
     "setWhitelistedDagGraph(bytes32,address)": FunctionFragment;
     "updateRelayerHeader(bytes32,bytes,uint256)": FunctionFragment;
     "setPaymentToken(address)": FunctionFragment;
@@ -195,6 +199,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "latestRootHashTable",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "nonce", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proofs", values: [BytesLike]): string;
   encodeFunctionData(
@@ -206,6 +211,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "relayerHashTable",
     values: [BytesLike, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "seq", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stablecoin",
     values?: undefined
@@ -228,6 +234,11 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "getContractIdentifier",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "verifyContractIdentifier",
+    values: [BigNumberish, string, BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "getNonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setWhitelistedDagGraph",
     values: [BytesLike, string]
@@ -316,6 +327,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "latestRootHashTable",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proofs", data: BytesLike): Result;
   decodeFunctionResult(
@@ -327,6 +339,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "relayerHashTable",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "seq", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stablecoin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
   decodeFunctionResult(
@@ -337,6 +350,11 @@ export interface AnconProtocolInterface extends utils.Interface {
     functionFragment: "getContractIdentifier",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "verifyContractIdentifier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setWhitelistedDagGraph",
     data: BytesLike
@@ -488,6 +506,8 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    nonce(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
@@ -501,6 +521,8 @@ export interface AnconProtocol extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    seq(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     stablecoin(overrides?: CallOverrides): Promise<[string]>;
 
@@ -519,6 +541,15 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<[string]>;
 
     getContractIdentifier(overrides?: CallOverrides): Promise<[string]>;
+
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    getNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,
@@ -621,6 +652,8 @@ export interface AnconProtocol extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  nonce(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -634,6 +667,8 @@ export interface AnconProtocol extends BaseContract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  seq(overrides?: CallOverrides): Promise<BigNumber>;
 
   stablecoin(overrides?: CallOverrides): Promise<string>;
 
@@ -652,6 +687,15 @@ export interface AnconProtocol extends BaseContract {
   ): Promise<string>;
 
   getContractIdentifier(overrides?: CallOverrides): Promise<string>;
+
+  verifyContractIdentifier(
+    usernonce: BigNumberish,
+    sender: string,
+    hash: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   setWhitelistedDagGraph(
     moniker: BytesLike,
@@ -757,6 +801,8 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    nonce(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
@@ -770,6 +816,8 @@ export interface AnconProtocol extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    seq(overrides?: CallOverrides): Promise<BigNumber>;
 
     stablecoin(overrides?: CallOverrides): Promise<string>;
 
@@ -788,6 +836,15 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<string>;
 
     getContractIdentifier(overrides?: CallOverrides): Promise<string>;
+
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,
@@ -940,6 +997,8 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    nonce(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
@@ -953,6 +1012,8 @@ export interface AnconProtocol extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    seq(overrides?: CallOverrides): Promise<BigNumber>;
 
     stablecoin(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -971,6 +1032,15 @@ export interface AnconProtocol extends BaseContract {
     ): Promise<BigNumber>;
 
     getContractIdentifier(overrides?: CallOverrides): Promise<BigNumber>;
+
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,
@@ -1084,6 +1154,11 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    nonce(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proofs(
@@ -1100,6 +1175,8 @@ export interface AnconProtocol extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    seq(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     stablecoin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1120,6 +1197,15 @@ export interface AnconProtocol extends BaseContract {
     getContractIdentifier(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setWhitelistedDagGraph(
       moniker: BytesLike,

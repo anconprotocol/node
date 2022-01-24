@@ -234,19 +234,20 @@ contract WXDV is
         require(sender == nftContractCaller.ownerOf(id), "invalid owner");
 
         if (
-            // tokenLockStorage[msg.sender][id] == TOKEN_AVAILABLE &&
-            nftContractCaller.ownerOf(id) == sender
+            tokenLockStorage[sender][id] == TOKEN_AVAILABLE //nftContractCaller.ownerOf(id) == sender
         ) {
-            require(
-                nftContractCaller.getApproved(id) == address(this),
-                "WXDV needs to be approved for lock operation"
-            );
-            nftContractCaller.safeTransferFrom(sender, address(this), id);
+            // require(
+            //     nftContractCaller.getApproved(id) == address(this),
+            //     "WXDV needs to be approved for lock operation"
+            // );
+            // nftContractCaller.safeTransferFrom(sender, address(this), id);
             // // Set as locked
+            lock(sender, id);
             emit Locked(sender, id);
         } else {
+            // todo: must be sender
             require(ownerOf(id) == address(this), "Is not a wrapped token");
-            _burn(id);
+            _burn(id); // todo: must give an incentive to holder
         }
         return id;
     }
@@ -306,26 +307,33 @@ contract WXDV is
             "invalid packet"
         );
 
-        require(sender == newOwner, "invalid sender");
 
         ERC721 nftContractCaller = ERC721(msg.sender);
+        require(sender == nftContractCaller.ownerOf(id), "invalid owner");
 
         if (
-            nftContractCaller.ownerOf(id) == address(this)
+            tokenLockStorage[sender][id] == TOKEN_LOCKED //nftContractCaller.ownerOf(id) == sender
         ) {
-            nftContractCaller.approve(msg.sender, id);
-
+            // require(
+            //     nftContractCaller.getApproved(id) == address(this),
+            //     "WXDV needs to be approved for lock operation"
+            // );
+            // nftContractCaller.safeTransferFrom(sender, address(this), id);
+            // // Set as locked
+            unlock(sender, id);
             emit Released(sender, id);
             return 2;
         } else {
+            // todo: must be sender
+
             // if token doesnt exist I need to create a wrapped xdv token
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
             _safeMint(newOwner, newItemId);
             _setTokenURI(id, metadataUri);
-            return 1;
-        }
 
+            return  1;
+        }
         return 0;
     }
 
@@ -356,7 +364,6 @@ contract WXDV is
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Pausable) {
         require(!paused(), "XDV: Token execution is paused");
-        require(!islocked(tokenId, from), "XDV: This token is locked");
 
         if (from == address(0)) {
             paymentBeforeMint(msg.sender);

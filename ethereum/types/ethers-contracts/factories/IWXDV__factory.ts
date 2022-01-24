@@ -212,7 +212,7 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    name: "mintWithProof",
+    name: "submitMintWithProof",
     outputs: [
       {
         internalType: "bool",

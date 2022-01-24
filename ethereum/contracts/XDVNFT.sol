@@ -126,16 +126,26 @@ contract XDVNFT is
         Ics23Helper.ExistenceProof memory proof,
         bytes32 hash
     ) public payable returns (uint256) {
-        return
-            WXDV.lockWithProof(
-                msg.sender,
-                moniker,
-                key,
-                packet,
-                userProof,
-                proof,
-                hash
-            );
+        WXDV.lockWithProof(
+            msg.sender,
+            moniker,
+            key,
+            packet,
+            userProof,
+            proof,
+            hash
+        );
+        (uint256 id, bytes32 contractIdentifier) = abi.decode(
+            packet,
+            (uint256, bytes32)
+        );
+        require(
+            hash == keccak256(abi.encodePacked(id, contractIdentifier)),
+            "invalid packet"
+        );
+
+        safeTransferFrom(msg.sender,address(this), id);
+        return id;
     }
 
     /**
