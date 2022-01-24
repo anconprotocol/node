@@ -4,6 +4,54 @@ Compiling your contracts...
 > Everything is up to date, there is nothing to compile.
 
 
+
+Starting migrations...
+======================
+> Network name:    'bsctestnet'
+> Network id:      97
+> Block gas limit: 30000000 (0x1c9c380)
+
+
+2_ics23.js
+==========
+
+   Replacing 'XDVNFT'
+   ------------------
+   > transaction hash:    0x18426611a594db67e3b8db626bd699ae6da5f5631ca066552f743665c47a44e1
+   > Blocks: 6            Seconds: 19
+   > contract address:    0x9f31CdF98BE42a35D15c32619497FA66a86eb923
+   > block number:        16156614
+   > block timestamp:     1643065501
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             1.671299198
+   > gas used:            3103154 (0x2f59b2)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.03103154 ETH
+
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16156620)
+   > confirmation number: 4 (block: 16156622)
+   > confirmation number: 5 (block: 16156623)
+   > confirmation number: 6 (block: 16156624)
+   > confirmation number: 8 (block: 16156626)
+   > confirmation number: 9 (block: 16156627)
+   > confirmation number: 10 (block: 16156628)
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.03103154 ETH
+
+
+Summary
+=======
+> Total deployments:   1
+> Final cost:          0.03103154 ETH
+
+
+
 Compiling your contracts...
 ===========================
 > Everything is up to date, there is nothing to compile.
@@ -22,29 +70,29 @@ Starting migrations...
 
    Replacing 'XDVNFT'
    ------------------
-   > transaction hash:    0xf4a404f82574c33a5876933d5695cea802fb0803b31b5f8ace52941c14cfdbb8
-   > Blocks: 1            Seconds: 5
-   > contract address:    0xBf6b5c18A6Cc8DE4A48b8aDf260Db4bE26d7f40b
-   > block number:        24227624
-   > block timestamp:     1643062403
+   > transaction hash:    0xbd9b7fc2b681a851070fbb64ccfadd3fcae0e174d9bab578a3d2588a02790f32
+   > Blocks: 2            Seconds: 5
+   > contract address:    0x7805a309f146f908F39227F1b3ba0C3202d1C4c7
+   > block number:        24228965
+   > block timestamp:     1643065599
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             0.602495763999979
-   > gas used:            3109638 (0x2f7306)
+   > balance:             0.501134813999979
+   > gas used:            3113178 (0x2f80da)
    > gas price:           30 gwei
    > value sent:          0 ETH
-   > total cost:          0.09328914 ETH
+   > total cost:          0.09339534 ETH
 
 
    > Saving migration to chain.
    > Saving artifacts
    -------------------------------------
-   > Total cost:          0.09328914 ETH
+   > Total cost:          0.09339534 ETH
 
 
 Summary
 =======
 > Total deployments:   1
-> Final cost:          0.09328914 ETH
+> Final cost:          0.09339534 ETH
 
 
 
@@ -66,14 +114,14 @@ Starting migrations...
 
    Replacing 'XDVNFT'
    ------------------
-   > transaction hash:    0x54a392737b3e0740f160c1c8342e15af9200011631198a4ad49090e5d8acbc90
+   > transaction hash:    0x05416e1cdd86f8bbb43c0645402fc122111fd569628fe40e9ab60fdf73c3bfbe
    > Blocks: 0            Seconds: 0
-   > contract address:    0xF717f0A9700bE0487515AfF15D35CaB4CAEb964C
-   > block number:        80063283
-   > block timestamp:     1643062444
+   > contract address:    0xa3dcdE15598a59116a276ACB0Dcc4f46d4D23361
+   > block number:        80067640
+   > block timestamp:     1643065639
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
    > balance:             0.01
-   > gas used:            3109650 (0x2f7312)
+   > gas used:            3113190 (0x2f80e6)
    > gas price:           0 gwei
    > value sent:          0 ETH
    > total cost:          0 ETH
@@ -89,58 +137,5 @@ Summary
 =======
 > Total deployments:   1
 > Final cost:          0 ETH
-
-
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-
-Starting migrations...
-======================
-> Network name:    'bsctestnet'
-> Network id:      97
-> Block gas limit: 29882814 (0x1c7f9be)
-
-
-2_ics23.js
-==========
-
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0x386bc6a12823b69b8e2063e59cdae226ea2644f88ae9bc46de532daf79f01dbc
-   > Blocks: 7            Seconds: 22
-   > contract address:    0xB2326Bf08dC9e09Eddc60a28b8308100436BF65c
-   > block number:        16155644
-   > block timestamp:     1643062591
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             1.70493677
-   > gas used:            3099614 (0x2f4bde)
-   > gas price:           10 gwei
-   > value sent:          0 ETH
-   > total cost:          0.03099614 ETH
-
-   Pausing for 10 confirmations...
-   -------------------------------
-   > confirmation number: 2 (block: 16155650)
-   > confirmation number: 3 (block: 16155651)
-   > confirmation number: 5 (block: 16155653)
-   > confirmation number: 6 (block: 16155654)
-   > confirmation number: 7 (block: 16155655)
-   > confirmation number: 9 (block: 16155657)
-   > confirmation number: 10 (block: 16155658)
-
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:          0.03099614 ETH
-
-
-Summary
-=======
-> Total deployments:   1
-> Final cost:          0.03099614 ETH
 
 

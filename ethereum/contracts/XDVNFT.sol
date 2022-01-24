@@ -181,10 +181,10 @@ contract XDVNFT is
         (
             uint256 id,
             string memory metadataUri,
-            address newOwner,
+            bytes memory newOwner,
             //            bytes32 lockTransactionHash,
             bytes32 contractIdentifier
-        ) = abi.decode(packet, (uint256, string, address, bytes32));
+        ) = abi.decode(packet, (uint256, string, bytes, bytes32));
 
         require(
             hash ==
@@ -200,11 +200,11 @@ contract XDVNFT is
             "invalid packet"
         );
         require(
-            msg.sender == newOwner && msg.sender != this.ownerOf(id),
+            msg.sender == address(bytes20(newOwner)),
             "invalid owner"
         );
         // approve(address(this), id);
-        safeTransferFrom(address(this), newOwner, id);
+        safeTransferFrom(address(this), address(bytes20(newOwner)), id);
         _setTokenURI(id, metadataUri);
         return id;
     }
