@@ -141,18 +141,23 @@ contract XDVNFT is
             ),
             "invalid packet proof"
         );
-        (uint256 id, bytes32 contractIdentifier) = abi.decode(
-            packet,
-            (uint256, bytes32)
-        );
+        (
+            uint256 id,
+            string memory metadataUri,
+            bytes32 contractIdentifier
+        ) = abi.decode(packet, (uint256, string, bytes32));
         require(
-            hash == keccak256(abi.encodePacked(id, contractIdentifier)),
+            hash ==
+                keccak256(
+                    abi.encodePacked(id, metadataUri, contractIdentifier)
+                ),
             "invalid packet"
         );
 
         require(msg.sender == this.ownerOf(id), "invalid owner");
-        approve(address(this), id);
-        safeTransferFrom(msg.sender, address(this), id);
+
+        _setTokenURI(id, metadataUri);
+
         return id;
     }
 
@@ -182,9 +187,9 @@ contract XDVNFT is
             uint256 id,
             string memory metadataUri,
             bytes memory newOwner,
-            //            bytes32 lockTransactionHash,
+            bytes memory destination,
             bytes32 contractIdentifier
-        ) = abi.decode(packet, (uint256, string, bytes, bytes32));
+        ) = abi.decode(packet, (uint256, string, bytes, bytes, bytes32));
 
         require(
             hash ==
@@ -193,19 +198,19 @@ contract XDVNFT is
                         id,
                         metadataUri,
                         newOwner,
-                        //                        lockTransactionHash,
+                        destination,
                         contractIdentifier
                     )
                 ),
             "invalid packet"
         );
+        require(msg.sender == address(bytes20(newOwner)), "invalid owner");
         require(
-            msg.sender == address(bytes20(newOwner)),
-            "invalid owner"
+            address(this) == address(bytes20(destination)),
+            "invalid destination"
         );
-        // approve(address(this), id);
-        safeTransferFrom(address(this), address(bytes20(newOwner)), id);
         _setTokenURI(id, metadataUri);
+
         return id;
     }
 
