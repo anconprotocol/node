@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IAnconProtocol {
-    // using ics23Helper for *;
-    // ics23Helper.ExistenceProof ExistenceProof;
+
+    function getContractIdentifier() external view returns (bytes32);
+
     function submitPacketWithProof(
         bytes32 moniker,
         address sender,

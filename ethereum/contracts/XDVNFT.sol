@@ -74,11 +74,9 @@ contract XDVNFT is
      * @dev Mints a XDV Data Token
      */
     function mintWithProof(
-        bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof,
-        bytes32 hash
+        Ics23Helper.ExistenceProof memory packetProof
     ) public returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
@@ -87,19 +85,15 @@ contract XDVNFT is
                 moniker,
                 msg.sender,
                 userProof,
-                key,
+                packetProof.key,
                 packet,
-                proof
+                packetProof
             ),
             "invalid packet proof"
         );
         (address user, string memory uri) = abi.decode(
             packet,
             (address, string)
-        );
-        require(
-            hash == keccak256(abi.encodePacked(user, uri)),
-            "Invalid packet"
         );
 
         _safeMint(user, newItemId);
@@ -120,24 +114,21 @@ contract XDVNFT is
     }
 
     /**
-     * More info at https://github.com/renproject/ren/wiki#cross-chain-transactions
-     * @dev Locks a XDV Data Token
+     * @dev Transfer Metadata Ownership using DID - start
      */
     function lockWithProof(
-        bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof,
-        bytes32 hash
+        Ics23Helper.ExistenceProof memory packetProof
     ) public payable returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
                 msg.sender,
                 userProof,
-                key,
+                packetProof.key,
                 packet,
-                proof
+                packetProof
             ),
             "invalid packet proof"
         );
@@ -146,14 +137,11 @@ contract XDVNFT is
             string memory metadataUri,
             bytes32 contractIdentifier
         ) = abi.decode(packet, (uint256, string, bytes32));
-        require(
-            hash ==
-                keccak256(
-                    abi.encodePacked(id, metadataUri, contractIdentifier)
-                ),
-            "invalid packet"
-        );
 
+        require(
+            contractIdentifier == anconprotocol.getContractIdentifier(),
+            "must be from anconprotocol from same chain"
+        );
         require(msg.sender == this.ownerOf(id), "invalid owner");
 
         _setTokenURI(id, metadataUri);
@@ -162,24 +150,21 @@ contract XDVNFT is
     }
 
     /**
-     * More info at https://github.com/renproject/ren/wiki#cross-chain-transactions
-     * @dev Releases a XDV Data Token
+     * @dev Transfer Metadata Ownership using DID - start
      */
     function releaseWithProof(
-        bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
-        Ics23Helper.ExistenceProof memory proof,
-        bytes32 hash
+        Ics23Helper.ExistenceProof memory packetProof
     ) public payable returns (uint256) {
         require(
             anconprotocol.submitPacketWithProof(
                 moniker,
                 msg.sender,
                 userProof,
-                key,
+                packetProof.key,
                 packet,
-                proof
+                packetProof
             ),
             "invalid packet proof"
         );
@@ -190,20 +175,11 @@ contract XDVNFT is
             bytes memory destination,
             bytes32 contractIdentifier
         ) = abi.decode(packet, (uint256, string, bytes, bytes, bytes32));
-
         require(
-            hash ==
-                keccak256(
-                    abi.encodePacked(
-                        id,
-                        metadataUri,
-                        newOwner,
-                        destination,
-                        contractIdentifier
-                    )
-                ),
-            "invalid packet"
+            contractIdentifier == anconprotocol.getContractIdentifier(),
+            "must be from anconprotocol from same chain"
         );
+        require(ownerOf(id) == address(bytes20(newOwner)), "invalid owner");
         require(msg.sender == address(bytes20(newOwner)), "invalid owner");
         require(
             address(this) == address(bytes20(destination)),

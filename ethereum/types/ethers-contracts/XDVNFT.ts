@@ -104,9 +104,9 @@ export interface XDVNFTInterface extends utils.Interface {
     "url()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "onERC721Received(address,address,uint256,bytes)": FunctionFragment;
-    "mintWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
-    "lockWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
-    "releaseWithProof(bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes32)": FunctionFragment;
+    "mintWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "lockWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "releaseWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "withdrawBalance(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
@@ -179,33 +179,15 @@ export interface XDVNFTInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintWithProof",
-    values: [
-      BytesLike,
-      BytesLike,
-      ExistenceProofStruct,
-      ExistenceProofStruct,
-      BytesLike
-    ]
+    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "lockWithProof",
-    values: [
-      BytesLike,
-      BytesLike,
-      ExistenceProofStruct,
-      ExistenceProofStruct,
-      BytesLike
-    ]
+    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "releaseWithProof",
-    values: [
-      BytesLike,
-      BytesLike,
-      ExistenceProofStruct,
-      ExistenceProofStruct,
-      BytesLike
-    ]
+    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenURI",
@@ -546,29 +528,23 @@ export interface XDVNFT extends BaseContract {
     ): Promise<ContractTransaction>;
 
     mintWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     lockWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     releaseWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -749,29 +725,23 @@ export interface XDVNFT extends BaseContract {
   ): Promise<ContractTransaction>;
 
   mintWithProof(
-    key: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
-    proof: ExistenceProofStruct,
-    hash: BytesLike,
+    packetProof: ExistenceProofStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   lockWithProof(
-    key: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
-    proof: ExistenceProofStruct,
-    hash: BytesLike,
+    packetProof: ExistenceProofStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   releaseWithProof(
-    key: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
-    proof: ExistenceProofStruct,
-    hash: BytesLike,
+    packetProof: ExistenceProofStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -938,29 +908,23 @@ export interface XDVNFT extends BaseContract {
     ): Promise<string>;
 
     mintWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     lockWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     releaseWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1209,29 +1173,23 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     mintWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     lockWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     releaseWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1419,29 +1377,23 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     mintWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     lockWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     releaseWithProof(
-      key: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
-      proof: ExistenceProofStruct,
-      hash: BytesLike,
+      packetProof: ExistenceProofStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

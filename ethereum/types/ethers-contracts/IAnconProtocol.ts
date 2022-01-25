@@ -80,11 +80,16 @@ export type ExistenceProofStructOutput = [
 
 export interface IAnconProtocolInterface extends utils.Interface {
   functions: {
+    "getContractIdentifier()": FunctionFragment;
     "submitPacketWithProof(bytes32,address,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProof(bytes32,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProofWithKV(bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "getContractIdentifier",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "submitPacketWithProof",
     values: [
@@ -105,6 +110,10 @@ export interface IAnconProtocolInterface extends utils.Interface {
     values: [BytesLike, BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getContractIdentifier",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "submitPacketWithProof",
     data: BytesLike
@@ -148,6 +157,8 @@ export interface IAnconProtocol extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getContractIdentifier(overrides?: CallOverrides): Promise<[string]>;
+
     submitPacketWithProof(
       moniker: BytesLike,
       sender: string,
@@ -172,6 +183,8 @@ export interface IAnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
   };
+
+  getContractIdentifier(overrides?: CallOverrides): Promise<string>;
 
   submitPacketWithProof(
     moniker: BytesLike,
@@ -198,6 +211,8 @@ export interface IAnconProtocol extends BaseContract {
   ): Promise<boolean>;
 
   callStatic: {
+    getContractIdentifier(overrides?: CallOverrides): Promise<string>;
+
     submitPacketWithProof(
       moniker: BytesLike,
       sender: string,
@@ -226,6 +241,8 @@ export interface IAnconProtocol extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getContractIdentifier(overrides?: CallOverrides): Promise<BigNumber>;
+
     submitPacketWithProof(
       moniker: BytesLike,
       sender: string,
@@ -252,6 +269,10 @@ export interface IAnconProtocol extends BaseContract {
   };
 
   populateTransaction: {
+    getContractIdentifier(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     submitPacketWithProof(
       moniker: BytesLike,
       sender: string,
