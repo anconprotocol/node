@@ -84,17 +84,11 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 
 	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
+	hexdata, _ := jsonparser.GetString(v, "data")
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	ok, err := types.Authenticate(doc, []byte(temp), signature)
-	if !ok {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid signature").Error(),
-		})
-		return
-	}
-
-	data, err := hexutil.Decode(temp)
+	data, err := hexutil.Decode(hexdata)
+	data = []byte(hexdata)
 	var buf bytes.Buffer
 	isJSON := false
 	if err != nil {
@@ -105,6 +99,13 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing payload data source").Error(),
+		})
+		return
+	}
+	ok, err := types.Authenticate(doc, data, signature)
+	if !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
 		})
 		return
 	}
@@ -174,7 +175,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		NextValueKind: datamodel.Kind_Link,
 	}}
 
-	if n.Kind() != datamodel.Kind_List {
+	if isJSON {
 		n, err = dagctx.ApplyFocusedTransform(n, muts)
 	}
 
