@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
@@ -159,7 +160,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-
+	digest := crypto.Keccak256(data)
 	var n datamodel.Node
 	if isJSON && !hasEncrypt {
 		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
@@ -195,36 +196,47 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
-		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("invalid did %v", err).Error(),
-			})
-			return
-		}
+	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did %v", err).Error(),
+		})
+		return
+	}
 
-		link, err := sdk.ParseCidLink(dagctx.RootKey)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("invalid did %v", err).Error(),
-			})
-		}
+	link, err := sdk.ParseCidLink(dagctx.RootKey)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid root%v", err).Error(),
+		})
+	}
 
-		na.AssembleEntry("issuer").AssignString(addrrec)
-		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
-		na.AssembleEntry("content").AssignLink(cid)
-		na.AssembleEntry("commitHash").AssignString(string(lastHash))
-		na.AssembleEntry("height").AssignInt(blockNumber)
-		na.AssembleEntry("signature").AssignString(signature)
-		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
-		na.AssembleEntry("rootKey").AssignString(base64.StdEncoding.EncodeToString([]byte(p)))
-		na.AssembleEntry("root").AssignLink(link)
-		na.AssembleEntry("parent").AssignString(p)
+	prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
+	prevBlock, err := sdk.ParseCidLink(string(prev))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid previous block height%v", err).Error(),
+		})
+	}
+
+	block := dagctx.Apply(&DagBlockResult{
+		Issuer:        addrrec,
+		Timestamp:     time.Now().Unix(),
+		Content:       n,
+		ContentHash:   cid,
+		CommitHash:    string(lastHash),
+		Height:        blockNumber,
+		Signature:     signature,
+		Digest:        hexutil.Encode(digest),
+		Network:       dagctx.Moniker,
+		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
+		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
+		RootHash:      link,
+		LastBlockHash: prevBlock,
 	})
-
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
+	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	resp, _ := sdk.Encode(block)
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
 
@@ -240,6 +252,42 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	})
 }
 
+type DagBlockResult struct {
+	Issuer        string         `json:"issuer"`
+	Timestamp     int64          `json:"timestamp"`
+	Content       datamodel.Node `json:"content"`
+	ContentHash   datamodel.Link `json:"content_hash"`
+	CommitHash    string         `json:"commit_hash"`
+	Height        int64
+	Signature     string `json:"signature"`
+	Digest        string `json:"digest"`
+	Network       string `json:"network"`
+	Key           string `json:"key"`
+	RootKey       string
+	RootHash      datamodel.Link `json:"root_hash"`
+	LastBlockHash datamodel.Link
+}
+
+func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
+
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 12, func(na fluent.MapAssembler) {
+		na.AssembleEntry("issuer").AssignString(args.Issuer)
+		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
+		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
+		na.AssembleEntry("content").AssignNode(args.Content)
+		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
+		na.AssembleEntry("height").AssignInt(args.Height)
+		na.AssembleEntry("signature").AssignString(args.Signature)
+		na.AssembleEntry("digest").AssignString(args.Digest)
+		na.AssembleEntry("network").AssignString(args.Network)
+		na.AssembleEntry("key").AssignString(args.Key)
+		na.AssembleEntry("rootKey").AssignString(args.RootKey)
+		na.AssembleEntry("rootHash").AssignLink(args.RootHash)
+		na.AssembleEntry("lastBlockHash").AssignLink(args.LastBlockHash)
+	})
+
+	return block
+}
 func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutations []Mutation) (datamodel.Node, error) {
 	var current datamodel.Node
 	var err error
@@ -379,7 +427,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
-
+	digest := crypto.Keccak256(data)
 	var items []map[string]interface{}
 	json.Unmarshal(data, &items)
 
@@ -421,35 +469,47 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	version, err := jsonparser.GetInt(commit, "version")
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
-		addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("invalid did %v", err).Error(),
-			})
-			return
-		}
+	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did %v", err).Error(),
+		})
+		return
+	}
 
-		link, err := sdk.ParseCidLink(dagctx.RootKey)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("invalid did %v", err).Error(),
-			})
-		}
-		na.AssembleEntry("issuer").AssignString(addrrec)
-		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
-		na.AssembleEntry("content").AssignLink(cid)
-		na.AssembleEntry("commitHash").AssignString(string(lastHash))
-		na.AssembleEntry("height").AssignInt(blockNumber)
-		na.AssembleEntry("signature").AssignString(signature)
-		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(internalKey)))
-		na.AssembleEntry("rootKey").AssignString(base64.StdEncoding.EncodeToString([]byte(p)))
-		na.AssembleEntry("root").AssignLink(link)
-		na.AssembleEntry("parent").AssignLink(link)
+	link, err := sdk.ParseCidLink(dagctx.RootKey)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid root%v", err).Error(),
+		})
+	}
+
+	prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
+	prevBlock, err := sdk.ParseCidLink(string(prev))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid previous block height%v", err).Error(),
+		})
+	}
+
+	block := dagctx.Apply(&DagBlockResult{
+		Issuer:        addrrec,
+		Timestamp:     time.Now().Unix(),
+		Content:       n,
+		ContentHash:   cid,
+		CommitHash:    string(lastHash),
+		Height:        blockNumber,
+		Signature:     signature,
+		Digest:        hexutil.Encode(digest),
+		Network:       dagctx.Moniker,
+		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
+		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
+		RootHash:      link,
+		LastBlockHash: prevBlock,
 	})
+	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
-	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, block)
-
+	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	resp, _ := sdk.Encode(block)
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
 
