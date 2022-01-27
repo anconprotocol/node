@@ -274,7 +274,7 @@ func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 		na.AssembleEntry("issuer").AssignString(args.Issuer)
 		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
 		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
-		na.AssembleEntry("content").AssignNode(args.Content)
+	//	na.AssembleEntry("content").AssignNode(args.Content)
 		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
 		na.AssembleEntry("height").AssignInt(args.Height)
 		na.AssembleEntry("signature").AssignString(args.Signature)
@@ -283,7 +283,9 @@ func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 		na.AssembleEntry("key").AssignString(args.Key)
 		na.AssembleEntry("rootKey").AssignString(args.RootKey)
 		na.AssembleEntry("rootHash").AssignLink(args.RootHash)
-		na.AssembleEntry("lastBlockHash").AssignLink(args.LastBlockHash)
+		if args.LastBlockHash != nil {
+			na.AssembleEntry("lastBlockHash").AssignLink(args.LastBlockHash)
+		}
 	})
 
 	return block
@@ -486,11 +488,11 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 
 	prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
 	prevBlock, err := sdk.ParseCidLink(string(prev))
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid previous block height%v", err).Error(),
-		})
-	}
+	// if err != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"error": fmt.Errorf("invalid previous block height%v", err).Error(),
+	// 	})
+	// }
 
 	block := dagctx.Apply(&DagBlockResult{
 		Issuer:        addrrec,

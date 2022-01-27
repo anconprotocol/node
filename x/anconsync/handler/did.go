@@ -321,7 +321,7 @@ func (dagctx *Did) CreateDid(c *gin.Context) {
 
 		na.AssembleEntry("issuer").AssignString(addr)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
-		na.AssembleEntry("content").AssignLink(cid)
+		na.AssembleEntry("contentHash").AssignLink(cid)
 		na.AssembleEntry("commitHash").AssignString(string(lastHash))
 		na.AssembleEntry("height").AssignInt(blockNumber)
 		na.AssembleEntry("signature").AssignString(v["signature"])

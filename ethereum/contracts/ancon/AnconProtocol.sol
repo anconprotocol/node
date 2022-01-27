@@ -7,7 +7,7 @@ contract AnconProtocol is ICS23 {
     bytes32 public ENROLL_PAYMENT = keccak256("ENROLL_PAYMENT");
     bytes32 public ENROLL_DAG = keccak256("ENROLL_DAG");
     bytes32 public SUBMIT_PAYMENT = keccak256("SUBMIT_PAYMENT");
-
+    // mapping(bytes32 => uint256) public p
     address public owner;
     address public relayer;
 
@@ -99,7 +99,7 @@ contract AnconProtocol is ICS23 {
     function setPaymentToken(address tokenAddress) public {
         require(owner == msg.sender);
         stablecoin = IERC20(tokenAddress);
-    }
+}
 
     // withdraws gas token, must be admin
     function withdraw(address payable payee) public {
