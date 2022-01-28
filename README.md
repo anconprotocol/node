@@ -1,4 +1,4 @@
-# Ancon Protocol Node v0.5.0
+# Ancon Protocol Node v0.6.0
 
 
 ### Protocol for secure offchain data economy
@@ -463,7 +463,7 @@ example of the returned object:
 - `rootkey`: Rootkey to validate
 - `sync`: Syncs with peers
 - `peers`:  List of peers to sync
-- `quic`: Enables QUIC
+- `quic`: Enables QUIC 
 - `tlscert`: TLS certificate for QUIC
 - `tlskey`: TLS key for QUIC
 - `ipfshost`: IPFS Host address for DAG Pinning
