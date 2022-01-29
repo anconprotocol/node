@@ -13,7 +13,7 @@ const AnconProtocol = artifacts.require('AnconProtocol')
 const {
   AnconProtocol__factory,
 } = require('../types/lib/factories/AnconProtocol__factory')
-const { base64, hexlify } = require('ethers/lib/utils')
+const { base64, hexlify, keccak256, toUtf8Bytes } = require('ethers/lib/utils')
 
 let proofCombined = [
   {
@@ -72,11 +72,11 @@ module.exports = async (deployer, network, accounts) => {
     fs.writeFileSync(path, output)
   }
 
-  // await deployer.deploy(Memory)
-  // await deployer.link(Memory, Bytes)
+  await deployer.deploy(Memory)
+  await deployer.link(Memory, Bytes)
 
-  // await deployer.deploy(Bytes)
-  // await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol)
+  await deployer.deploy(Bytes)
+  await deployer.link(Bytes, ICS23, Ics23Helper, AnconProtocol)
 
   let chainId = 97
   let token = '0xec5dcb5dbf4b114c9d0f65bccab49ec54f6a0867'
@@ -96,26 +96,22 @@ module.exports = async (deployer, network, accounts) => {
     chainId = 1313161555
     token = '0xc115851ca60aed2ccc6ee3d5343f590834e4a3ab'
   }
-  //  await deployer.deploy(AnconProtocol, token, chainId)
+   await deployer.deploy(AnconProtocol, token, chainId, '500000000', '500000000')
   const verifier = await AnconProtocol.deployed()
-  // await deployer.deploy(WXDV, 'WXDV', 'WXDV', token, verifier.address, chainId)
-  // const wxdv = await WXDV.deployed()
 
-  // await verifier.setPaymentToken(token, { from: accounts[0] })
-  // await verifier.setWhitelistedDagGraph(
-  //   web3.utils.keccak256('tensta'),
-  //   '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
-  //   { from: accounts[0] },
-  // )
-  // await verifier.setWhitelistedDagGraph(
-  //   web3.utils.keccak256('anconprotocol'),
-  //   '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
-  //   { from: accounts[0] },
-  // )
-
-  // await verifier.setAccountRegistrationFee('500000000', { from: accounts[0] })
-  // await verifier.setDagGraphFee('500000000', { from: accounts[0] })
-  // await verifier.setProtocolFee('500000000', { from: accounts[0] })
+  await verifier.setPaymentToken(token, { from: accounts[0] })
+  await verifier.registerDagGraphTier(
+    web3.utils.keccak256('tensta'),
+    '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
+    { from: accounts[0] },
+    keccak256(toUtf8Bytes('starter'))
+  )
+  await verifier.registerDagGraphTier(
+    web3.utils.keccak256('anconprotocol'),
+    '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
+    { from: accounts[0] },
+    keccak256(toUtf8Bytes('startup'))
+  )
 
   await deployer.deploy(
     XDVNFT,

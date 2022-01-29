@@ -9,48 +9,97 @@ Starting migrations...
 ======================
 > Network name:    'bsctestnet'
 > Network id:      97
-> Block gas limit: 30000000 (0x1c9c380)
+> Block gas limit: 29999542 (0x1c9c1b6)
 
 
 2_ics23.js
 ==========
 
-   Replacing 'XDVNFT'
+   Replacing 'Memory'
    ------------------
-   > transaction hash:    0xe35252c04b048d0427c18b40900d684fe621153d469b29188f8248dd972302c6
-   > Blocks: 9            Seconds: 27
-   > contract address:    0x9Dcc56b169129804B3d81aFa55cD25Fecb23B30e
-   > block number:        16179079
-   > block timestamp:     1643132934
+   > transaction hash:    0x81fc3a6d67799a442814ecc8a568756db9ab5189ca9f41d336a1b2d9a33ae121
+   > Blocks: 10           Seconds: 30
+   > contract address:    0xBD4A7E99ed18a9727B863cE8924f96b1374Ac353
+   > block number:        16294842
+   > block timestamp:     1643483579
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             2.445571694
-   > gas used:            3125365 (0x2fb075)
+   > balance:             2.384377456
+   > gas used:            72217 (0x11a19)
    > gas price:           10 gwei
    > value sent:          0 ETH
-   > total cost:          0.03125365 ETH
+   > total cost:          0.00072217 ETH
 
    Pausing for 10 confirmations...
    -------------------------------
-   > confirmation number: 2 (block: 16179085)
-   > confirmation number: 3 (block: 16179086)
-   > confirmation number: 5 (block: 16179088)
-   > confirmation number: 6 (block: 16179089)
-   > confirmation number: 7 (block: 16179090)
-   > confirmation number: 9 (block: 16179092)
-   > confirmation number: 10 (block: 16179093)
+   > confirmation number: 2 (block: 16294848)
+   > confirmation number: 3 (block: 16294849)
+   > confirmation number: 4 (block: 16294850)
+   > confirmation number: 7 (block: 16294853)
+   > confirmation number: 8 (block: 16294854)
+   > confirmation number: 10 (block: 16294856)
 
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:          0.03125365 ETH
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x97a02bf7fb7890c12e696ae75d4920ac2ae3e80e04fb111b62a88d76f0b67f4a
+   > Blocks: 5            Seconds: 14
+   > contract address:    0x83F8d6EB3d723c3CB197D661ae15B9daCb265A66
+   > block number:        16294862
+   > block timestamp:     1643483639
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.383655286
+   > gas used:            72217 (0x11a19)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00072217 ETH
 
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16294867)
+   > confirmation number: 3 (block: 16294868)
+   > confirmation number: 4 (block: 16294869)
+   > confirmation number: 6 (block: 16294871)
+   > confirmation number: 7 (block: 16294872)
+   > confirmation number: 9 (block: 16294874)
+   > confirmation number: 10 (block: 16294875)
 
-Summary
-=======
-> Total deployments:   1
-> Final cost:          0.03125365 ETH
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0x859fcd55b62048ce1141303b0f598b2c99790e4131c0fce80ec0a06d402811ed
+   > Blocks: 8            Seconds: 22
+   > contract address:    0x505091105C2356D360E7CDb6cd693a972309b9Fc
+   > block number:        16294881
+   > block timestamp:     1643483696
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             2.343487276
+   > gas used:            4016801 (0x3d4aa1)
+   > gas price:           10 gwei
+   > value sent:          0 ETH
+   > total cost:          0.04016801 ETH
 
+   Pausing for 10 confirmations...
+   -------------------------------
+   > confirmation number: 2 (block: 16294889)
+   > confirmation number: 3 (block: 16294890)
+   > confirmation number: 4 (block: 16294891)
+   > confirmation number: 6 (block: 16294893)
+   > confirmation number: 7 (block: 16294894)
+   > confirmation number: 8 (block: 16294895)
+   > confirmation number: 10 (block: 16294897)
 
+Error: Invalid number of parameters for "registerDagGraphTier". Got 4 expected 3!
+    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:103:18)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
+    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
+    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
+    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
+    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
+    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
+    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
+    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
+Truffle v5.4.22 (core: 5.4.22)
+Node v16.2.0
 
 Compiling your contracts...
 ===========================
@@ -68,33 +117,65 @@ Starting migrations...
 2_ics23.js
 ==========
 
-   Replacing 'XDVNFT'
+   Replacing 'Memory'
    ------------------
-   > transaction hash:    0xe9ada25c6cfb6bcf284e6374e9fdbfbb15b652069a6dd0f3e7e24b4974d9d2ed
-   > Blocks: 1            Seconds: 5
-   > contract address:    0xB3A28DF157c78611abaAeC74D8eCcf7613c08814
-   > block number:        24256228
-   > block timestamp:     1643133039
+   > transaction hash:    0x246d7749a15a1eac9700fe30dcbbd7bb80909bc9c55dae30045d6c44e65db864
+   > Blocks: 3            Seconds: 5
+   > contract address:    0x7E5a4F52e432f945E986371a9Bd31c107575B41B
+   > block number:        24390706
+   > block timestamp:     1643483797
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             5.934524723999979
-   > gas used:            3135389 (0x2fd79d)
+   > balance:             4.886487922009349856
+   > gas used:            72217 (0x11a19)
    > gas price:           30 gwei
    > value sent:          0 ETH
-   > total cost:          0.09406167 ETH
+   > total cost:          0.00216651 ETH
 
 
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:          0.09406167 ETH
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x6c5963eb69834c1311303d418e95b3c0a8e6f8f11a5e2140aa7907e8780abb35
+   > Blocks: 3            Seconds: 5
+   > contract address:    0x55Bf3cB34ffDe2e3A0eF781b89883B3dA6168d71
+   > block number:        24390712
+   > block timestamp:     1643483809
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             4.884321412009349856
+   > gas used:            72217 (0x11a19)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00216651 ETH
 
 
-Summary
-=======
-> Total deployments:   1
-> Final cost:          0.09406167 ETH
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0x1627c2e5b240ac30d0c0ac0922ed00546e1fb19ec83141608c3bb1c366a4e6b6
+   > Blocks: 3            Seconds: 5
+   > contract address:    0x947aAc78bEBAe3521CcA86AF17Dc292D1f143580
+   > block number:        24390718
+   > block timestamp:     1643483821
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             4.761815662009349856
+   > gas used:            4083525 (0x3e4f45)
+   > gas price:           30 gwei
+   > value sent:          0 ETH
+   > total cost:          0.12250575 ETH
 
 
+Error: Invalid number of parameters for "registerDagGraphTier". Got 4 expected 3!
+    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:103:18)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
+    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
+    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
+    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
+    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
+    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
+    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
+    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
+Truffle v5.4.22 (core: 5.4.22)
+Node v16.2.0
 
 Compiling your contracts...
 ===========================
@@ -112,30 +193,62 @@ Starting migrations...
 2_ics23.js
 ==========
 
-   Replacing 'XDVNFT'
+   Replacing 'Memory'
    ------------------
-   > transaction hash:    0x70b941007ea6a51659df1808d190bce9f6c42eef49c6ba61647b373d83aee9b3
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x39f3f3B77aEDf373954959A03c1970296F9971d3
-   > block number:        80155693
-   > block timestamp:     1643133085
+   > transaction hash:    0x534af069511f89820f38bb0d9f82e7fdd2e197c37c230f5a5f68bcb8299f884f
+   > Blocks: 16           Seconds: 8
+   > contract address:    0x8892ec6BAf2DF9AFe6fB4625E9b393771EFe565b
+   > block number:        80624724
+   > block timestamp:     1643483878
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
    > balance:             0.01
-   > gas used:            3135401 (0x2fd7a9)
+   > gas used:            72217 (0x11a19)
    > gas price:           0 gwei
    > value sent:          0 ETH
    > total cost:          0 ETH
 
 
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:                   0 ETH
+   Replacing 'Bytes'
+   -----------------
+   > transaction hash:    0x3a02a1f14bc95d29ba6ec44ffbdf2e8359c799e102140ccfa9a67d3bf078740e
+   > Blocks: 5            Seconds: 4
+   > contract address:    0x60bd9e51C3A8fFd6bB3823c42D5651cA36aB5376
+   > block number:        80624734
+   > block timestamp:     1643483885
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            72217 (0x11a19)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
 
 
-Summary
-=======
-> Total deployments:   1
-> Final cost:          0 ETH
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0x7c0ed992dfa2b1d2fe49fd31751bae23d25f1247ea0bc3efee9e7e3d6d1b162c
+   > Blocks: 0            Seconds: 0
+   > contract address:    0xD4582e764801d33703Deb156180C4c3a27738cB3
+   > block number:        80624748
+   > block timestamp:     1643483895
+   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+   > balance:             0.01
+   > gas used:            4083537 (0x3e4f51)
+   > gas price:           0 gwei
+   > value sent:          0 ETH
+   > total cost:          0 ETH
 
 
+Error: Invalid number of parameters for "registerDagGraphTier". Got 4 expected 3!
+    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:103:18)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
+    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
+    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
+    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
+    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
+    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
+    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
+    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
+Truffle v5.4.22 (core: 5.4.22)
+Node v16.2.0
