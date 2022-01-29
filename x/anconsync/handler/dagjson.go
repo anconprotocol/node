@@ -213,12 +213,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
 	prevBlock, err := sdk.ParseCidLink(string(prev))
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid previous block height%v", err).Error(),
-		})
-	}
-
+ 
 	block := dagctx.Apply(&DagBlockResult{
 		Issuer:        addrrec,
 		Timestamp:     time.Now().Unix(),
