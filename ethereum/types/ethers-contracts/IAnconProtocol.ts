@@ -8,7 +8,7 @@ import {
   BytesLike,
   CallOverrides,
   ContractTransaction,
-  PayableOverrides,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -166,7 +166,7 @@ export interface IAnconProtocol extends BaseContract {
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     verifyProof(
@@ -193,7 +193,7 @@ export interface IAnconProtocol extends BaseContract {
     key: BytesLike,
     packet: BytesLike,
     proof: ExistenceProofStruct,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   verifyProof(
@@ -250,7 +250,7 @@ export interface IAnconProtocol extends BaseContract {
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     verifyProof(
@@ -280,7 +280,7 @@ export interface IAnconProtocol extends BaseContract {
       key: BytesLike,
       packet: BytesLike,
       proof: ExistenceProofStruct,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     verifyProof(

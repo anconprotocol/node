@@ -226,7 +226,7 @@ const _abi = [
         type: "bool",
       },
     ],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
