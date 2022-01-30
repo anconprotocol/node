@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IAnconProtocol {
-
     function getContractIdentifier() external view returns (bytes32);
 
     function submitPacketWithProof(
@@ -16,7 +15,7 @@ interface IAnconProtocol {
         bytes memory key,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory proof
-    ) external payable returns (bool);
+    ) external returns (bool);
 
     function verifyProof(
         bytes32 moniker,
