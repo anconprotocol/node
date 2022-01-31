@@ -18,9 +18,6 @@ contract AnconProtocol is ICS23 {
     address public relayer;
 
     IERC20 public stablecoin;
-    uint256 public protocolFee = 0;
-    uint256 public accountRegistrationFee = 0;
-    uint256 public dagRegistrationFee = 0;
     uint256 chainId = 0;
 
     mapping(bytes => bytes) public accountProofs; //did user-assigned proof key
