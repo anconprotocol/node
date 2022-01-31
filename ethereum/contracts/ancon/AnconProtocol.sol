@@ -322,8 +322,13 @@ contract AnconProtocol is ICS23 {
         require(verifyProof(moniker, proof));
 
         proofs[key] = true;
+        totalSubmittedByDagGraphUser[whitelistedDagGraph[moniker]][sender] =
+            totalSubmittedByDagGraphUser[whitelistedDagGraph[moniker]][
+                sender
+            ] +
+            1;
 
-        nonce[msg.sender] = nonce[msg.sender] + 1;
+        nonce[sender] = nonce[sender] + 1;
         // 2. Submit event
         emit ProofPacketSubmitted(key, packet, moniker);
 
