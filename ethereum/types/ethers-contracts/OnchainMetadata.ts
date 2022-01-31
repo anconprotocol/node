@@ -9,7 +9,6 @@ import {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -20,28 +19,14 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
 export interface OnchainMetadataInterface extends utils.Interface {
   functions: {
-    "setOnchainMetadata(string,string,string)": FunctionFragment;
-    "registerL2Account(string,bytes,bytes,bytes,uint256[],bytes,bytes,uint256)": FunctionFragment;
+    "setOnchainMetadata(string,string,string,string,string,bytes)": FunctionFragment;
     "sum(uint256,uint256)": FunctionFragment;
     "encodeDagjsonBlock(string,string)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "setOnchainMetadata",
-    values: [string, string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "registerL2Account",
-    values: [
-      string,
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BigNumberish[],
-      BytesLike,
-      BytesLike,
-      BigNumberish
-    ]
+    values: [string, string, string, string, string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "sum",
@@ -54,10 +39,6 @@ export interface OnchainMetadataInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "setOnchainMetadata",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "registerL2Account",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "sum", data: BytesLike): Result;
@@ -134,22 +115,13 @@ export interface OnchainMetadata extends BaseContract {
 
   functions: {
     setOnchainMetadata(
-      proofKey: string,
-      proofValue: string,
-      metadataUri: string,
+      name: string,
+      description: string,
+      image: string,
+      owner: string,
+      parent: string,
+      sources: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    registerL2Account(
-      didAddress: string,
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
-      _innerOpPrefix: BytesLike,
-      _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     sum(
@@ -166,22 +138,13 @@ export interface OnchainMetadata extends BaseContract {
   };
 
   setOnchainMetadata(
-    proofKey: string,
-    proofValue: string,
-    metadataUri: string,
+    name: string,
+    description: string,
+    image: string,
+    owner: string,
+    parent: string,
+    sources: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  registerL2Account(
-    didAddress: string,
-    key: BytesLike,
-    value: BytesLike,
-    _prefix: BytesLike,
-    _leafOpUint: BigNumberish[],
-    _innerOpPrefix: BytesLike,
-    _innerOpSuffix: BytesLike,
-    existenceProofInnerOpHash: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   sum(
@@ -198,23 +161,14 @@ export interface OnchainMetadata extends BaseContract {
 
   callStatic: {
     setOnchainMetadata(
-      proofKey: string,
-      proofValue: string,
-      metadataUri: string,
+      name: string,
+      description: string,
+      image: string,
+      owner: string,
+      parent: string,
+      sources: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    registerL2Account(
-      didAddress: string,
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
-      _innerOpPrefix: BytesLike,
-      _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
 
     sum(
       x: BigNumberish,
@@ -262,22 +216,13 @@ export interface OnchainMetadata extends BaseContract {
 
   estimateGas: {
     setOnchainMetadata(
-      proofKey: string,
-      proofValue: string,
-      metadataUri: string,
+      name: string,
+      description: string,
+      image: string,
+      owner: string,
+      parent: string,
+      sources: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    registerL2Account(
-      didAddress: string,
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
-      _innerOpPrefix: BytesLike,
-      _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     sum(
@@ -295,22 +240,13 @@ export interface OnchainMetadata extends BaseContract {
 
   populateTransaction: {
     setOnchainMetadata(
-      proofKey: string,
-      proofValue: string,
-      metadataUri: string,
+      name: string,
+      description: string,
+      image: string,
+      owner: string,
+      parent: string,
+      sources: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    registerL2Account(
-      didAddress: string,
-      key: BytesLike,
-      value: BytesLike,
-      _prefix: BytesLike,
-      _leafOpUint: BigNumberish[],
-      _innerOpPrefix: BytesLike,
-      _innerOpSuffix: BytesLike,
-      existenceProofInnerOpHash: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     sum(

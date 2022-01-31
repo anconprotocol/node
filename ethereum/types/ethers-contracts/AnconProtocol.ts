@@ -128,15 +128,12 @@ export interface AnconProtocolInterface extends utils.Interface {
     "INCLUDED_BLOCKS_EPOCH()": FunctionFragment;
     "accountByAddrProofs(address)": FunctionFragment;
     "accountProofs(bytes)": FunctionFragment;
-    "accountRegistrationFee()": FunctionFragment;
     "dagGraphSubscriptions(address)": FunctionFragment;
-    "dagRegistrationFee()": FunctionFragment;
     "getIavlSpec()": FunctionFragment;
     "latestRootHashTable(bytes32)": FunctionFragment;
     "nonce(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "proofs(bytes)": FunctionFragment;
-    "protocolFee()": FunctionFragment;
     "relayer()": FunctionFragment;
     "relayerHashTable(bytes32,uint256)": FunctionFragment;
     "seq()": FunctionFragment;
@@ -177,16 +174,8 @@ export interface AnconProtocolInterface extends utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "accountRegistrationFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "dagGraphSubscriptions",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "dagRegistrationFee",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getIavlSpec",
@@ -199,10 +188,6 @@ export interface AnconProtocolInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "nonce", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proofs", values: [BytesLike]): string;
-  encodeFunctionData(
-    functionFragment: "protocolFee",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "relayer", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "relayerHashTable",
@@ -309,15 +294,7 @@ export interface AnconProtocolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "accountRegistrationFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "dagGraphSubscriptions",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "dagRegistrationFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -331,10 +308,6 @@ export interface AnconProtocolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proofs", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "protocolFee",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "relayer", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "relayerHashTable",
@@ -515,8 +488,6 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    accountRegistrationFee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     dagGraphSubscriptions(
       arg0: string,
       overrides?: CallOverrides
@@ -542,8 +513,6 @@ export interface AnconProtocol extends BaseContract {
       }
     >;
 
-    dagRegistrationFee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getIavlSpec(overrides?: CallOverrides): Promise<[ProofSpecStructOutput]>;
 
     latestRootHashTable(
@@ -556,8 +525,6 @@ export interface AnconProtocol extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
-
-    protocolFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     relayer(overrides?: CallOverrides): Promise<[string]>;
 
@@ -722,8 +689,6 @@ export interface AnconProtocol extends BaseContract {
 
   accountProofs(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  accountRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
-
   dagGraphSubscriptions(
     arg0: string,
     overrides?: CallOverrides
@@ -749,8 +714,6 @@ export interface AnconProtocol extends BaseContract {
     }
   >;
 
-  dagRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
-
   getIavlSpec(overrides?: CallOverrides): Promise<ProofSpecStructOutput>;
 
   latestRootHashTable(
@@ -763,8 +726,6 @@ export interface AnconProtocol extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
-
-  protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
   relayer(overrides?: CallOverrides): Promise<string>;
 
@@ -932,8 +893,6 @@ export interface AnconProtocol extends BaseContract {
 
     accountProofs(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    accountRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
-
     dagGraphSubscriptions(
       arg0: string,
       overrides?: CallOverrides
@@ -959,8 +918,6 @@ export interface AnconProtocol extends BaseContract {
       }
     >;
 
-    dagRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
-
     getIavlSpec(overrides?: CallOverrides): Promise<ProofSpecStructOutput>;
 
     latestRootHashTable(
@@ -973,8 +930,6 @@ export interface AnconProtocol extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
-
-    protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     relayer(overrides?: CallOverrides): Promise<string>;
 
@@ -1216,14 +1171,10 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    accountRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
-
     dagGraphSubscriptions(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    dagRegistrationFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     getIavlSpec(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1237,8 +1188,6 @@ export interface AnconProtocol extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     proofs(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
     relayer(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1389,16 +1338,8 @@ export interface AnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    accountRegistrationFee(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     dagGraphSubscriptions(
       arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    dagRegistrationFee(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1420,8 +1361,6 @@ export interface AnconProtocol extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    protocolFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     relayer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
