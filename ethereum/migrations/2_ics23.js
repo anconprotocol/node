@@ -103,14 +103,14 @@ module.exports = async (deployer, network, accounts) => {
   await verifier.registerDagGraphTier(
     web3.utils.keccak256('tensta'),
     '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
-    { from: accounts[0] },
-    keccak256(toUtf8Bytes('starter'))
+    keccak256(toUtf8Bytes('starter')),
+    { from: accounts[0] }
   )
   await verifier.registerDagGraphTier(
     web3.utils.keccak256('anconprotocol'),
     '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
-    { from: accounts[0] },
-    keccak256(toUtf8Bytes('startup'))
+    keccak256(toUtf8Bytes('startup')),
+    { from: accounts[0] }
   )
 
   await deployer.deploy(
