@@ -230,7 +230,12 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		LastBlockHash: prevBlock,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
+	topic, err := jsonparser.GetString(v, "topic")
 
+	if topic != "" {
+		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
+	}
+	
 	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	resp, _ := sdk.Encode(block)
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
@@ -439,6 +444,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
+	topic, err := jsonparser.GetString(v, "topic")
 	currentCid, err := sdk.ParseCidLink(nodecid)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -505,6 +511,10 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		LastBlockHash: prevBlock,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
+
+	if topic != "" {
+		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
+	}
 
 	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	resp, _ := sdk.Encode(block)
