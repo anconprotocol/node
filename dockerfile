@@ -9,6 +9,7 @@ ENV GOLANG_VERSION 1.17.6
 
 RUN apt-get update
 RUN apt install -y curl
+RUN apt install -y build-essential
 RUN curl -OL https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
 RUN tar -C /usr/local -xvf go1.17.6.linux-amd64.tar.gz
 
@@ -25,17 +26,18 @@ WORKDIR /app
 COPY ./go.mod /app/go.mod
 COPY ./go.sum /app/go.sum
 COPY ./init.sh /app/init.sh
-
-# Giving executable permissions to the script & instaling go packages
-RUN chmod +x init.sh
-RUN go mod tidy
-
 COPY . .
+# Instaling go packages
+RUN go mod tidy
+RUN go build main.go
+
+# Giving executable permissions to the script
+RUN chmod +x main
 
 # Exposes port 7788 where Ancon Protocol Node will be run (this is the port of the server inside the docker container)
 EXPOSE 7788
 
 # Run init script
 
-CMD ["./init.sh"]
+CMD ./main --ipfshost=$IPFSHOST  --rootkey=$ROOTKEY --peeraddr $PEERADDR  --cors $CORS  --origins=$ORIGINS --quic $QUIC --tlscert=$TLSCERT --tlskey=$TLSKEY
 

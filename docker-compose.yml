@@ -8,3 +8,5 @@ services:
     container_name: node
     ports:
       - "7788:7788"
+    env_file:
+      - .env
