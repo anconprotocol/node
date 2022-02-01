@@ -19,9 +19,7 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/hyperledger/aries-framework-go v0.1.7
 	github.com/ipfs/go-graphsync v0.11.5
-	github.com/libp2p/go-libp2p-core v0.11.0
 	github.com/mr-tron/base58 v1.2.0
-	github.com/multiformats/go-multiaddr v0.4.0
 	github.com/multiformats/go-multibase v0.0.3
 	github.com/multiformats/go-multicodec v0.3.1-0.20210902112759-1539a079fd61
 	github.com/pkg/errors v0.9.1
@@ -41,7 +39,9 @@ require (
 	github.com/fomichev/secp256k1 v0.0.0-20180413221153-00116ff8c62f // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/graphql-go/graphql v0.8.0 // indirect
+	github.com/libp2p/go-libp2p-core v0.11.0 // indirect
 	github.com/marten-seemann/qpack v0.2.1 // indirect
+	github.com/multiformats/go-multiaddr v0.4.0 // indirect
 	github.com/square/go-jose/v3 v3.0.0-20200630053402-0a67ce9b0693 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
