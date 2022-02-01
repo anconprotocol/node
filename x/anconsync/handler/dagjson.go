@@ -187,7 +187,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
 	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
@@ -453,9 +453,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
-	current, err := dagctx.Store.Load(ipld.LinkContext{
-		LinkPath: ipld.ParsePath(p),
-	}, currentCid)
+	current, err := dagctx.Store.Load(ipld.LinkContext{}, currentCid)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing cid").Error(),
@@ -464,7 +462,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	}
 	n, err := dagctx.ApplyFocusedTransform(current, mutations)
 
-	cid := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
+	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
 	dagctx.Proof.Set([]byte(internalKey), data)
 	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
@@ -571,7 +569,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 				LinkSystem:                     dagctx.Store.LinkSystem,
 				LinkTargetNodePrototypeChooser: basicnode.Chooser,
 			},
-			//	Path: traversalPath,
+			// Path: traversalPath,
 		}
 
 		n, err = dagctx.Store.Load(ipld.LinkContext{
@@ -586,11 +584,32 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		}
 		if path != "/" {
 			path = strings.TrimPrefix(path, "/")
-			err = prog.Focus(n, datamodel.ParsePath(path), func(p traversal.Progress, n datamodel.Node) error {
-				trasEnc, err := sdk.Encode(n)
-				c.JSON(200, json.RawMessage(trasEnc))
-				return err
-			})
+
+			node, err := prog.Get(n, datamodel.ParsePath(path))
+
+			if err != nil {
+				child, _ := n.LookupByString(path)
+				if child.Kind() == datamodel.Kind_Link {
+					// l, _ := child.AsLink()
+					err = prog.Focus(child, datamodel.ParsePath("/"), func(p traversal.Progress, n datamodel.Node) error {
+						l, _ := n.AsLink()
+						node, err = dagctx.Store.Load(ipld.LinkContext{
+							LinkPath: traversalPath,
+						}, l)
+
+						return err
+					})
+				}
+			}
+			if err != nil {
+				c.JSON(400, gin.H{
+					"error": fmt.Errorf("%v", err),
+				})
+				return
+			}
+
+			trasEnc, err := sdk.Encode(node)
+			c.JSON(200, json.RawMessage(trasEnc))
 			if err != nil {
 				c.JSON(400, gin.H{
 					"error": fmt.Errorf("%v", err),
