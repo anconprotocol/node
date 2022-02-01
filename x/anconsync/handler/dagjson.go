@@ -213,7 +213,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
 	prevBlock, err := sdk.ParseCidLink(string(prev))
- 
+
 	block := dagctx.Apply(&DagBlockResult{
 		Issuer:        addrrec,
 		Timestamp:     time.Now().Unix(),
@@ -233,9 +233,10 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	topic, err := jsonparser.GetString(v, "topic")
 
 	if topic != "" {
+		topic = topic + ":" + addrrec
 		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
 	}
-	
+
 	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	resp, _ := sdk.Encode(block)
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
@@ -274,7 +275,7 @@ func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 		na.AssembleEntry("issuer").AssignString(args.Issuer)
 		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
 		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
-	//	na.AssembleEntry("content").AssignNode(args.Content)
+		//	na.AssembleEntry("content").AssignNode(args.Content)
 		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
 		na.AssembleEntry("height").AssignInt(args.Height)
 		na.AssembleEntry("signature").AssignString(args.Signature)
@@ -513,6 +514,8 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
 	if topic != "" {
+		topic = topic + ":" + addrrec
+
 		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
 	}
 
@@ -582,27 +585,18 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 			return
 		}
 		if path != "/" {
-			temp := n
 			path = strings.TrimPrefix(path, "/")
-			n, err = prog.Get(n, ipld.ParsePath(path))
+			res := prog.Focus(n, ipld.ParsePath(path), func(p traversal.Progress, n datamodel.Node) error {
+				return nil
+			})
+			trasEnc, _ := json.Marshal(res)
+			c.JSON(200, json.RawMessage(trasEnc))
+			return
 			if err != nil {
-				tras, err := traversal.SelectLinks(temp)
-				if len(tras) == 1 {
-
-					n, err = dagctx.Store.Load(ipld.LinkContext{
-						LinkPath: traversalPath,
-					}, tras[0])
-				} else {
-					trasEnc, _ := json.Marshal(tras)
-					c.JSON(200, json.RawMessage(trasEnc))
-					return
-				}
-				if err != nil {
-					c.JSON(400, gin.H{
-						"error": fmt.Errorf("%v", err),
-					})
-					return
-				}
+				c.JSON(400, gin.H{
+					"error": fmt.Errorf("%v", err),
+				})
+				return
 			}
 		}
 
@@ -617,3 +611,86 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	}
 	c.JSON(200, json.RawMessage(data))
 }
+
+// // @BasePath /v0
+// // DagJsonRead godoc
+// // @Summary Reads JSON from a dag-json block
+// // @Schemes
+// // @Description Returns JSON
+// // @Tags dag-json
+// // @Accept json
+// // @Produce json
+// // @Success 200
+// // @Router /v0/dag/{user}/{cid}/{path} [get]
+// func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
+// 	user := (c.Param("user"))
+
+// 	lnk, err := sdk.ParseCidLink(c.Param("cid"))
+
+// 	if err != nil {
+// 		c.JSON(400, gin.H{
+// 			"error": fmt.Errorf("%v", err),
+// 		})
+// 		return
+// 	}
+// 	p := types.GetUserPath(dagctx.Moniker)
+
+// 	path := c.Param("path")
+
+// 	var n datamodel.Node
+// 	if path != "" {
+// 		traversalPath := ipld.ParsePath(p)
+// 		prog := traversal.Progress{
+// 			Cfg: &traversal.Config{
+// 				LinkSystem:                     dagctx.Store.LinkSystem,
+// 				LinkTargetNodePrototypeChooser: basicnode.Chooser,
+// 			},
+// 			//	Path: traversalPath,
+// 		}
+
+// 		n, err = dagctx.Store.Load(ipld.LinkContext{
+// 			LinkPath: traversalPath,
+// 		}, lnk)
+
+// 		if err != nil {
+// 			c.JSON(400, gin.H{
+// 				"error": err.Error(),
+// 			})
+// 			return
+// 		}
+// 		if path != "/" {
+// 			temp := n
+// 			path = strings.TrimPrefix(path, "/")
+// 			n, err = prog.Get(n, ipld.ParsePath(path))
+// 			if err != nil {
+// 				tras, err := traversal.SelectLinks(temp)
+// 				if len(tras) == 1 {
+
+// 					n, err = dagctx.Store.Load(ipld.LinkContext{
+// 						LinkPath: traversalPath,
+// 					}, tras[0])
+// 				} else {
+// 					trasEnc, _ := json.Marshal(tras)
+// 					c.JSON(200, json.RawMessage(trasEnc))
+// 					return
+// 				}
+// 				if err != nil {
+// 					c.JSON(400, gin.H{
+// 						"error": fmt.Errorf("%v", err),
+// 					})
+// 					return
+// 				}
+// 			}
+// 		}
+
+// 	}
+
+// 	data, err := sdk.Encode(n)
+// 	if err != nil {
+// 		c.JSON(400, gin.H{
+// 			"error": fmt.Errorf("%v", err),
+// 		})
+// 		return
+// 	}
+// 	c.JSON(200, json.RawMessage(data))
+// }
