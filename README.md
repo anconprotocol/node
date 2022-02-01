@@ -38,6 +38,13 @@ go build ./main.go
 If you have problems with the system buffer size this can help:
 https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
 
+## Run Docker container
+``` bash
+docker-compose build app
+```
+``` bash
+docker-compose up
+```
 # API Reference
 
 
