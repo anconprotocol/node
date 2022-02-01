@@ -586,18 +586,18 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		}
 		if path != "/" {
 			path = strings.TrimPrefix(path, "/")
-			res := prog.Focus(n, ipld.ParsePath(path), func(p traversal.Progress, n datamodel.Node) error {
-				return nil
+			err = prog.Focus(n, datamodel.ParsePath(path), func(p traversal.Progress, n datamodel.Node) error {
+				trasEnc, err := sdk.Encode(n)
+				c.JSON(200, json.RawMessage(trasEnc))
+				return err
 			})
-			trasEnc, _ := json.Marshal(res)
-			c.JSON(200, json.RawMessage(trasEnc))
-			return
 			if err != nil {
 				c.JSON(400, gin.H{
 					"error": fmt.Errorf("%v", err),
 				})
 				return
 			}
+			return
 		}
 
 	}
