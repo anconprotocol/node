@@ -667,8 +667,16 @@ func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
 	}
 
 	var n datamodel.Node
+	p := types.GetUserPath(dagctx.Moniker)
 
-	n, err = dagctx.Store.Load(ipld.LinkContext{}, lnk)
+	n, err = dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, lnk)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%v", err.Error()),
+		})
+		return
+	}
+
 	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
