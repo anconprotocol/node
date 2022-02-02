@@ -163,7 +163,7 @@ func main() {
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
 		IPFSHost:         *ipfshost,
-		Moniker: *moniker,
+		Moniker:          *moniker,
 	}
 
 	didHandler := handler.Did{
@@ -171,13 +171,13 @@ func main() {
 		Proof:            proofHandler.GetProofService(),
 		RootKey:          *rootkey,
 		IPFSHost:         *ipfshost,
-		Moniker: *moniker,
+		Moniker:          *moniker,
 	}
 
 	fileHandler := handler.FileHandler{
 		RootKey:          *rootkey,
 		AnconSyncContext: dagHandler,
-		Moniker: *moniker,
+		Moniker:          *moniker,
 	}
 	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 
@@ -217,6 +217,7 @@ func main() {
 		api.GET("/did/:did", didHandler.ReadDid)
 		api.GET("/proof/:key", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
+		api.GET("/dag/topics", dagJsonHandler.UserDag)
 	}
 	// if subgraph.EnableDagcosmos {
 	// 	ctx := context.WithValue(context.Background(), "dag", dagHandler)

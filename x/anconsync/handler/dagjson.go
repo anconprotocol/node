@@ -33,10 +33,11 @@ import (
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof    *proofsignature.IavlProofService
-	IPFSHost string
-	RootKey  string
-	Moniker  string
+	Proof         *proofsignature.IavlProofService
+	IPFSHost      string
+	RootKey       string
+	Moniker       string
+	PreviousBlock datamodel.Link
 }
 type Mutation struct {
 	Path          string
@@ -230,6 +231,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		LastBlockHash: dagctx.PreviousBlock,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
+	dagctx.PreviousBlock = res
 	topic, err := jsonparser.GetString(v, "topic")
 
 	if topic != "" {
@@ -632,85 +634,47 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	c.JSON(200, json.RawMessage(data))
 }
 
-// // @BasePath /v0
-// // DagJsonRead godoc
-// // @Summary Reads JSON from a dag-json block
-// // @Schemes
-// // @Description Returns JSON
-// // @Tags dag-json
-// // @Accept json
-// // @Produce json
-// // @Success 200
-// // @Router /v0/dag/{user}/{cid}/{path} [get]
-// func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
-// 	user := (c.Param("user"))
+// @BasePath /v0
+// UserDag godoc
+// @Summary Reads JSON from a dag-json block
+// @Schemes
+// @Description Returns JSON
+// @Tags dag-json
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /v0/dag/topics/ [get]
+func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
+	user := c.Query("from")
+	topic := c.Query("topic")
+	concat := fmt.Sprintf("%s:%s", topic, user)
 
-// 	lnk, err := sdk.ParseCidLink(c.Param("cid"))
+	concatLink, err := dagctx.Store.DataStore.Get(c.Request.Context(), concat)
 
-// 	if err != nil {
-// 		c.JSON(400, gin.H{
-// 			"error": fmt.Errorf("%v", err),
-// 		})
-// 		return
-// 	}
-// 	p := types.GetUserPath(dagctx.Moniker)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%v", err.Error()),
+		})
+	}
 
-// 	path := c.Param("path")
+	lnk, err := sdk.ParseCidLink(string(concatLink))
 
-// 	var n datamodel.Node
-// 	if path != "" {
-// 		traversalPath := ipld.ParsePath(p)
-// 		prog := traversal.Progress{
-// 			Cfg: &traversal.Config{
-// 				LinkSystem:                     dagctx.Store.LinkSystem,
-// 				LinkTargetNodePrototypeChooser: basicnode.Chooser,
-// 			},
-// 			//	Path: traversalPath,
-// 		}
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%v", err.Error()),
+		})
+		return
+	}
 
-// 		n, err = dagctx.Store.Load(ipld.LinkContext{
-// 			LinkPath: traversalPath,
-// 		}, lnk)
+	var n datamodel.Node
 
-// 		if err != nil {
-// 			c.JSON(400, gin.H{
-// 				"error": err.Error(),
-// 			})
-// 			return
-// 		}
-// 		if path != "/" {
-// 			temp := n
-// 			path = strings.TrimPrefix(path, "/")
-// 			n, err = prog.Get(n, ipld.ParsePath(path))
-// 			if err != nil {
-// 				tras, err := traversal.SelectLinks(temp)
-// 				if len(tras) == 1 {
-
-// 					n, err = dagctx.Store.Load(ipld.LinkContext{
-// 						LinkPath: traversalPath,
-// 					}, tras[0])
-// 				} else {
-// 					trasEnc, _ := json.Marshal(tras)
-// 					c.JSON(200, json.RawMessage(trasEnc))
-// 					return
-// 				}
-// 				if err != nil {
-// 					c.JSON(400, gin.H{
-// 						"error": fmt.Errorf("%v", err),
-// 					})
-// 					return
-// 				}
-// 			}
-// 		}
-
-// 	}
-
-// 	data, err := sdk.Encode(n)
-// 	if err != nil {
-// 		c.JSON(400, gin.H{
-// 			"error": fmt.Errorf("%v", err),
-// 		})
-// 		return
-// 	}
-// 	c.JSON(200, json.RawMessage(data))
-// }
+	n, err = dagctx.Store.Load(ipld.LinkContext{}, lnk)
+	data, err := sdk.Encode(n)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%v", err.Error()),
+		})
+		return
+	}
+	c.JSON(200, json.RawMessage(data))
+}
