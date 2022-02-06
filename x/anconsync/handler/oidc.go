@@ -34,7 +34,7 @@ type OidcHandler struct {
 	Verifier *oidc.IDTokenVerifier
 }
 
-func NewOidcHandler(ctx *sdk.AnconSyncContext, clientId string, clientSecretKey string) *OidcHandler {
+func NewOidcHandler(ctx *sdk.AnconSyncContext, clientId string, clientSecretKey string, redirectURL string) *OidcHandler {
 	clientID = clientId
 	clientSecret = clientSecretKey
 	provider, err := oidc.NewProvider(context.Background(), "https://accounts.google.com")
@@ -50,7 +50,7 @@ func NewOidcHandler(ctx *sdk.AnconSyncContext, clientId string, clientSecretKey 
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  "http://localhost:7788/auth/callback",
+		RedirectURL:  redirectURL,
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 

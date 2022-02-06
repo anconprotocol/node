@@ -68,6 +68,7 @@ func main() {
 	privateKeyPath := flag.String("privatekeypath", "", "")
 	oidcclient := flag.String("oidcclient", "", "OIDC Client ID")
 	oidcsecret := flag.String("oidcsecret", "", "OIDC Secret")
+	oidcredirect := flag.String("oidcredirect", "http://localhost:7788/auth/callback", "OIDC Redirect URL")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -165,6 +166,7 @@ func main() {
 	oidcHandler := handler.NewOidcHandler(dagHandler,
 		*oidcclient,
 		*oidcsecret,
+		*oidcredirect,
 	)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
