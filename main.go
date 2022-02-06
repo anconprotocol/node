@@ -66,6 +66,8 @@ func main() {
 	tlsCert := flag.String("tlskey", "", "TLS key")
 	ipfshost := flag.String("ipfshost", "", "IPFS Host")
 	privateKeyPath := flag.String("privatekeypath", "", "")
+	oidcclient := flag.String("oidcclient", "", "OIDC Client ID")
+	oidcsecret := flag.String("oidcsecret", "", "OIDC Secret")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -161,8 +163,8 @@ func main() {
 	adapter := ethereum.NewOnchainAdapter("", "", 0)
 
 	oidcHandler := handler.NewOidcHandler(dagHandler,
-		"21519769802-l2n9e5um21n1onq27qnt2r4idh71kbd6.apps.googleusercontent.com",
-		"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",
+		*oidcclient,
+		*oidcsecret,
 	)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
