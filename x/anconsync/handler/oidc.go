@@ -110,7 +110,7 @@ func (ctx *OidcHandler) OIDCRequest(c *gin.Context) {
 	c.SetCookie("nonce", nonce, 1000000, "/", ".did.pa", true, false)
 
 	u := ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce))
-	println(u)
+//	println(u)
 	c.Redirect(http.StatusFound, u)
 
 }
