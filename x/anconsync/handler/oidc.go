@@ -106,8 +106,8 @@ func (ctx *OidcHandler) OIDCRequest(c *gin.Context) {
 	// 	return
 	// }
 
-	c.SetCookie("state", state, 1000000, "/", c.Request.Host, false, false)
-	c.SetCookie("nonce", nonce, 1000000, "/", c.Request.Host, false, false)
+	c.SetCookie("state", state, 1000000, "/", "", false, false)
+	c.SetCookie("nonce", nonce, 1000000, "/", "", false, false)
 
 	c.Redirect(http.StatusFound, ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce)))
 
