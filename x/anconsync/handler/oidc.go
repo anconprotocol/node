@@ -98,8 +98,16 @@ func (ctx *OidcHandler) OIDCRequest(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("state", state, 1000000, "/", "localhost", false, false)
-	c.SetCookie("nonce", nonce, 1000000, "/", "localhost", false, false)
+	// fqdn, err := fqdn.FqdnHostname()
+	// if err != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"error": fmt.Errorf("an error occurred while requesting token").Error(),
+	// 	})
+	// 	return
+	// }
+
+	c.SetCookie("state", state, 1000000, "/", c.Request.Host, false, false)
+	c.SetCookie("nonce", nonce, 1000000, "/", c.Request.Host, false, false)
 
 	c.Redirect(http.StatusFound, ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce)))
 
