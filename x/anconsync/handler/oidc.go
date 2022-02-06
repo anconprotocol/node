@@ -109,7 +109,9 @@ func (ctx *OidcHandler) OIDCRequest(c *gin.Context) {
 	c.SetCookie("state", state, 1000000, "/", "", true, false)
 	c.SetCookie("nonce", nonce, 1000000, "/", "", true, false)
 
-	c.Redirect(http.StatusFound, ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce)))
+	u := ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce))
+	println(u)
+	c.Redirect(http.StatusFound, u)
 
 }
 func (ctx *OidcHandler) OIDCCallback(c *gin.Context) {
