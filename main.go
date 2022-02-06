@@ -157,7 +157,13 @@ func main() {
 
 	}
 
-	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
+	// TODO: Pending deprecate
+	adapter := ethereum.NewOnchainAdapter("", "", 0)
+
+	oidcHandler := handler.NewOidcHandler(dagHandler,
+		"21519769802-l2n9e5um21n1onq27qnt2r4idh71kbd6.apps.googleusercontent.com",
+		"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",
+	)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
@@ -225,7 +231,8 @@ func main() {
 	// 	r.GET("/indexer/cosmos/tip", indexer.TipEvent)
 	// 	indexer.Subscribe(ctx, cosmos.NewBlock)
 	// }
-	// r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
+	r.GET("/oidc", oidcHandler.OIDCRequest)
+	r.GET("/auth/callback", oidcHandler.OIDCCallback)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 
