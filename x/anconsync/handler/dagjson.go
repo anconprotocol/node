@@ -635,7 +635,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 	var contentData string
 
 	datanode, err := n.LookupByString("contentHash")
-	if err != nil && c.Query("compact") != "true" {
+	if err == nil && c.Query("compact") != "true" {
 		lnkNode, _ := datanode.AsLink()
 		// fetch
 		contentHashNode, _ := dagctx.Store.Load(ipld.LinkContext{
