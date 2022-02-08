@@ -66,6 +66,9 @@ func main() {
 	tlsCert := flag.String("tlskey", "", "TLS key")
 	ipfshost := flag.String("ipfshost", "", "IPFS Host")
 	privateKeyPath := flag.String("privatekeypath", "", "")
+	oidcclient := flag.String("oidcclient", "", "OIDC Client ID")
+	oidcsecret := flag.String("oidcsecret", "", "OIDC Secret")
+	oidcredirect := flag.String("oidcredirect", "http://localhost:7788/auth/callback", "OIDC Redirect URL")
 
 	subgraph := SubgraphConfig{}
 	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
@@ -157,7 +160,14 @@ func main() {
 
 	}
 
-	adapter := ethereum.NewOnchainAdapter("", "ropsten", 5)
+	// TODO: Pending deprecate
+	adapter := ethereum.NewOnchainAdapter("", "", 0)
+
+	oidcHandler := handler.NewOidcHandler(dagHandler,
+		*oidcclient,
+		*oidcsecret,
+		*oidcredirect,
+	)
 	dagJsonHandler := handler.DagJsonHandler{
 		AnconSyncContext: dagHandler,
 		Proof:            proofHandler.GetProofService(),
@@ -225,7 +235,8 @@ func main() {
 	// 	r.GET("/indexer/cosmos/tip", indexer.TipEvent)
 	// 	indexer.Subscribe(ctx, cosmos.NewBlock)
 	// }
-	// r.GET("/user/:did/did.json", didHandler.ReadDidWebUrl)
+	r.GET("/oidc", oidcHandler.OIDCRequest)
+	r.GET("/auth/callback", oidcHandler.OIDCCallback)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 
