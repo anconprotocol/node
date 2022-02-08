@@ -707,9 +707,36 @@ func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
 	data, err := sdk.Encode(n)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err.Error()),
+			"error": fmt.Errorf("%s", err.Error()),
 		})
 		return
 	}
-	c.JSON(200, json.RawMessage(data))
+
+	var contentData string
+
+	datanode, err := n.LookupByString("contentHash")
+	if err == nil && c.Query("compact") != "true" {
+		lnkNode, _ := datanode.AsLink()
+		// fetch
+		contentHashNode, _ := dagctx.Store.Load(ipld.LinkContext{
+			LinkPath: ipld.ParsePath("/"),
+		}, lnkNode)
+		contentData, err = sdk.Encode(contentHashNode)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("%s", err.Error()),
+			})
+			return
+		}
+		response, err := jsonparser.Set([]byte(data), []byte(contentData), "content")
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("%s", err.Error()),
+			})
+			return
+		}
+		c.JSON(200, json.RawMessage(response))
+	} else {
+		c.JSON(200, json.RawMessage(data))
+	}
 }
