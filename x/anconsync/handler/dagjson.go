@@ -648,7 +648,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 			})
 			return
 		}
-		response, err := jsonparser.Set([]byte(data), []byte(contentData), "contentHash")
+		response, err := jsonparser.Set([]byte(data), []byte(contentData), "content")
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("%s", err.Error()),
