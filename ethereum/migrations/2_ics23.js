@@ -95,17 +95,21 @@ module.exports = async (deployer, network, accounts) => {
   } else if (network === 'auroratestnet') {
     chainId = 1313161555
     token = '0xc115851ca60aed2ccc6ee3d5343f590834e4a3ab'
+  } else if (network == 'bsc') {
+    chainId = 56
+    token = '' //todo setear el stable coin token
   }
+  
    await deployer.deploy(AnconProtocol, token, chainId, '500000000', '500000000')
   const verifier = await AnconProtocol.deployed()
 
-  await verifier.setPaymentToken(token, { from: accounts[0] })
-  await verifier.registerDagGraphTier(
+  // await verifier.setPaymentToken(token, { from: accounts[0] })
+  /* await verifier.registerDagGraphTier(
     web3.utils.keccak256('tensta'),
     '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
     keccak256(toUtf8Bytes('starter')),
     { from: accounts[0] }
-  )
+  ) */
   await verifier.registerDagGraphTier(
     web3.utils.keccak256('anconprotocol'),
     '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
@@ -113,14 +117,14 @@ module.exports = async (deployer, network, accounts) => {
     { from: accounts[0] }
   )
 
-  await deployer.deploy(
+  /* await deployer.deploy(
     XDVNFT,
     'XDVNFT',
     'XDVNFT',
     token,
     verifier.address,
     chainId,
-  )
+  ) */
 
   const nft = await XDVNFT.deployed()
 

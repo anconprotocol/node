@@ -13,6 +13,7 @@ contract AnconProtocol is ICS23 {
         uint256 incentiveBlocksMonthly;
         uint256 incentivePercentageMonthly;
         uint256 includedBlocksStarted;
+        uint256 setupFee;
     }
     address public owner;
     address public relayer;
@@ -83,18 +84,18 @@ contract AnconProtocol is ICS23 {
         chainId = network;
 
         // add tiers
-        addTier(keccak256("starter"), tokenAddress, starterFee, 0, 100);
-        addTier(keccak256("startup"), tokenAddress, startupFee, 0, 500);
-        addTier(keccak256("pro"), tokenAddress, 0, 0, 1000);
-        setTierSettings(
+        addTier(keccak256("starter"), tokenAddress, starterFee, 0, 100, 0);
+        addTier(keccak256("startup"), tokenAddress, startupFee, 0, 500, 0);
+        addTier(keccak256("pro"), tokenAddress, 0, 0, 1000, 150);
+        /* setTierSettings(
             keccak256("pro"),
             tokenAddress,
             500000000,
             1000 ether,
             1000
-        );
-        addTier(keccak256("defi"), tokenAddress, 0, 0, 10000);
-        addTier(keccak256("luxury"), tokenAddress, 0, 0, 100000);
+        ); */
+        addTier(keccak256("defi"), tokenAddress, 0, 0, 10000, 1500);
+        addTier(keccak256("luxury"), tokenAddress, 0, 0, 100000, 9000);
     }
 
     // getContractIdentifier is used to identify a contract protocol deployed in a specific chain
@@ -126,6 +127,18 @@ contract AnconProtocol is ICS23 {
         require(whitelistedDagGraph[moniker] == address(0), "moniker exists");
         require(tier == tiers[tier].id, "missing tier");
 
+        if(tiers[tier].setupFee > 0){
+            IERC20 token = IERC20(tiers[tier].token);
+            require(token.balanceOf(address(msg.sender)) > tiers[tier].setupFee, "no enough balance");
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    address(this),
+                    tiers[tier].setupFee
+                ),
+                "transfer failed for recipient"
+            );
+        }
         whitelistedDagGraph[moniker] = dagAddress;
         dagGraphSubscriptions[dagAddress] = tiers[tier];
     }
@@ -192,7 +205,8 @@ contract AnconProtocol is ICS23 {
         address tokenAddress,
         uint256 amount,
         uint256 amountStaked,
-        uint256 includedBlocks
+        uint256 includedBlocks,
+        uint256 setupFee
     ) public {
         require(owner == msg.sender, "invalid owner");
         require(tiers[id].id != id, "tier already in use");
@@ -204,7 +218,8 @@ contract AnconProtocol is ICS23 {
             id: id,
             incentiveBlocksMonthly: 0,
             incentivePercentageMonthly: 0,
-            includedBlocksStarted: block.number
+            includedBlocksStarted: block.number,
+            setupFee: setupFee
         });
         emit TierAdded(id);
     }
@@ -215,7 +230,8 @@ contract AnconProtocol is ICS23 {
         address tokenAddress,
         uint256 amount,
         uint256 amountStaked,
-        uint256 includedBlocks
+        uint256 includedBlocks,
+        uint256 setupFee
     ) public {
         require(owner == msg.sender, "invalid owner");
         require(tiers[id].id == id, "missing tier");
@@ -223,6 +239,7 @@ contract AnconProtocol is ICS23 {
         tiers[id].amount = amount;
         tiers[id].amountStaked = amountStaked;
         tiers[id].includedBlocks = includedBlocks;
+        tiers[id].setupFee = setupFee;
         // incentiveBlocksMonthly: 0,
         // incentivePercentageMonthly: 0
         emit TierUpdated(
