@@ -1,0 +1,15 @@
+
+/ethereum/node_modules
+
+/ethereum/build
+
+/node_modules
+
+.git
+
+*.md
+
+.gitignore
+
+.dockerignore
+
