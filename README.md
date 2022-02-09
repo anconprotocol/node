@@ -482,9 +482,13 @@ In cross chain use cases, there are many to accomplish this, one is with atomic 
 
 > Copyright IFESA 2021, 2022
 
-
+## build
+# In root folder
+go build main.go
 ## setup
-./main --init --moniker esferasoluciones
+./main --init --moniker anconprotocol
+
+zip el folder #HOME/.ancon
 # este valor va en .env de updater-service con el moniker la instruccion anterior
 *Sep256k1 private key: 0x3da4eaace25ed777096278479b272a86713ebdfad069e8a2a5196bf907114958
 
