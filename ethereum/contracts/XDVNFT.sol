@@ -27,7 +27,6 @@ contract XDVNFT is
     IERC20 public stablecoin;
     IAnconProtocol public anconprotocol;
 
-    bytes32 moniker = keccak256("anconprotocol");
     uint256 chainId = 0;
 
     event Withdrawn(address indexed paymentAddress, uint256 amount);
@@ -74,6 +73,7 @@ contract XDVNFT is
      * @dev Mints a XDV Data Token
      */
     function mintWithProof(
+        bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory packetProof
@@ -117,6 +117,7 @@ contract XDVNFT is
      * @dev Transfer Metadata Ownership using DID - start
      */
     function lockWithProof(
+        bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory packetProof
@@ -153,6 +154,7 @@ contract XDVNFT is
      * @dev Transfer Metadata Ownership using DID - start
      */
     function releaseWithProof(
+        bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory packetProof
