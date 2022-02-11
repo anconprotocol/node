@@ -104,9 +104,9 @@ export interface XDVNFTInterface extends utils.Interface {
     "url()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "onERC721Received(address,address,uint256,bytes)": FunctionFragment;
-    "mintWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "lockWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
-    "releaseWithProof(bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "mintWithProof(bytes32,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "lockWithProof(bytes32,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "releaseWithProof(bytes32,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "withdrawBalance(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
@@ -179,15 +179,15 @@ export interface XDVNFTInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintWithProof",
-    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
+    values: [BytesLike, BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "lockWithProof",
-    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
+    values: [BytesLike, BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "releaseWithProof",
-    values: [BytesLike, ExistenceProofStruct, ExistenceProofStruct]
+    values: [BytesLike, BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenURI",
@@ -528,6 +528,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<ContractTransaction>;
 
     mintWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -535,6 +536,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<ContractTransaction>;
 
     lockWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -542,6 +544,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<ContractTransaction>;
 
     releaseWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -725,6 +728,7 @@ export interface XDVNFT extends BaseContract {
   ): Promise<ContractTransaction>;
 
   mintWithProof(
+    moniker: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
     packetProof: ExistenceProofStruct,
@@ -732,6 +736,7 @@ export interface XDVNFT extends BaseContract {
   ): Promise<ContractTransaction>;
 
   lockWithProof(
+    moniker: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
     packetProof: ExistenceProofStruct,
@@ -739,6 +744,7 @@ export interface XDVNFT extends BaseContract {
   ): Promise<ContractTransaction>;
 
   releaseWithProof(
+    moniker: BytesLike,
     packet: BytesLike,
     userProof: ExistenceProofStruct,
     packetProof: ExistenceProofStruct,
@@ -908,6 +914,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<string>;
 
     mintWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -915,6 +922,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     lockWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -922,6 +930,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     releaseWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1173,6 +1182,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     mintWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1180,6 +1190,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     lockWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1187,6 +1198,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<BigNumber>;
 
     releaseWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1377,6 +1389,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     mintWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1384,6 +1397,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     lockWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
@@ -1391,6 +1405,7 @@ export interface XDVNFT extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     releaseWithProof(
+      moniker: BytesLike,
       packet: BytesLike,
       userProof: ExistenceProofStruct,
       packetProof: ExistenceProofStruct,
