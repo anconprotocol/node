@@ -1,6 +1,8 @@
-go mod tidy
-go build main.go
-./main --rootkey bafyreibqiybccahqa3vhpxluhglojfh654x3bfgrbdy73pgywaxam5sdim --roothash 7f00cfd66db986fdb5ab62e93c0bb592e02392b51ba0d1f1d1a64e2e765b1f5c
+#!/bin/bash
 
-# Remote peer connection command
-# ./main --peers /ip4/190.140.158.159/tcp/7702/p2p/12D3KooWSEdJA3WovMnEZdh2oNgBsGJX85rCjzgcjczdJ92sg2WW --rootkey bafyreibqiybccahqa3vhpxluhglojfh654x3bfgrbdy73pgywaxam5sdim --roothash 7f00cfd66db986fdb5ab62e93c0bb592e02392b51ba0d1f1d1a64e2e765b1f5c --sync true
+#source /home/rogelio/.wasmedge/env
+# Start the node (remove the --pruning=nothing flag if historical queries are not needed)
+# ancond start --log_level $LOGLEVEL --trace
+#export GIN_MODE=release
+
+./main --ipfshost=https://ipfs.xdv.digital/  --rootkey=baguqeeramdqve3hvfjccnvisofsg74pr7vh2iko5fzdqefbo2moa3hza73vq --peeraddr /ip4/67.205.135.10/tcp/4001/p2p/12D3KooWAFuNRzKGnc5hTCeYDrWuaUdjG9Py77fUCe3FJ3xUQ26c --cors true  --origins=http://172.23.247.211/:3000,http//localhost:3000 

@@ -7,6 +7,8 @@ import {
   BigNumberish,
   BytesLike,
   CallOverrides,
+  ContractTransaction,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -125,9 +127,9 @@ export interface AnconVerifierInterface extends utils.Interface {
     "getIavlSpec()": FunctionFragment;
     "owner()": FunctionFragment;
     "verify((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),((bool,uint8,uint8,uint8,uint8,bytes),(uint256[],uint256,uint256,uint256,bytes,uint8),uint256,uint256),bytes,bytes,bytes)": FunctionFragment;
-    "convertProof(bytes,bytes,bytes,uint256[],bytes[][],uint256)": FunctionFragment;
-    "queryRootCalculation(uint256[],bytes,bytes[][],uint256,bytes,bytes)": FunctionFragment;
-    "verifyProof(uint256[],bytes,bytes[][],uint256,bytes,bytes,bytes,bytes,bytes)": FunctionFragment;
+    "setRootHash(bytes)": FunctionFragment;
+    "convertProof(bytes,bytes,bytes,uint256[],bytes,bytes,uint256)": FunctionFragment;
+    "verifyProof((bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -146,40 +148,24 @@ export interface AnconVerifierInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "setRootHash",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "convertProof",
     values: [
       BytesLike,
       BytesLike,
       BytesLike,
       BigNumberish[],
-      BytesLike[][],
+      BytesLike,
+      BytesLike,
       BigNumberish
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "queryRootCalculation",
-    values: [
-      BigNumberish[],
-      BytesLike,
-      BytesLike[][],
-      BigNumberish,
-      BytesLike,
-      BytesLike
-    ]
-  ): string;
-  encodeFunctionData(
     functionFragment: "verifyProof",
-    values: [
-      BigNumberish[],
-      BytesLike,
-      BytesLike[][],
-      BigNumberish,
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BytesLike
-    ]
+    values: [ExistenceProofStruct, BytesLike]
   ): string;
 
   decodeFunctionResult(
@@ -189,11 +175,11 @@ export interface AnconVerifierInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "convertProof",
+    functionFragment: "setRootHash",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "queryRootCalculation",
+    functionFragment: "convertProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -244,36 +230,25 @@ export interface AnconVerifier extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[void]>;
 
+    setRootHash(
+      rootHash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     convertProof(
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
       _leafOpUint: BigNumberish[],
-      _innerOp: BytesLike[][],
+      _innerOpPrefix: BytesLike,
+      _innerOpSuffix: BytesLike,
       existenceProofInnerOpHash: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[ExistenceProofStructOutput]>;
 
-    queryRootCalculation(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     verifyProof(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      root: BytesLike,
+      proof: ExistenceProofStruct,
       key: BytesLike,
-      value: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
   };
@@ -291,36 +266,25 @@ export interface AnconVerifier extends BaseContract {
     overrides?: CallOverrides
   ): Promise<void>;
 
+  setRootHash(
+    rootHash: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   convertProof(
     key: BytesLike,
     value: BytesLike,
     _prefix: BytesLike,
     _leafOpUint: BigNumberish[],
-    _innerOp: BytesLike[][],
+    _innerOpPrefix: BytesLike,
+    _innerOpSuffix: BytesLike,
     existenceProofInnerOpHash: BigNumberish,
     overrides?: CallOverrides
   ): Promise<ExistenceProofStructOutput>;
 
-  queryRootCalculation(
-    leafOpUint: BigNumberish[],
-    prefix: BytesLike,
-    existenceProofInnerOp: BytesLike[][],
-    existenceProofInnerOpHash: BigNumberish,
-    existenceProofKey: BytesLike,
-    existenceProofValue: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   verifyProof(
-    leafOpUint: BigNumberish[],
-    prefix: BytesLike,
-    existenceProofInnerOp: BytesLike[][],
-    existenceProofInnerOpHash: BigNumberish,
-    existenceProofKey: BytesLike,
-    existenceProofValue: BytesLike,
-    root: BytesLike,
+    proof: ExistenceProofStruct,
     key: BytesLike,
-    value: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -338,36 +302,25 @@ export interface AnconVerifier extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setRootHash(
+      rootHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     convertProof(
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
       _leafOpUint: BigNumberish[],
-      _innerOp: BytesLike[][],
+      _innerOpPrefix: BytesLike,
+      _innerOpSuffix: BytesLike,
       existenceProofInnerOpHash: BigNumberish,
       overrides?: CallOverrides
     ): Promise<ExistenceProofStructOutput>;
 
-    queryRootCalculation(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     verifyProof(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      root: BytesLike,
+      proof: ExistenceProofStruct,
       key: BytesLike,
-      value: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -388,36 +341,25 @@ export interface AnconVerifier extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    setRootHash(
+      rootHash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     convertProof(
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
       _leafOpUint: BigNumberish[],
-      _innerOp: BytesLike[][],
+      _innerOpPrefix: BytesLike,
+      _innerOpSuffix: BytesLike,
       existenceProofInnerOpHash: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    queryRootCalculation(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     verifyProof(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      root: BytesLike,
+      proof: ExistenceProofStruct,
       key: BytesLike,
-      value: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -436,36 +378,25 @@ export interface AnconVerifier extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    setRootHash(
+      rootHash: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     convertProof(
       key: BytesLike,
       value: BytesLike,
       _prefix: BytesLike,
       _leafOpUint: BigNumberish[],
-      _innerOp: BytesLike[][],
+      _innerOpPrefix: BytesLike,
+      _innerOpSuffix: BytesLike,
       existenceProofInnerOpHash: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    queryRootCalculation(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     verifyProof(
-      leafOpUint: BigNumberish[],
-      prefix: BytesLike,
-      existenceProofInnerOp: BytesLike[][],
-      existenceProofInnerOpHash: BigNumberish,
-      existenceProofKey: BytesLike,
-      existenceProofValue: BytesLike,
-      root: BytesLike,
+      proof: ExistenceProofStruct,
       key: BytesLike,
-      value: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

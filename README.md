@@ -38,6 +38,25 @@ go build ./main.go
 If you have problems with the system buffer size this can help:
 https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
 
+## Run Docker container
+The directory needs to have a .env file like this:
+```
+export IPFSHOST=
+export ROOTKEY=
+export PEERADDR=
+export CORS=
+export ORIGINS=
+export QUIC=
+export TLSCERT=
+export TLSKEY=
+```
+Then you can build & run the container.
+``` bash
+docker-compose build app
+```
+``` bash
+docker-compose up
+```
 # API Reference
 
 
