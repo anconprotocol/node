@@ -80,12 +80,22 @@ export type ExistenceProofStructOutput = [
 
 export interface IAnconProtocolInterface extends utils.Interface {
   functions: {
+    "verifyContractIdentifier(uint256,address,bytes32)": FunctionFragment;
+    "getProtocolHeader(bytes32)": FunctionFragment;
     "getContractIdentifier()": FunctionFragment;
     "submitPacketWithProof(bytes32,address,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProof(bytes32,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
     "verifyProofWithKV(bytes32,bytes,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "verifyContractIdentifier",
+    values: [BigNumberish, string, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProtocolHeader",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "getContractIdentifier",
     values?: undefined
@@ -110,6 +120,14 @@ export interface IAnconProtocolInterface extends utils.Interface {
     values: [BytesLike, BytesLike, BytesLike, ExistenceProofStruct]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "verifyContractIdentifier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProtocolHeader",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getContractIdentifier",
     data: BytesLike
@@ -157,6 +175,18 @@ export interface IAnconProtocol extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    getProtocolHeader(
+      moniker: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getContractIdentifier(overrides?: CallOverrides): Promise<[string]>;
 
     submitPacketWithProof(
@@ -183,6 +213,18 @@ export interface IAnconProtocol extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
   };
+
+  verifyContractIdentifier(
+    usernonce: BigNumberish,
+    sender: string,
+    hash: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  getProtocolHeader(
+    moniker: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getContractIdentifier(overrides?: CallOverrides): Promise<string>;
 
@@ -211,6 +253,18 @@ export interface IAnconProtocol extends BaseContract {
   ): Promise<boolean>;
 
   callStatic: {
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    getProtocolHeader(
+      moniker: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     getContractIdentifier(overrides?: CallOverrides): Promise<string>;
 
     submitPacketWithProof(
@@ -241,6 +295,18 @@ export interface IAnconProtocol extends BaseContract {
   filters: {};
 
   estimateGas: {
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getProtocolHeader(
+      moniker: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getContractIdentifier(overrides?: CallOverrides): Promise<BigNumber>;
 
     submitPacketWithProof(
@@ -269,6 +335,18 @@ export interface IAnconProtocol extends BaseContract {
   };
 
   populateTransaction: {
+    verifyContractIdentifier(
+      usernonce: BigNumberish,
+      sender: string,
+      hash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getProtocolHeader(
+      moniker: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getContractIdentifier(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

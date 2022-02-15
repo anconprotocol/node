@@ -149,8 +149,8 @@ export interface AnconProtocolInterface extends utils.Interface {
     "registerDagGraphTier(bytes32,address,bytes32)": FunctionFragment;
     "updateRelayerHeader(bytes32,bytes,uint256)": FunctionFragment;
     "setPaymentToken(address)": FunctionFragment;
-    "addTier(bytes32,address,uint256,uint256,uint256)": FunctionFragment;
-    "setTierSettings(bytes32,address,uint256,uint256,uint256)": FunctionFragment;
+    "addTier(bytes32,address,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "setTierSettings(bytes32,address,uint256,uint256,uint256,uint256)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
     "withdrawToken(address,address)": FunctionFragment;
     "getProtocolHeader(bytes32)": FunctionFragment;
@@ -244,11 +244,25 @@ export interface AnconProtocolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "addTier",
-    values: [BytesLike, string, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      BytesLike,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "setTierSettings",
-    values: [BytesLike, string, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      BytesLike,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
   encodeFunctionData(
@@ -500,6 +514,7 @@ export interface AnconProtocol extends BaseContract {
         string,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         token: string;
@@ -510,6 +525,7 @@ export interface AnconProtocol extends BaseContract {
         incentiveBlocksMonthly: BigNumber;
         incentivePercentageMonthly: BigNumber;
         includedBlocksStarted: BigNumber;
+        setupFee: BigNumber;
       }
     >;
 
@@ -550,6 +566,7 @@ export interface AnconProtocol extends BaseContract {
         string,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         token: string;
@@ -560,6 +577,7 @@ export interface AnconProtocol extends BaseContract {
         incentiveBlocksMonthly: BigNumber;
         incentivePercentageMonthly: BigNumber;
         includedBlocksStarted: BigNumber;
+        setupFee: BigNumber;
       }
     >;
 
@@ -624,6 +642,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -633,6 +652,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -701,6 +721,7 @@ export interface AnconProtocol extends BaseContract {
       string,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       token: string;
@@ -711,6 +732,7 @@ export interface AnconProtocol extends BaseContract {
       incentiveBlocksMonthly: BigNumber;
       incentivePercentageMonthly: BigNumber;
       includedBlocksStarted: BigNumber;
+      setupFee: BigNumber;
     }
   >;
 
@@ -751,6 +773,7 @@ export interface AnconProtocol extends BaseContract {
       string,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       token: string;
@@ -761,6 +784,7 @@ export interface AnconProtocol extends BaseContract {
       incentiveBlocksMonthly: BigNumber;
       incentivePercentageMonthly: BigNumber;
       includedBlocksStarted: BigNumber;
+      setupFee: BigNumber;
     }
   >;
 
@@ -825,6 +849,7 @@ export interface AnconProtocol extends BaseContract {
     amount: BigNumberish,
     amountStaked: BigNumberish,
     includedBlocks: BigNumberish,
+    setupFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -834,6 +859,7 @@ export interface AnconProtocol extends BaseContract {
     amount: BigNumberish,
     amountStaked: BigNumberish,
     includedBlocks: BigNumberish,
+    setupFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -905,6 +931,7 @@ export interface AnconProtocol extends BaseContract {
         string,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         token: string;
@@ -915,6 +942,7 @@ export interface AnconProtocol extends BaseContract {
         incentiveBlocksMonthly: BigNumber;
         incentivePercentageMonthly: BigNumber;
         includedBlocksStarted: BigNumber;
+        setupFee: BigNumber;
       }
     >;
 
@@ -955,6 +983,7 @@ export interface AnconProtocol extends BaseContract {
         string,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         token: string;
@@ -965,6 +994,7 @@ export interface AnconProtocol extends BaseContract {
         incentiveBlocksMonthly: BigNumber;
         incentivePercentageMonthly: BigNumber;
         includedBlocksStarted: BigNumber;
+        setupFee: BigNumber;
       }
     >;
 
@@ -1029,6 +1059,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1038,6 +1069,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1264,6 +1296,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1273,6 +1306,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1442,6 +1476,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1451,6 +1486,7 @@ export interface AnconProtocol extends BaseContract {
       amount: BigNumberish,
       amountStaked: BigNumberish,
       includedBlocks: BigNumberish,
+      setupFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
