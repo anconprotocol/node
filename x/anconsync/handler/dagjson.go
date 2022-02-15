@@ -424,13 +424,6 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	ok, err := types.Authenticate(doc, []byte(temp), signature)
-	if !ok {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid signature").Error(),
-		})
-		return
-	}
 
 	data, err := hexutil.Decode(temp)
 	var buf bytes.Buffer
@@ -475,6 +468,15 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 	n, err := dagctx.ApplyFocusedTransform(current, mutations)
+	content, _ := sdk.Encode(n) // signature must match data + dif
+
+	ok, err := types.Authenticate(doc, []byte(content), signature)
+	if !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
+		})
+		return
+	}
 
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)
