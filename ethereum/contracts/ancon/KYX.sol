@@ -140,15 +140,13 @@ contract KYX is Ownable {
         // require only creator can set issuer with proof
     }
 
-     // Adds rating to an issuer, must post proof as evidence
-    function setIssuerRatingWithProof(
-        bytes32 category,
-        uint256 issuerID,
-        string memory metadataUri
-    ) public {
-        // add rating logic
-        // add threshold that disables an issuer
-    }
-
-    
+    // Adds rating to an issuer, must post proof as evidence
+    // function setIssuerRatingWithProof(
+    //     bytes32 category,
+    //     string issuerID,
+    //     string memory diddocUri
+    // ) public {
+    //     // add rating logic
+    //     // add threshold that disables an issuer
+    // }
 }
