@@ -8,22 +8,22 @@ import "../ics23/Ics23Helper.sol";
 
 contract KYX is Ownable {
     struct Issuer {
-        uint256 id;
+        string id;
         bytes32 category;
-        string metadata;
+        string diddoc;
         uint256 reputation;
         bool enabled;
         address creator;
     }
     event IssuerAdded(
-        uint256 indexed id,
+        string indexed id,
         bytes32 indexed category,
-        string metadata
-    );
+        string diddoc
+    ); //Id must be a did
     event Withdrawn(address indexed payee, uint256 weiAmount);
 
     mapping(bytes32 => uint256) public issuersCount;
-    mapping(bytes32 => mapping(uint256 => Issuer)) public issuers;
+    mapping(bytes32 => mapping(string => Issuer)) public issuers;
     uint256 public fee;
     IERC20 public stablecoin;
     IAnconProtocol public anconprotocol;
@@ -72,13 +72,15 @@ contract KYX is Ownable {
     // Implementation
 
     // Returns a count of issuers by category
+    //Category: type of document's contents
+    //e.g.: contract, invoices, etc.
     function getIssuerLength(bytes32 category) public returns (uint256) {
         require(issuersCount[category] > 0, "no issuers found");
         return issuersCount[category];
     }
 
     // Returns an issuer
-    function getIssuer(bytes32 category, uint256 id)
+    function getIssuer(bytes32 category, string memory id)
         public
         returns (Issuer memory)
     {
@@ -86,15 +88,16 @@ contract KYX is Ownable {
         return issuers[category][id];
     }
 
-    // Enrolls a relayer by moniker name, returns an id
-    function enrollIssuerWithProof(
+    // Enrolls an issuer to a relayer
+    function registerIssuerWithProof(
         bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory packetProof
-    ) public returns (uint256) {
+    ) public returns (string) {
         require(
-            keccak256(anconprotocol.getProtocolHeader(moniker)) != keccak256(""),
+            keccak256(anconprotocol.getProtocolHeader(moniker)) !=
+                keccak256(""),
             "Invalid moniker"
         );
         require(
@@ -108,20 +111,20 @@ contract KYX is Ownable {
             ),
             "invalid packet proof"
         );
-        (bytes32 category, uint256 id, string memory uri) = abi.decode(
+        (bytes32 category, string memory id, string memory uri) = abi.decode(
             packet,
-            (bytes32, uint256, string)
+            (bytes32, string, string)
         );
         require(
             issuers[category][id].enabled == true,
             "issuer already exists and enabled"
-        );
+        ); //TODO: verify meta transaction using isValidProof from TrustedOffchainHelper.sol
 
         issuersCount[category] = issuersCount[category] + 1;
         issuers[category][id] = Issuer({
             id: id,
             category: category,
-            metadata: uri,
+            diddoc: uri,
             enabled: true,
             creator: msg.sender,
             reputation: 0
@@ -134,10 +137,17 @@ contract KYX is Ownable {
     // if enabled or disabled
     function setIssuerWithProof(
         bytes32 category,
-        uint256 issuerID,
-        string memory metadataUri
+        string memory issuerID,
+        string memory diddocUri
     ) public {
         // require only creator can set issuer with proof
+        require(
+            issuers[category][issuerID].creator == msg.sender,
+            "Sender must be the Issuer creator"
+        );
+        require(diddocUri != "", "Did doc must not be empty");
+
+        issuers[category][issuerID].diddoc = diddocUri;
     }
 
     // Adds rating to an issuer, must post proof as evidence
