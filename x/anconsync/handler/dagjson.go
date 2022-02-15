@@ -229,6 +229,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		RootHash:      link,
 		LastBlockHash: dagctx.PreviousBlock,
+		ParentHash:    nil,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 	dagctx.PreviousBlock = res
@@ -236,6 +237,13 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	if topic != "" {
 		topic = topic + ":" + addrrec
+		hasTopic, _ := dagctx.Store.DataStore.Has(c.Request.Context(), topic)
+		if !hasTopic {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("topic already exists %v", err).Error(),
+			})
+			return
+		}
 		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
 	}
 
@@ -269,6 +277,7 @@ type DagBlockResult struct {
 	RootKey       string
 	RootHash      datamodel.Link `json:"root_hash"`
 	LastBlockHash datamodel.Link
+	ParentHash    datamodel.Link `json:"parent_hash"`
 }
 
 func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
@@ -288,6 +297,9 @@ func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 		na.AssembleEntry("rootHash").AssignLink(args.RootHash)
 		if args.LastBlockHash != nil {
 			na.AssembleEntry("lastBlockHash").AssignLink(args.LastBlockHash)
+		}
+		if args.ParentHash != nil {
+			na.AssembleEntry("parentHash").AssignLink(args.ParentHash)
 		}
 	})
 
@@ -510,6 +522,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		RootHash:      link,
 		LastBlockHash: dagctx.PreviousBlock,
+		ParentHash:    currentCid,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
