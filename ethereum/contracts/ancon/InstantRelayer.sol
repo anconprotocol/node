@@ -6,9 +6,12 @@ import "./IAnconProtocol.sol";
 import "./TrustedOffchainHelper.sol";
 import "../ics23/Ics23Helper.sol";
 
+
+// InstantRelayer is used by end users to pay for expedited block root hash commit
 contract InstantRelayer is Ownable {
     struct Ticket {
         uint256 id;
+        string destination;
         bool open;
     }
     event Withdrawn(address indexed payee, uint256 weiAmount);
@@ -17,7 +20,7 @@ contract InstantRelayer is Ownable {
         address indexed from,
         uint256 id
     );
-    event InstantBlockApplied(bytes32 indexed moniker, address indexed from);
+    event InstantBlockApplied(bytes32 indexed moniker, address indexed from,  string destination);
     mapping(bytes32 => mapping(address => Ticket)) public tickets;
     mapping(bytes32 => string[]) public relayers;
     uint256 public fee;
@@ -92,13 +95,13 @@ contract InstantRelayer is Ownable {
         return relayers[moniker].length;
     }
 
-    // Pays for expedited block, must send a uuid as identifier
-    function payForBlock(bytes32 moniker, uint256 uuid)
+    // Pays for expedited block, must send a uuid as identifier. Returns ticket id.
+    function payForExpediteBlock(bytes32 moniker, uint256 uuid, string memory destination)
         public
         payable
         returns (uint256)
     {
-        require(relayers[moniker].length > 0, "Moniker has no uri registered");
+        require(relayers[moniker].length > 0, "moniker has no uri registered");
 
         require(
             stablecoin.balanceOf(address(msg.sender)) > fee,
@@ -108,7 +111,7 @@ contract InstantRelayer is Ownable {
             stablecoin.transferFrom(msg.sender, address(this), fee),
             "transfer failed for recipient"
         );
-        tickets[moniker][msg.sender] = Ticket({id: uuid, open: true});
+        tickets[moniker][msg.sender] = Ticket({id: uuid, open: true, destination: destination });
         emit InstantBlockPaid(
             moniker,
             msg.sender,
@@ -117,6 +120,7 @@ contract InstantRelayer is Ownable {
         return tickets[moniker][msg.sender].id;
     }
 
+    // call by client, subscriber must match destination
     function applyBlock(
         bytes32 moniker,
         address sender,
@@ -129,6 +133,6 @@ contract InstantRelayer is Ownable {
         );
 
         tickets[moniker][sender].open = false;
-        emit InstantBlockApplied(moniker, sender);
+        emit InstantBlockApplied(moniker, sender,tickets[moniker][sender].destination);
     }
 }

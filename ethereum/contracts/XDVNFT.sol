@@ -13,7 +13,7 @@ import "./ancon/TrustedOffchainHelper.sol";
 import "./ics23/Ics23Helper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-//  a NFT secure document
+// WIP: XDVNFT is  a NFT Container
 contract XDVNFT is
     ERC721Burnable,
     ERC721URIStorage,
