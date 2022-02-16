@@ -213,7 +213,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		LastBlockHash: l,
-		ParentHash: parentHash,
+		ParentHash:    parentHash,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 	dagctx.PreviousBlock = res
@@ -221,13 +221,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	if topic != "" {
 		topic = topic + ":" + addrrec
-		hasTopic, _ := dagctx.Store.DataStore.Has(c.Request.Context(), topic)
-		if hasTopic {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("topic already exists %v", err).Error(),
-			})
-			return
-		}
 		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
 	}
 
