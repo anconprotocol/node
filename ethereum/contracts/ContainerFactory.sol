@@ -13,8 +13,8 @@ import "./ancon/TrustedOffchainHelper.sol";
 import "./ics23/Ics23Helper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-//  a NFT secure document
-contract WXDV is
+//  WIP: ContainerFactory creates NFT Containers for UI no-code users
+contract ContainerFactory is
     ERC721Burnable,
     ERC721Pausable,
     IERC721Receiver,

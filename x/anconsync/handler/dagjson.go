@@ -153,6 +153,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	}
 
+	parentHash, _ := jsonparser.GetString(v, "parent")
 	path, _ := jsonparser.GetString(v, "path")
 
 	if path == "" {
@@ -161,24 +162,14 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	digest := crypto.Keccak256(data)
+	parent, err := sdk.ParseCidLink(parentHash)
+	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var n datamodel.Node
 	if isJSON && !hasEncrypt {
 		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
 	} else {
 		// TODO: fix
 		n = basicnode.NewBytes(data)
-	}
-
-	muts := []Mutation{{
-		Path:          "root",
-		PreviousValue: "",
-		NextValue:     dagctx.RootKey,
-		NextValueKind: datamodel.Kind_Link,
-	}}
-
-	if isJSON {
-		n, err = dagctx.ApplyFocusedTransform(n, muts)
 	}
 
 	if err != nil {
@@ -423,13 +414,6 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
-	ok, err := types.Authenticate(doc, []byte(temp), signature)
-	if !ok {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid signature").Error(),
-		})
-		return
-	}
 
 	data, err := hexutil.Decode(temp)
 	var buf bytes.Buffer
@@ -443,7 +427,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
-	digest := crypto.Keccak256(data)
+	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var items []map[string]interface{}
 	json.Unmarshal(data, &items)
 
@@ -474,6 +458,15 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 	n, err := dagctx.ApplyFocusedTransform(current, mutations)
+	content, _ := sdk.Encode(n) // signature must match data + dif
+
+	ok, err := types.Authenticate(doc, []byte(content), signature)
+	if !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid signature").Error(),
+		})
+		return
+	}
 
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 	internalKey := fmt.Sprintf("%s/%s", p, cid)

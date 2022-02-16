@@ -2,19 +2,13 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IAnconProtocol.sol";
-import "./TrustedOffchainHelper.sol";
-import "../ics23/Ics23Helper.sol";
+import "../ancon/IAnconProtocol.sol";
 
-// KYX stands for Know Your Customer, Business and Transaction
-contract KYX is Ownable {
-    bytes32 public CUSTOMER = keccak256("CUSTOMER");
-    bytes32 public BUSINESS = keccak256("BUSINESS");
-    bytes32 public TRANSACTION = keccak256("TRANSACTION");
 
+// InvoiceAsset NFT contains the tokenized SFEP invoice
+contract InvoiceAsset is Ownable {
     struct Issuer {
         string id;
-        // there must be 3 categories
         bytes32 category;
         string diddoc;
         uint256 reputation;
@@ -122,10 +116,9 @@ contract KYX is Ownable {
             (bytes32, string, string)
         );
         require(
-            issuers[category][id].enabled == true && (category == CUSTOMER || category == BUSINESS || category == TRANSACTION),
-            "issuer already exists and enabled or invalid category"
-        ); 
-        // Category must match existing
+            issuers[category][id].enabled == true,
+            "issuer already exists and enabled"
+        ); //TODO: verify meta transaction using isValidProof from TrustedOffchainHelper.sol
 
         issuersCount[category] = issuersCount[category] + 1;
         issuers[category][id] = Issuer({
@@ -140,30 +133,4 @@ contract KYX is Ownable {
         return id;
     }
 
-    // Sets new offchain verifiable data reference for issuer and
-    // if enabled or disabled
-    function setIssuerWithProof(
-        bytes32 category,
-        string memory issuerID,
-        string memory diddocUri
-    ) public {
-        // require only creator can set issuer with proof
-        require(
-            issuers[category][issuerID].creator == msg.sender,
-            "Sender must be the Issuer creator"
-        );
-        require(keccak256(abi.encodePacked(diddocUri)) != keccak256(abi.encodePacked("")), "Did doc must not be empty");
-
-        issuers[category][issuerID].diddoc = diddocUri;
-    }
-
-    // Adds rating to an issuer, must post proof as evidence
-    // function setIssuerRatingWithProof(
-    //     bytes32 category,
-    //     string issuerID,
-    //     string memory diddocUri
-    // ) public {
-    //     // add rating logic
-    //     // add threshold that disables an issuer
-    // }
 }
