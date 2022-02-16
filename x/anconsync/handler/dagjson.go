@@ -162,7 +162,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	parent, _ := sdk.ParseCidLink(parentHash)
+
 	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var n datamodel.Node
 	if isJSON && !hasEncrypt {
@@ -196,16 +196,10 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	link, err := sdk.ParseCidLink(dagctx.RootKey)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid root%v", err).Error(),
-		})
+	l := ""
+	if dagctx.PreviousBlock != nil {
+		l = dagctx.PreviousBlock.String()
 	}
-
-	// prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
-	// prevBlock, err := sdk.ParseCidLink(string(prev))
-
 	block := dagctx.Apply(&DagBlockResult{
 		Issuer:        addrrec,
 		Timestamp:     time.Now().Unix(),
@@ -218,9 +212,8 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		Network:       dagctx.Moniker,
 		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
-		RootHash:      link,
-		LastBlockHash: dagctx.PreviousBlock,
-		ParentHash: parent,
+		LastBlockHash: l,
+		ParentHash: parentHash,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 	dagctx.PreviousBlock = res
@@ -277,9 +270,8 @@ type DagBlockResult struct {
 	Network       string `json:"network"`
 	Key           string `json:"key"`
 	RootKey       string
-	RootHash      datamodel.Link `json:"root_hash"`
-	LastBlockHash datamodel.Link
-	ParentHash    datamodel.Link `json:"parent_hash"`
+	LastBlockHash string
+	ParentHash    string `json:"parent_hash"`
 }
 
 func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
@@ -296,12 +288,13 @@ func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 		na.AssembleEntry("network").AssignString(args.Network)
 		na.AssembleEntry("key").AssignString(args.Key)
 		na.AssembleEntry("rootKey").AssignString(args.RootKey)
-		na.AssembleEntry("rootHash").AssignLink(args.RootHash)
-		if args.LastBlockHash != nil {
-			na.AssembleEntry("lastBlockHash").AssignLink(args.LastBlockHash)
+		if args.LastBlockHash != "" {
+			lnk, _ := sdk.ParseCidLink(args.LastBlockHash)
+			na.AssembleEntry("lastBlockHash").AssignLink(lnk)
 		}
-		if args.ParentHash != nil {
-			na.AssembleEntry("parentHash").AssignLink(args.ParentHash)
+		if args.ParentHash != "" {
+			lnk, _ := sdk.ParseCidLink(args.ParentHash)
+			na.AssembleEntry("parentHash").AssignLink(lnk)
 		}
 	})
 
@@ -497,20 +490,10 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
-	link, err := sdk.ParseCidLink(dagctx.RootKey)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid root%v", err).Error(),
-		})
+	l := ""
+	if dagctx.PreviousBlock != nil {
+		l = dagctx.PreviousBlock.String()
 	}
-
-	// prev, err := dagctx.Store.DataStore.Get(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber-1))
-	// prevBlock, err := sdk.ParseCidLink(string(prev))
-	// if err != nil {
-	// 	// c.JSON(400, gin.H{
-	// 	// 	"error": fmt.Errorf("invalid previous block height%v", err).Error(),
-	// 	// })
-	// }
 
 	block := dagctx.Apply(&DagBlockResult{
 		Issuer:        addrrec,
@@ -524,9 +507,8 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		Network:       dagctx.Moniker,
 		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
-		RootHash:      link,
-		LastBlockHash: dagctx.PreviousBlock,
-		ParentHash:    currentCid,
+		LastBlockHash: l,
+		ParentHash:    currentCid.String(),
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
