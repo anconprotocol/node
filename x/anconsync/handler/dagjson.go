@@ -228,7 +228,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	if topic != "" {
 		topic = topic + ":" + addrrec
 		hasTopic, _ := dagctx.Store.DataStore.Has(c.Request.Context(), topic)
-		if !hasTopic {
+		if hasTopic {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("topic already exists %v", err).Error(),
 			})
