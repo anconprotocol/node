@@ -4,10 +4,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IAnconProtocol.sol";
 import "./TrustedOffchainHelper.sol";
+import "../Reputation.sol";
 import "../ics23/Ics23Helper.sol";
 
 // KYX stands for Know Your Customer, Business and Transaction
-contract KYX is Ownable {
+contract KYX is Ownable, Reputation {
     bytes32 public CUSTOMER = keccak256("CUSTOMER");
     bytes32 public BUSINESS = keccak256("BUSINESS");
     bytes32 public TRANSACTION = keccak256("TRANSACTION");

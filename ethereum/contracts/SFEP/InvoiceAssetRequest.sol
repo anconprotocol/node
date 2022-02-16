@@ -103,7 +103,7 @@ contract InvoiceAssetRequest is Ownable {
             uint256 kyxId,
             string memory diddoc
         ) = abi.decode(packet, (string, string, uint256, string));
-        require(requests[cufeId].cufeId != cufeId, "request already exists");
+        require(keccak256(abi.encodePacked(requests[cufeId].cufeId)) != keccak256(abi.encodePacked(cufeId)), "request already exists");
 
         requestCount = requestCount + 1;
         requests[cufeId] = Request({
