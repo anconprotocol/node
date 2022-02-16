@@ -239,9 +239,20 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 
 	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
-	resp, _ := sdk.Encode(block)
+	resp, err := sdk.Encode(block)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("bad encoding %s", err.Error()).Error(),
+		})
+		return
+	}
 	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
-
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("bad encoding %s", err.Error()).Error(),
+		})
+		return
+	}
 	resp2, _ := sdk.Encode(n)
 	m, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp2))
 
@@ -273,7 +284,7 @@ type DagBlockResult struct {
 
 func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
 
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 12, func(na fluent.MapAssembler) {
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 13, func(na fluent.MapAssembler) {
 		na.AssembleEntry("issuer").AssignString(args.Issuer)
 		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
 		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
