@@ -3,27 +3,27 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../ancon/IAnconProtocol.sol";
+
 // InvoiceAssetRequest contains the request for tokenization
 contract InvoiceAssetRequest is Ownable {
-    struct Issuer {
-        string id;
-        bytes32 category;
-        string diddoc;
-        uint256 reputation;
-        bool enabled;
+    struct Request {
+        string cufeId;
+        string cafeUri;
         address creator;
+        uint256 kyxId;
+        string diddoc;
     }
-    event IssuerAdded(
-        string indexed id,
-        bytes32 indexed category,
+    event RequestAdded(
+        string indexed cufeId,
+        string indexed cafeUri,
         string diddoc
     ); //Id must be a did
     event Withdrawn(address indexed payee, uint256 weiAmount);
 
-    mapping(bytes32 => uint256) public issuersCount;
-    mapping(bytes32 => mapping(string => Issuer)) public issuers;
+    uint256 public requestCount;
+    mapping(string => Request) public requests;
     uint256 public fee;
-    IERC20 public stablecoin;
+    IERC20 public token;
     IAnconProtocol public anconprotocol;
     uint256 chainId = 0;
 
@@ -32,7 +32,7 @@ contract InvoiceAssetRequest is Ownable {
         address ancon,
         uint256 chain
     ) public {
-        stablecoin = IERC20(tokenERC20);
+        token = IERC20(tokenERC20);
         anconprotocol = IAnconProtocol(ancon);
         chainId = chain;
     }
@@ -68,26 +68,14 @@ contract InvoiceAssetRequest is Ownable {
     }
 
     // Implementation
-
-    // Returns a count of issuers by category
-    //Category: type of document's contents
-    //e.g.: contract, invoices, etc.
-    function getIssuerLength(bytes32 category) public returns (uint256) {
-        require(issuersCount[category] > 0, "no issuers found");
-        return issuersCount[category];
+    // Returns a request
+    function getRequest(string memory cufeId) public returns (Request memory) {
+        require(requests[cufeId].creator != address(0), "no request found");
+        return requests[cufeId];
     }
 
-    // Returns an issuer
-    function getIssuer(bytes32 category, string memory id)
-        public
-        returns (Issuer memory)
-    {
-        require(issuers[category][id].enabled == false, "no issuers found");
-        return issuers[category][id];
-    }
-
-    // Enrolls an issuer to a relayer
-    function registerIssuerWithProof(
+    // Creates a new request
+    function createRequestWithProof(
         bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
@@ -109,26 +97,23 @@ contract InvoiceAssetRequest is Ownable {
             ),
             "invalid packet proof"
         );
-        (bytes32 category, string memory id, string memory uri) = abi.decode(
-            packet,
-            (bytes32, string, string)
-        );
-        require(
-            issuers[category][id].enabled == true,
-            "issuer already exists and enabled"
-        ); //TODO: verify meta transaction using isValidProof from TrustedOffchainHelper.sol
+        (
+            string memory cufeId,
+            string memory cafeUri,
+            uint256 kyxId,
+            string memory diddoc
+        ) = abi.decode(packet, (string, string, uint256, string));
+        require(requests[cufeId].cufeId != cufeId, "request already exists");
 
-        issuersCount[category] = issuersCount[category] + 1;
-        issuers[category][id] = Issuer({
-            id: id,
-            category: category,
-            diddoc: uri,
-            enabled: true,
+        requestCount = requestCount + 1;
+        requests[cufeId] = Request({
+            cufeId: cufeId,
+            cafeUri: cafeUri,
             creator: msg.sender,
-            reputation: 0
+            kyxId: kyxId,
+            diddoc: diddoc
         });
-        emit IssuerAdded(id, category, uri);
-        return id;
+        emit RequestAdded(cufeId, cafeUri, diddoc);
+        return cufeId;
     }
-
 }
