@@ -153,6 +153,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	}
 
+	parentHash, _ := jsonparser.GetString(v, "parent")
 	path, _ := jsonparser.GetString(v, "path")
 
 	if path == "" {
@@ -161,24 +162,14 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	digest := crypto.Keccak256(data)
+	parent , err := sdk.ParseCidLink(parentHash)
+	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var n datamodel.Node
 	if isJSON && !hasEncrypt {
 		n, err = sdk.Decode(basicnode.Prototype.Any, string(data))
 	} else {
 		// TODO: fix
 		n = basicnode.NewBytes(data)
-	}
-
-	muts := []Mutation{{
-		Path:          "root",
-		PreviousValue: "",
-		NextValue:     dagctx.RootKey,
-		NextValueKind: datamodel.Kind_Link,
-	}}
-
-	if isJSON {
-		n, err = dagctx.ApplyFocusedTransform(n, muts)
 	}
 
 	if err != nil {
@@ -229,7 +220,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		RootHash:      link,
 		LastBlockHash: dagctx.PreviousBlock,
-		ParentHash:    nil,
+		ParentHash:    parent,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 	dagctx.PreviousBlock = res
@@ -437,7 +428,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
-	digest := crypto.Keccak256(data)
+	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var items []map[string]interface{}
 	json.Unmarshal(data, &items)
 
