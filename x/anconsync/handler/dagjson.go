@@ -229,7 +229,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		RootHash:      link,
 		LastBlockHash: dagctx.PreviousBlock,
-		ParentHash:    nil,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 	dagctx.PreviousBlock = res
