@@ -162,7 +162,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	parent, err := sdk.ParseCidLink(parentHash)
+	parent, _ := sdk.ParseCidLink(parentHash)
 	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var n datamodel.Node
 	if isJSON && !hasEncrypt {
