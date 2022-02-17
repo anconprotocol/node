@@ -118,7 +118,7 @@ contract InvoiceAssetRequest is Ownable {
                 keccak256(abi.encodePacked(cufeId)),
             "request already exists"
         );
-
+        // TODO: Verify the KYX
         requestCount = requestCount + 1;
         requests[cufeId] = Request({
             cufeId: cufeId,
@@ -133,7 +133,7 @@ contract InvoiceAssetRequest is Ownable {
     }
 
     // Creates a new request
-    function mintMNFT(
+    function mintMNFTwithProof(
         bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
@@ -154,7 +154,7 @@ contract InvoiceAssetRequest is Ownable {
                 packetProof
             ),
             "invalid packet proof"
-        );
+        ); //Store recover valu of the rsa signature
         (
             string memory cufeId,
             string memory uri,
@@ -164,6 +164,7 @@ contract InvoiceAssetRequest is Ownable {
             address tokenAddress,
             uint256 tokenId,
             uint256 shares
+            //Pool address
         ) = abi.decode(
                 packet,
                 (string, string, bytes, bytes, bytes, address, uint256, uint256)
@@ -175,6 +176,8 @@ contract InvoiceAssetRequest is Ownable {
         );
         // TODO:KYX/RSA
         // WIP MINT...
+        //Example, if this is an invoice stored as an nft with 1000 shares
+        //mfnt with the shares and then transfer to pool address
         requests[cufeId].minted = true;
         emit RequestMinted(cufeId, uri, tokenAddress, tokenId);
         return cufeId;
