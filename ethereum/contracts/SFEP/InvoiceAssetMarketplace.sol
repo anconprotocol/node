@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../ancon/IAnconProtocol.sol";
 // InvoiceAssetMarketplace contains auction platform for invoices
-contract InvoiceAssetRequest is Ownable {
+contract InvoiceAssetMarketplace is Ownable {
     struct Issuer {
         string id;
         bytes32 category;

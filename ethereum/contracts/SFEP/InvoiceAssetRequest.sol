@@ -3,6 +3,9 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../ancon/IAnconProtocol.sol";
+import "../MFNFT/XDVContainerNFT.sol";
+import "../MFNFT/IMFNFT.sol";
+import "../MFNFT/MFNFT.sol";
 
 // InvoiceAssetRequest contains the request for tokenization
 contract InvoiceAssetRequest is Ownable {
@@ -12,11 +15,18 @@ contract InvoiceAssetRequest is Ownable {
         address creator;
         uint256 kyxId;
         string diddoc;
+        bool minted;
     }
     event RequestAdded(
         string indexed cufeId,
         string indexed cafeUri,
         string diddoc
+    ); //Id must be a did
+    event RequestMinted(
+        string indexed cufeId,
+        string indexed uri,
+        address tokenAddress,
+        uint256 tokenId
     ); //Id must be a did
     event Withdrawn(address indexed payee, uint256 weiAmount);
 
@@ -103,7 +113,11 @@ contract InvoiceAssetRequest is Ownable {
             uint256 kyxId,
             string memory diddoc
         ) = abi.decode(packet, (string, string, uint256, string));
-        require(keccak256(abi.encodePacked(requests[cufeId].cufeId)) != keccak256(abi.encodePacked(cufeId)), "request already exists");
+        require(
+            keccak256(abi.encodePacked(requests[cufeId].cufeId)) !=
+                keccak256(abi.encodePacked(cufeId)),
+            "request already exists"
+        );
 
         requestCount = requestCount + 1;
         requests[cufeId] = Request({
@@ -111,9 +125,58 @@ contract InvoiceAssetRequest is Ownable {
             cafeUri: cafeUri,
             creator: msg.sender,
             kyxId: kyxId,
-            diddoc: diddoc
+            diddoc: diddoc,
+            minted: false
         });
         emit RequestAdded(cufeId, cafeUri, diddoc);
+        return cufeId;
+    }
+
+    // Creates a new request
+    function mintMNFT(
+        bytes32 moniker,
+        bytes memory packet,
+        Ics23Helper.ExistenceProof memory userProof,
+        Ics23Helper.ExistenceProof memory packetProof
+    ) public returns (string memory) {
+        require(
+            keccak256(anconprotocol.getProtocolHeader(moniker)) !=
+                keccak256(""),
+            "Invalid moniker"
+        );
+        require(
+            anconprotocol.submitPacketWithProof(
+                moniker,
+                msg.sender,
+                userProof,
+                packetProof.key,
+                packet,
+                packetProof
+            ),
+            "invalid packet proof"
+        );
+        (
+            string memory cufeId,
+            string memory uri,
+            bytes memory n,
+            bytes memory e,
+            bytes memory sig,
+            address tokenAddress,
+            uint256 tokenId,
+            uint256 shares
+        ) = abi.decode(
+                packet,
+                (string, string, bytes, bytes, bytes, address, uint256, uint256)
+            );
+        require(
+            keccak256(abi.encodePacked(requests[cufeId].cufeId)) ==
+                keccak256(abi.encodePacked(cufeId)),
+            "request must be created"
+        );
+        // TODO:KYX/RSA
+        // WIP MINT...
+        requests[cufeId].minted = true;
+        emit RequestMinted(cufeId, uri, tokenAddress, tokenId);
         return cufeId;
     }
 }

@@ -508,7 +508,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
 		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
 		LastBlockHash: l,
-		ParentHash:    currentCid.String(),
+		ParentHash:    currentCid.String()				,
 	})
 	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
 
