@@ -1,14 +1,16 @@
 pragma solidity ^0.8.7;
-
+import {ILendingPool, IProtocolDataProvider, IStableDebtToken} from "../aave-v2/Interfaces.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../ancon/IAnconProtocol.sol";
 import "../MFNFT/XDVContainerNFT.sol";
 import "../MFNFT/IMFNFT.sol";
 import "../MFNFT/MFNFT.sol";
-
+import "./InvoiceAssetCD.sol";
 // InvoiceAssetRequest contains the request for tokenization
 contract InvoiceAssetRequest is Ownable {
+
     struct Request {
         string cufeId;
         string cafeUri;
@@ -40,6 +42,8 @@ contract InvoiceAssetRequest is Ownable {
     constructor(
         address tokenERC20,
         address ancon,
+        address _lendingPool,
+        address _dataProvider,
         uint256 chain
     ) public {
         token = IERC20(tokenERC20);
@@ -133,7 +137,7 @@ contract InvoiceAssetRequest is Ownable {
     }
 
     // Creates a new request
-    function mintMNFTwithProof(
+    function mintMFNFTwithProof(
         bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
@@ -164,8 +168,8 @@ contract InvoiceAssetRequest is Ownable {
             address tokenAddress,
             uint256 tokenId,
             uint256 shares
-            //Pool address
-        ) = abi.decode(
+        ) = //Pool address
+            abi.decode(
                 packet,
                 (string, string, bytes, bytes, bytes, address, uint256, uint256)
             );
@@ -176,6 +180,7 @@ contract InvoiceAssetRequest is Ownable {
         );
         // TODO:KYX/RSA
         // WIP MINT...
+        // WIP create InvoiceAssetCD
         //Example, if this is an invoice stored as an nft with 1000 shares
         //mfnt with the shares and then transfer to pool address
         requests[cufeId].minted = true;
