@@ -84,6 +84,7 @@ contract AnconProtocol is ICS23 {
         chainId = network;
 
         // add tiers
+        // crear un solo tier `default` Ancon token, starterFee 0.50, blocks, fee y staked en 0
         addTier(keccak256("starter"), tokenAddress, starterFee, 0, 100, 0);
         addTier(keccak256("startup"), tokenAddress, startupFee, 0, 500, 0);
         addTier(keccak256("pro"), tokenAddress, 0, 0, 1000, 150);
@@ -256,9 +257,6 @@ contract AnconProtocol is ICS23 {
         require(owner == msg.sender);
         uint256 b = address(this).balance;
         (bool sent, bytes memory data) = payee.call{value: b}("");
-        require(sent, "Failed to send Ether");
-
-        emit Withdrawn(payee, b);
     }
 
     // withdraws protocol fee token, must be admin
@@ -278,6 +276,9 @@ contract AnconProtocol is ICS23 {
         returns (bytes memory)
     {
         return latestRootHashTable[moniker];
+        require(sent, "Failed to send Ether");
+
+        emit Withdrawn(payee, b);
     }
 
     function getProof(bytes memory did) public view returns (bytes memory) {
