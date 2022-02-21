@@ -2,58 +2,32 @@ pragma solidity ^0.8.7;
 import {ILendingPool, IProtocolDataProvider, IStableDebtToken} from "../aave-v2/Interfaces.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "../ancon/IAnconProtocol.sol";
-import "../MFNFT/XDVContainerNFT.sol";
-import "../MFNFT/IMFNFT.sol";
-import "../MFNFT/MFNFT.sol";
-
 // InvoiceAssetRequest contains the request for tokenization
-contract InvoiceAssetCD is Ownable {
+contract InvoiceAssetCD {
     using SafeERC20 for IERC20;
-    struct Request {
-        string cufeId;
-        string cafeUri;
-        address creator;
-        uint256 kyxId;
-        string diddoc;
-        bool minted;
-    }
-    event RequestAdded(
-        string indexed cufeId,
-        string indexed cafeUri,
-        string diddoc
-    ); //Id must be a did
-    event RequestMinted(
-        string indexed cufeId,
-        string indexed uri,
-        address tokenAddress,
-        uint256 tokenId
-    ); //Id must be a did
-    event Withdrawn(address indexed payee, uint256 weiAmount);
 
     uint256 public requestCount;
-    mapping(string => Request) public requests;
     uint256 public fee;
     IERC20 public token;
-    IAnconProtocol public anconprotocol;
     ILendingPool public lendingPool;
     IProtocolDataProvider public dataProvider;
     uint256 chainId = 0;
+    address public owner;
 
     constructor(
+        address _owner,
         address tokenERC20,
-        address ancon,
         address _lendingPool,
         address _dataProvider,
         uint256 chain
     ) public {
         token = IERC20(tokenERC20);
-        anconprotocol = IAnconProtocol(ancon);
         lendingPool = ILendingPool(_lendingPool);
         dataProvider = IProtocolDataProvider(_dataProvider);
-        chainId = chain;
+        chainId = chain;        
+        owner = _owner;
     }
+
 
     /**
      * Deposits collateral into the Aave, to enable credit delegation
@@ -88,12 +62,29 @@ contract InvoiceAssetCD is Ownable {
         address borrower,
         uint256 amount,
         address asset
-    ) public {
+    ) public  {
+        require(owner == msg.sender, "only assigned owner can delegate");
         (, address stableDebtTokenAddress, ) = dataProvider
             .getReserveTokensAddresses(asset);
         IStableDebtToken(stableDebtTokenAddress).approveDelegation(
             borrower,
             amount
+        );
+    }
+
+    function borrow(
+        address assetToBorrow,
+        uint256 amountToBorrowInWei,
+        uint256 interestRateMode,
+        uint16 referralCode,
+        address delegatorAddress
+    ) public {
+        lendingPool.borrow(
+            assetToBorrow,
+            amountToBorrowInWei,
+            interestRateMode,
+            referralCode,
+            delegatorAddress
         );
     }
 
@@ -118,12 +109,12 @@ contract InvoiceAssetCD is Ownable {
      *
      * Add permissions to this call, e.g. only the owner should be able to withdraw the collateral!
      */
-    function withdrawCollateral(address asset) public onlyOwner {
+    function withdrawCollateral(address asset) public  {
+        require(owner == msg.sender, "only assigned owner can delegate");
         (address aTokenAddress, , ) = dataProvider.getReserveTokensAddresses(
             asset
         );
         uint256 assetBalance = IERC20(aTokenAddress).balanceOf(address(this));
         lendingPool.withdraw(asset, assetBalance, msg.sender);
     }
-
 }

@@ -88,7 +88,7 @@ contract KYX is Ownable, Reputation {
 
     // Returns an issuer
     function getIssuer(bytes32 category, string memory id)
-        public
+        external
         returns (Issuer memory)
     {
         require(issuers[category][id].enabled == false, "no issuers found");

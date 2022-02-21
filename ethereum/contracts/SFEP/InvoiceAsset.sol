@@ -8,14 +8,16 @@ import "../MFNFT/XDVContainerNFT.sol";
 import "../MFNFT/IMFNFT.sol";
 import "../MFNFT/MFNFT.sol";
 import "./InvoiceAssetCD.sol";
-// InvoiceAssetRequest contains the request for tokenization
-contract InvoiceAssetRequest is Ownable {
+import "../ancon/KYX.sol";
+import "./ens-dnssec-oracle/RSAVerify.sol";
 
+// InvoiceAsset contains the tokenization scheme
+contract InvoiceAsset is Ownable {
     struct Request {
         string cufeId;
         string cafeUri;
         address creator;
-        uint256 kyxId;
+        string kyxId;
         string diddoc;
         bool minted;
     }
@@ -27,28 +29,35 @@ contract InvoiceAssetRequest is Ownable {
     event RequestMinted(
         string indexed cufeId,
         string indexed uri,
-        address tokenAddress,
-        uint256 tokenId
+        address tokenAddress
     ); //Id must be a did
     event Withdrawn(address indexed payee, uint256 weiAmount);
 
     uint256 public requestCount;
     mapping(string => Request) public requests;
+    mapping(string => InvoiceAssetCD) public invoiceAssetCDList;
     uint256 public fee;
     IERC20 public token;
     IAnconProtocol public anconprotocol;
+    KYX public kyx;
+    address public lendingPool;
+    address public dataProvider;
     uint256 chainId = 0;
 
     constructor(
-        address tokenERC20,
-        address ancon,
+        address _tokenERC20,
+        address _ancon,
+        address _kyx,
         address _lendingPool,
         address _dataProvider,
         uint256 chain
     ) public {
-        token = IERC20(tokenERC20);
-        anconprotocol = IAnconProtocol(ancon);
+        token = IERC20(_tokenERC20);
+        anconprotocol = IAnconProtocol(_ancon);
+        kyx = KYX(_kyx);
         chainId = chain;
+        lendingPool = _lendingPool;
+        dataProvider = _dataProvider;
     }
 
     // withdraws gas token, must be admin
@@ -114,21 +123,26 @@ contract InvoiceAssetRequest is Ownable {
         (
             string memory cufeId,
             string memory cafeUri,
-            uint256 kyxId,
+            string memory kyxid,
+            bytes32 category,
             string memory diddoc
-        ) = abi.decode(packet, (string, string, uint256, string));
+        ) = abi.decode(packet, (string, string, string, bytes32, string));
         require(
             keccak256(abi.encodePacked(requests[cufeId].cufeId)) !=
                 keccak256(abi.encodePacked(cufeId)),
             "request already exists"
         );
-        // TODO: Verify the KYX
+        require(
+            kyx.getIssuer(category, kyxid).enabled == true &&
+                kyx.getIssuer(category, kyxid).creator == msg.sender,
+            "invalid KYC"
+        );
         requestCount = requestCount + 1;
         requests[cufeId] = Request({
             cufeId: cufeId,
             cafeUri: cafeUri,
             creator: msg.sender,
-            kyxId: kyxId,
+            kyxId: kyxid,
             diddoc: diddoc,
             minted: false
         });
@@ -137,12 +151,13 @@ contract InvoiceAssetRequest is Ownable {
     }
 
     // Creates a new request
-    function mintMFNFTwithProof(
+    function mintCDwithProof(
         bytes32 moniker,
         bytes memory packet,
         Ics23Helper.ExistenceProof memory userProof,
         Ics23Helper.ExistenceProof memory packetProof
     ) public returns (string memory) {
+        // Validate network
         require(
             keccak256(anconprotocol.getProtocolHeader(moniker)) !=
                 keccak256(""),
@@ -158,33 +173,53 @@ contract InvoiceAssetRequest is Ownable {
                 packetProof
             ),
             "invalid packet proof"
-        ); //Store recover valu of the rsa signature
+        ); //Store recover value of the rsa signature
         (
             string memory cufeId,
+            string memory kyxid,
+            bytes32 category,
             string memory uri,
             bytes memory n,
             bytes memory e,
             bytes memory sig,
-            address tokenAddress,
-            uint256 tokenId,
-            uint256 shares
-        ) = //Pool address
-            abi.decode(
+            address tokenAddress // uint256 tokenId, // uint256 shares //Pool address
+        ) = abi.decode(
                 packet,
-                (string, string, bytes, bytes, bytes, address, uint256, uint256)
+                (string, string, bytes32, string, bytes, bytes, bytes, address)
             );
+
+        // Verify packet
         require(
             keccak256(abi.encodePacked(requests[cufeId].cufeId)) ==
                 keccak256(abi.encodePacked(cufeId)),
             "request must be created"
         );
-        // TODO:KYX/RSA
-        // WIP MINT...
-        // WIP create InvoiceAssetCD
-        //Example, if this is an invoice stored as an nft with 1000 shares
-        //mfnt with the shares and then transfer to pool address
+
+        // Verify KYX is enabled and matches creator
+        require(
+            kyx.getIssuer(category, kyxid).enabled == true &&
+                kyx.getIssuer(category, kyxid).creator == msg.sender,
+            "invalid KYC"
+        );
+        // Verify is valid SFEP Invoice
+        (bool ok, bytes memory x) = RSAVerify.rsarecover(n, e, sig);
+        require(ok == true, "invalid invoice");
+
+        InvoiceAssetCD  asset = new InvoiceAssetCD(
+            msg.sender,
+            tokenAddress,
+            lendingPool,
+            dataProvider,
+            chainId
+        );
+
+        // invoice asset request minted ok
         requests[cufeId].minted = true;
-        emit RequestMinted(cufeId, uri, tokenAddress, tokenId);
+
+        // invoice asset credit delegation
+        invoiceAssetCDList[cufeId] = asset;
+
+        emit RequestMinted(cufeId, uri, tokenAddress);
         return cufeId;
     }
 }
