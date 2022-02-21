@@ -1,0 +1,108 @@
+
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
+
+Starting migrations...
+======================
+> Network name:    'bsc'
+> Network id:      56
+> Block gas limit: 79469408 (0x4bc9b60)
+
+
+3_token.js
+==========
+
+   Deploying 'AnconToken'
+   ----------------------
+   > transaction hash:    0xea9266de142ca67ae9931977ffc545f003c52b4235f8143be1ba71ee2569efab
+undefined
+undefined
+   > Blocks: 4            Seconds: 8
+   > contract address:    0x61030830398F0a1e266e76dFAc97B3384E1211B7
+   > block number:        15214353
+   > block timestamp:     1644738156
+   > account:             0xFBFafF809436DD68C9ab03D2056c4761d85ff29F
+   > balance:             0.146562073245117229
+   > gas used:            1579207 (0x1818c7)
+   > gas price:           5 gwei
+   > value sent:          0 ETH
+   > total cost:          0.007896035 ETH
+
+   Pausing for 10 confirmations...
+
+   --------------------------------
+   > confirmation number: 1 (block: 15214355)
+   > confirmation number: 3 (block: 15214357)
+   > confirmation number: 4 (block: 15214358)
+   > confirmation number: 5 (block: 15214359)
+   > confirmation number: 8 (block: 15214362)
+   > confirmation number: 9 (block: 15214363)
+   > confirmation number: 10 (block: 15214364)
+
+   Deploying 'ProxyAdmin'
+   ----------------------
+   > transaction hash:    0x27e88cffdd0a091d6cf32d23a2037ae2ef35afdace54b27c0823ae4cc7146dd0
+undefined
+undefined
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x3672239B03B96C155a61bE94A9D578C187Ab2292
+   > block number:        15214370
+   > block timestamp:     1644738207
+   > account:             0xFBFafF809436DD68C9ab03D2056c4761d85ff29F
+   > balance:             0.144148473245117229
+   > gas used:            482720 (0x75da0)
+   > gas price:           5 gwei
+   > value sent:          0 ETH
+   > total cost:          0.0024136 ETH
+
+   Pausing for 10 confirmations...
+
+   --------------------------------
+   > confirmation number: 2 (block: 15214372)
+   > confirmation number: 3 (block: 15214373)
+   > confirmation number: 5 (block: 15214375)
+   > confirmation number: 6 (block: 15214376)
+   > confirmation number: 7 (block: 15214377)
+   > confirmation number: 9 (block: 15214379)
+   > confirmation number: 10 (block: 15214380)
+
+   Deploying 'TransparentUpgradeableProxy'
+   ---------------------------------------
+   > transaction hash:    0x375ea4d88722ac74ff03113c71eec265b901000b27ae7e29ae267cda86142f2f
+undefined
+undefined
+   > Blocks: 3            Seconds: 9
+   > contract address:    0x217f3bdbb0358082c99e1de01c47D1B2DBA45ad5
+   > block number:        15214385
+   > block timestamp:     1644738252
+   > account:             0xFBFafF809436DD68C9ab03D2056c4761d85ff29F
+   > balance:             0.140163983245117229
+   > gas used:            796898 (0xc28e2)
+   > gas price:           5 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00398449 ETH
+
+   Pausing for 10 confirmations...
+
+   --------------------------------
+   > confirmation number: 1 (block: 15214387)
+   > confirmation number: 3 (block: 15214389)
+   > confirmation number: 4 (block: 15214390)
+   > confirmation number: 5 (block: 15214391)
+   > confirmation number: 7 (block: 15214393)
+   > confirmation number: 8 (block: 15214394)
+   > confirmation number: 10 (block: 15214396)
+		Creando stakeholders...
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:         0.014294125 ETH
+
+Summary
+=======
+> Total deployments:   3
+> Final cost:          0.014294125 ETH
+
+

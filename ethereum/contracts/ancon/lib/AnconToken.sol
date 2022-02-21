@@ -6,8 +6,8 @@
 pragma solidity ^0.8.7;
 
 //** remove previous contract and create standard ERC20 contract */
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/ERC20Upgradeable.sol";
+import "./OwnableUpgradeable.sol";
+import "./ERC20Upgradeable.sol";
 
 struct DistrubutionDetails {
     uint256 restrictedUntil;
