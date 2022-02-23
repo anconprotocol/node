@@ -137,3 +137,5 @@ contract InstantRelayer is Ownable {
         emit InstantBlockApplied(moniker, sender,tickets[moniker][sender].destination);
     }
 }
+
+// https://static.swimlanes.io/24b3bc386b1e79bb770a82c6a0079184.png
