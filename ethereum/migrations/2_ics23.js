@@ -100,16 +100,16 @@ module.exports = async (deployer, network, accounts) => {
     token = '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d' //USDC
   }
   
-  //  await deployer.deploy(AnconProtocol, token, chainId, '500000000', '500000000')
-  // const verifier = await AnconProtocol.deployed()
+   await deployer.deploy(AnconProtocol, token, chainId, '500000000', '500000000')
+  const verifier = await AnconProtocol.deployed()
 
-  // await verifier.setPaymentToken(token, { from: accounts[0] })
-// await verifier.registerDagGraphTier(
-//     web3.utils.keccak256('tensta'),
-//     '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
-//     keccak256(toUtf8Bytes('starter')),
-//     { from: accounts[0] }
-//   ) 
+  await verifier.setPaymentToken(token, { from: accounts[0] })
+await verifier.registerDagGraphTier(
+    web3.utils.keccak256('tensta'),
+    '0x04cc4232356b66A112ED42E2c51b3B062b4c94C2',
+    keccak256(toUtf8Bytes('starter')),
+    { from: accounts[0] }
+  ) 
 //   await verifier.registerDagGraphTier(
 //     web3.utils.keccak256('anconprotocol'),
 //     '0x28CB56Ef6C64B066E3FfD5a04E0214535732e57F',
@@ -117,16 +117,18 @@ module.exports = async (deployer, network, accounts) => {
 //     { from: accounts[0] }
 //   )
 
+
  await deployer.deploy(
-    XDVNFT,
+
+  XDVNFT,
     'XDVNFT',
     'XDVNFT',
     token,
-    '0x3A942779cBc73D5DA159DDcCe3FE9c1A16E5Fcba',
+  verifier.address,
     chainId,
   ) 
 
-  const nft = await XDVNFT.deployed() */
+  const nft = await XDVNFT.deployed() 
 
   //  await wxdv.enrollNFT(nft.address)
   // builder.addContract('XDVNFT', nft, nft.address, network)

@@ -7,199 +7,6 @@ Compiling your contracts...
 
 Starting migrations...
 ======================
-> Network name:    'bsc'
-> Network id:      56
-> Block gas limit: 79394678 (0x4bb7776)
-
-
-2_ics23.js
-==========
-
-   Deploying 'Memory'
-   ------------------
-   > transaction hash:    0xb2c17164fa8f1cb500e9b2bc6c5e4387d816b759e85793194037128e0fdb903c
-   > Blocks: 9            Seconds: 28
-   > contract address:    0x0d7d4d12aA6bEc578122057Cf783f263Cf2f9DD1
-   > block number:        16666353
-   > block timestamp:     1644598307
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             2.246499438
-   > gas used:            72217 (0x11a19)
-   > gas price:           5 gwei
-   > value sent:          0 ETH
-   > total cost:          0.000361085 ETH
-
-   Pausing for 10 confirmations...
-   -------------------------------
-   > confirmation number: 2 (block: 16666362)
-   > confirmation number: 4 (block: 16666364)
-   > confirmation number: 6 (block: 16666366)
-   > confirmation number: 8 (block: 16666368)
-   > confirmation number: 9 (block: 16666369)
-   > confirmation number: 10 (block: 16666370)
-
-   --------------------------------
-   > confirmation number: 1 (block: 15088897)
-   > confirmation number: 2 (block: 15088898)
-   > confirmation number: 3 (block: 15088899)
-   > confirmation number: 5 (block: 15088901)
-   > confirmation number: 6 (block: 15088902)
-   > confirmation number: 8 (block: 15088904)
-   > confirmation number: 9 (block: 15088905)
-   > confirmation number: 10 (block: 15088906)
-
-   Deploying 'Bytes'
-   -----------------
-   > transaction hash:    0x197ab8777cdd00b7bc60239a4b9aa47ea6e186f89f9fc7eeea47f8b9e64c0fc8
-   > Blocks: 8            Seconds: 25
-   > contract address:    0xfC234f7e9DdfF84ce2320e798716e58Bc556ff81
-   > block number:        16666379
-   > block timestamp:     1644598385
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             2.245777268
-   > gas used:            72217 (0x11a19)
-   > gas price:           5 gwei
-   > value sent:          0 ETH
-   > total cost:          0.000361085 ETH
-
-   Pausing for 10 confirmations...
-   -------------------------------
-   > confirmation number: 2 (block: 16666389)
-   > confirmation number: 5 (block: 16666392)
-   > confirmation number: 6 (block: 16666393)
-   > confirmation number: 7 (block: 16666394)
-   > confirmation number: 8 (block: 16666395)
-   > confirmation number: 9 (block: 16666396)
-   > confirmation number: 11 (block: 16666398)
-
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0xd62a0b34e01fc17fb625d832d4e611e17dde122cc4e3a721c7ba1a606fefd141
-   > Blocks: 9            Seconds: 28
-   > contract address:    0x28B09f42813dD1751932CC36c977970fA6d8b3b8
-   > block number:        16666408
-   > block timestamp:     1644598472
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             2.214746598
-   > gas used:            3103067 (0x2f595b)
-   > gas price:           10 gwei
-   > value sent:          0 ETH
-   > total cost:          0.03103067 ETH
-
-   Pausing for 10 confirmations...
-   -------------------------------
-   > confirmation number: 2 (block: 16666417)
-   > confirmation number: 3 (block: 16666418)
-   > confirmation number: 4 (block: 16666419)
-   > confirmation number: 6 (block: 16666421)
-   > confirmation number: 7 (block: 16666422)
-   > confirmation number: 8 (block: 16666423)
-   > confirmation number: 11 (block: 16666426)
-
-ReferenceError: verifier is not defined
-    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:134:40)
-    at runMicrotasks (<anonymous>)
-    at processTicksAndRejections (node:internal/process/task_queues:96:5)
-    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
-    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
-    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
-    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
-    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
-    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
-    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
-Truffle v5.4.22 (core: 5.4.22)
-Node v16.2.0
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-   --------------------------------
-   > confirmation number: 2 (block: 15088913)
-   > confirmation number: 3 (block: 15088914)
-   > confirmation number: 5 (block: 15088916)
-   > confirmation number: 6 (block: 15088917)
-   > confirmation number: 8 (block: 15088919)
-   > confirmation number: 10 (block: 15088921)
-
-
-Starting migrations...
-======================
-> Network name:    'mumbai'
-> Network id:      80001
-> Block gas limit: 20000000 (0x1312d00)
-
-
-2_ics23.js
-==========
-
-   Replacing 'Memory'
-   ------------------
-   > transaction hash:    0xccfab288835dcf4432e1ca9b63e289820959482b82b859b0261c13dfe294f144
-   > Blocks: 1            Seconds: 9
-   > contract address:    0x31F451F45569377ab4423D4104212Ad47fe6ba91
-   > block number:        24830080
-   > block timestamp:     1644598570
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             4.254690434010210938
-   > gas used:            72217 (0x11a19)
-   > gas price:           30 gwei
-   > value sent:          0 ETH
-   > total cost:          0.00216651 ETH
-
-
-   Replacing 'Bytes'
-   -----------------
-   > transaction hash:    0xf43fc4505db632a5eff31cf3683880772618f6ead61d83eac3a7981c34f13d35
-   > Blocks: 1            Seconds: 5
-   > contract address:    0xEEE47EF13026f96F671C675352ef4E5D4913b846
-   > block number:        24830083
-   > block timestamp:     1644598582
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             4.252523924010210938
-   > gas used:            72217 (0x11a19)
-   > gas price:           30 gwei
-   > value sent:          0 ETH
-   > total cost:          0.00216651 ETH
-
-
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0x6edafeb67a8ba36a85283d40fc7aa4d44517b6a71fdfa6cf20ba0ff512369106
-   > Blocks: 1            Seconds: 5
-   > contract address:    0xbc90632A3236CaCaC1BD59cD4E07A87058Bada43
-   > block number:        24830086
-   > block timestamp:     1644598594
-   > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
-   > balance:             4.159194194010210938
-   > gas used:            3110991 (0x2f784f)
-   > gas price:           30 gwei
-   > value sent:          0 ETH
-   > total cost:          0.09332973 ETH
-
-
-ReferenceError: verifier is not defined
-    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:134:40)
-    at runMicrotasks (<anonymous>)
-    at processTicksAndRejections (node:internal/process/task_queues:96:5)
-    at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
-    at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
-    at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
-    at Object.runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:150:1)
-    at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
-    at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
-    at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
-Truffle v5.4.22 (core: 5.4.22)
-Node v16.2.0
-
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-
-Starting migrations...
-======================
 > Network name:    'auroratestnet'
 > Network id:      1313161555
 > Block gas limit: 0 (0x0)
@@ -210,11 +17,11 @@ Starting migrations...
 
    Replacing 'Memory'
    ------------------
-   > transaction hash:    0x6770d235e3e96d9819ea6511ca32618622e31966b957c2e685cd57f3574657b1
-   > Blocks: 9            Seconds: 8
-   > contract address:    0xB6f6fd051Ce8cF369f3E9F09289dF163B686a0A0
-   > block number:        82191375
-   > block timestamp:     1644598629
+   > transaction hash:    0x5dc931f0aee1abe2f4751ade9c998335eb9fa9b9bc3f197f5588aa1cf9a7bec3
+   > Blocks: 0            Seconds: 0
+   > contract address:    0x81ACe9E8E50683aA9BeD1Dca74Ff299eA93Fd60A
+   > block number:        83391171
+   > block timestamp:     1645476470
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
    > balance:             0.01
    > gas used:            72217 (0x11a19)
@@ -225,11 +32,11 @@ Starting migrations...
 
    Replacing 'Bytes'
    -----------------
-   > transaction hash:    0xe91cc1964e3648687d57803bfd8beea95f5cc8819c8ec409cb0f1672e47897cf
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x760c748CEe35472C937B97b48931dFE18d70baAB
-   > block number:        82191390
-   > block timestamp:     1644598640
+   > transaction hash:    0xa23126a7acdd3a797c26bf33880afe18971d212353fed6a9d0b743fcaa19adc9
+   > Blocks: 9            Seconds: 8
+   > contract address:    0x7cf045071FD203533FA76042AF1CE124Ea92E6fc
+   > block number:        83391183
+   > block timestamp:     1645476482
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
    > balance:             0.01
    > gas used:            72217 (0x11a19)
@@ -238,31 +45,38 @@ Starting migrations...
    > total cost:          0 ETH
 
 
-   Replacing 'XDVNFT'
-   ------------------
-   > transaction hash:    0x625739cc208bb73b7a9dd6d750a27cb62e42b51bddb2c7fd41177e8cb791292d
+   Replacing 'AnconProtocol'
+   -------------------------
+   > transaction hash:    0x73cdd82f3d1d872dfc7004faac1931b1ec13ef4225af93bc2ac6a599b2201594
    > Blocks: 0            Seconds: 0
-   > contract address:    0x3d91df395a529c7117291bb18ea52e6F62A7021c
-   > block number:        82191402
-   > block timestamp:     1644598649
+   > contract address:    0xEE786B3B20e143019231Bd2e5290D66D8293a6E3
+   > block number:        83391193
+   > block timestamp:     1645476492
    > account:             0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
    > balance:             0.01
-   > gas used:            3111003 (0x2f785b)
+   > gas used:            4207945 (0x403549)
    > gas price:           0 gwei
    > value sent:          0 ETH
-   > total cost:          0.020664285 ETH
-
-   Pausing for 10 confirmations...
-
-> Total deployments:   3
-> Final cost:          0.021386455 ETH
+   > total cost:          0 ETH
 
 
-=======
-ReferenceError: verifier is not defined
-    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:134:40)
+   Replacing 'XDVNFT'
+   ------------------
+
+Error:  *** Deployment Failed ***
+
+"XDVNFT" -- ESOCKETTIMEDOUT
+{
+  "originalError": {
+    "code": "ESOCKETTIMEDOUT",
+    "connect": false
+  }
+}.
+
+    at /home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/deployer/src/deployment.js:365:1
     at runMicrotasks (<anonymous>)
     at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at module.exports (/home/rogelio/Code/ancon-ipld-router-sync/ethereum/migrations/2_ics23.js:121:2)
     at Migration._deploy (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:75:1)
     at Migration._load (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:56:1)
     at Migration.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/Migration.js:217:1)
@@ -270,5 +84,6 @@ ReferenceError: verifier is not defined
     at Object.runFrom (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/migrate/index.js:110:1)
     at runMigrations (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:253:1)
     at Object.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/commands/migrate.js:223:1)
+    at Command.run (/home/rogelio/.nvm/versions/node/v16.2.0/lib/node_modules/truffle/build/webpack:/packages/core/lib/command.js:183:1)
 Truffle v5.4.22 (core: 5.4.22)
 Node v16.2.0
