@@ -222,4 +222,6 @@ contract InvoiceAsset is Ownable {
         emit RequestMinted(cufeId, uri, tokenAddress);
         return cufeId;
     }
+// https://static.swimlanes.io/81db3e698cb22ee0fa29b26f8c6f44a3.png
+
 }
