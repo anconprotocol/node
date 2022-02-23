@@ -120,7 +120,7 @@ contract InstantRelayer is Ownable {
         return tickets[moniker][msg.sender].id;
     }
 
-    // call by client, subscriber must match destination
+    // call by agent listening InstantBlockPaid, subscriber must match destination
     function applyBlock(
         bytes32 moniker,
         address sender,
@@ -133,6 +133,7 @@ contract InstantRelayer is Ownable {
         );
 
         tickets[moniker][sender].open = false;
+        // WIP: Add Rewards for mining
         emit InstantBlockApplied(moniker, sender,tickets[moniker][sender].destination);
     }
 }
