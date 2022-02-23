@@ -168,3 +168,6 @@ contract KYX is Ownable, Reputation {
     //     // add threshold that disables an issuer
     // }
 }
+
+// https://static.swimlanes.io/796a1a0ae8f567e510e5f1564c619d26.png
+// https://swimlanes.io/u/1HOZTmeH1
