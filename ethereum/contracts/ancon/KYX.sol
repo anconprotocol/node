@@ -46,6 +46,14 @@ contract KYX is Ownable, Reputation {
         chainId = chain;
     }
 
+
+
+    // setPaymentToken sets token used for protocol fees
+    function setPaymentToken(address tokenAddress) public onlyOwner{
+        stablecoin = IERC20(tokenAddress);
+    }
+
+
     // withdraws gas token, must be admin
     function withdraw(address payable payee) public onlyOwner {
         uint256 b = address(this).balance;
