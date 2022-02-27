@@ -9,7 +9,6 @@ import {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -18,24 +17,109 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export interface InstantRelayerInterface extends utils.Interface {
+export type RequestStruct = {
+  cufeId: string;
+  cafeUri: string;
+  creator: string;
+  kyxId: BigNumberish;
+  diddoc: string;
+  minted: boolean;
+};
+
+export type RequestStructOutput = [
+  string,
+  string,
+  string,
+  BigNumber,
+  string,
+  boolean
+] & {
+  cufeId: string;
+  cafeUri: string;
+  creator: string;
+  kyxId: BigNumber;
+  diddoc: string;
+  minted: boolean;
+};
+
+export type LeafOpStruct = {
+  valid: boolean;
+  hash: BigNumberish;
+  prehash_key: BigNumberish;
+  prehash_value: BigNumberish;
+  len: BigNumberish;
+  prefix: BytesLike;
+};
+
+export type LeafOpStructOutput = [
+  boolean,
+  number,
+  number,
+  number,
+  number,
+  string
+] & {
+  valid: boolean;
+  hash: number;
+  prehash_key: number;
+  prehash_value: number;
+  len: number;
+  prefix: string;
+};
+
+export type InnerOpStruct = {
+  valid: boolean;
+  hash: BigNumberish;
+  prefix: BytesLike;
+  suffix: BytesLike;
+};
+
+export type InnerOpStructOutput = [boolean, number, string, string] & {
+  valid: boolean;
+  hash: number;
+  prefix: string;
+  suffix: string;
+};
+
+export type ExistenceProofStruct = {
+  valid: boolean;
+  key: BytesLike;
+  value: BytesLike;
+  leaf: LeafOpStruct;
+  path: InnerOpStruct[];
+};
+
+export type ExistenceProofStructOutput = [
+  boolean,
+  string,
+  string,
+  LeafOpStructOutput,
+  InnerOpStructOutput[]
+] & {
+  valid: boolean;
+  key: string;
+  value: string;
+  leaf: LeafOpStructOutput;
+  path: InnerOpStructOutput[];
+};
+
+export interface InvoiceAssetRequestInterface extends utils.Interface {
   functions: {
     "anconprotocol()": FunctionFragment;
     "fee()": FunctionFragment;
     "owner()": FunctionFragment;
-    "relayers(bytes32,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "stablecoin()": FunctionFragment;
-    "tickets(bytes32,address)": FunctionFragment;
+    "requestCount()": FunctionFragment;
+    "requests(string)": FunctionFragment;
+    "token()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
     "withdrawToken(address,address)": FunctionFragment;
     "setFee(uint256)": FunctionFragment;
     "getFee()": FunctionFragment;
-    "getRelayers(bytes32)": FunctionFragment;
-    "enrollRelayer(bytes32,string)": FunctionFragment;
-    "payForExpediteBlock(bytes32,uint256,string)": FunctionFragment;
-    "applyBlock(bytes32,address,uint256)": FunctionFragment;
+    "getRequest(string)": FunctionFragment;
+    "createRequestWithProof(bytes32,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
+    "mintMFNFTwithProof(bytes32,bytes,(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]),(bool,bytes,bytes,(bool,uint8,uint8,uint8,uint8,bytes),(bool,uint8,bytes,bytes)[]))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -45,21 +129,15 @@ export interface InstantRelayerInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "fee", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "relayers",
-    values: [BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "stablecoin",
+    functionFragment: "requestCount",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "tickets",
-    values: [BytesLike, string]
-  ): string;
+  encodeFunctionData(functionFragment: "requests", values: [string]): string;
+  encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
@@ -74,21 +152,14 @@ export interface InstantRelayerInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
+  encodeFunctionData(functionFragment: "getRequest", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "getRelayers",
-    values: [BytesLike]
+    functionFragment: "createRequestWithProof",
+    values: [BytesLike, BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "enrollRelayer",
-    values: [BytesLike, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "payForExpediteBlock",
-    values: [BytesLike, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "applyBlock",
-    values: [BytesLike, string, BigNumberish]
+    functionFragment: "mintMFNFTwithProof",
+    values: [BytesLike, BytesLike, ExistenceProofStruct, ExistenceProofStruct]
   ): string;
 
   decodeFunctionResult(
@@ -97,13 +168,16 @@ export interface InstantRelayerInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "fee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "relayers", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "stablecoin", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "tickets", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "requestCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "requests", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -115,48 +189,28 @@ export interface InstantRelayerInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getRequest", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getRelayers",
+    functionFragment: "createRequestWithProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "enrollRelayer",
+    functionFragment: "mintMFNFTwithProof",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "payForExpediteBlock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "applyBlock", data: BytesLike): Result;
 
   events: {
-    "InstantBlockApplied(bytes32,address,string)": EventFragment;
-    "InstantBlockPaid(bytes32,address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "RequestAdded(string,string,string)": EventFragment;
+    "RequestMinted(string,string,address,uint256)": EventFragment;
     "Withdrawn(address,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "InstantBlockApplied"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "InstantBlockPaid"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RequestAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RequestMinted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
-
-export type InstantBlockAppliedEvent = TypedEvent<
-  [string, string, string],
-  { moniker: string; from: string; destination: string }
->;
-
-export type InstantBlockAppliedEventFilter =
-  TypedEventFilter<InstantBlockAppliedEvent>;
-
-export type InstantBlockPaidEvent = TypedEvent<
-  [string, string, BigNumber],
-  { moniker: string; from: string; id: BigNumber }
->;
-
-export type InstantBlockPaidEventFilter =
-  TypedEventFilter<InstantBlockPaidEvent>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string],
@@ -166,6 +220,20 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
+export type RequestAddedEvent = TypedEvent<
+  [string, string, string],
+  { cufeId: string; cafeUri: string; diddoc: string }
+>;
+
+export type RequestAddedEventFilter = TypedEventFilter<RequestAddedEvent>;
+
+export type RequestMintedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  { cufeId: string; uri: string; tokenAddress: string; tokenId: BigNumber }
+>;
+
+export type RequestMintedEventFilter = TypedEventFilter<RequestMintedEvent>;
+
 export type WithdrawnEvent = TypedEvent<
   [string, BigNumber],
   { payee: string; weiAmount: BigNumber }
@@ -173,12 +241,12 @@ export type WithdrawnEvent = TypedEvent<
 
 export type WithdrawnEventFilter = TypedEventFilter<WithdrawnEvent>;
 
-export interface InstantRelayer extends BaseContract {
+export interface InvoiceAssetRequest extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: InstantRelayerInterface;
+  interface: InvoiceAssetRequestInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -209,12 +277,6 @@ export interface InstantRelayer extends BaseContract {
      */
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    relayers(
-      arg0: BytesLike,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
     /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
@@ -222,19 +284,23 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    stablecoin(overrides?: CallOverrides): Promise<[string]>;
+    requestCount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    tickets(
-      arg0: BytesLike,
-      arg1: string,
+    requests(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, boolean] & {
-        id: BigNumber;
-        destination: string;
-        open: boolean;
+      [string, string, string, BigNumber, string, boolean] & {
+        cufeId: string;
+        cafeUri: string;
+        creator: string;
+        kyxId: BigNumber;
+        diddoc: string;
+        minted: boolean;
       }
     >;
+
+    token(overrides?: CallOverrides): Promise<[string]>;
 
     /**
      * Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.
@@ -264,28 +330,24 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getRelayers(
-      moniker: BytesLike,
+    getRequest(
+      cufeId: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    enrollRelayer(
+    createRequestWithProof(
       moniker: BytesLike,
-      uri: string,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    payForExpediteBlock(
+    mintMFNFTwithProof(
       moniker: BytesLike,
-      uuid: BigNumberish,
-      destination: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    applyBlock(
-      moniker: BytesLike,
-      sender: string,
-      ticket: BigNumberish,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -299,12 +361,6 @@ export interface InstantRelayer extends BaseContract {
    */
   owner(overrides?: CallOverrides): Promise<string>;
 
-  relayers(
-    arg0: BytesLike,
-    arg1: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   /**
    * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
    */
@@ -312,19 +368,23 @@ export interface InstantRelayer extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  stablecoin(overrides?: CallOverrides): Promise<string>;
+  requestCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  tickets(
-    arg0: BytesLike,
-    arg1: string,
+  requests(
+    arg0: string,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, string, boolean] & {
-      id: BigNumber;
-      destination: string;
-      open: boolean;
+    [string, string, string, BigNumber, string, boolean] & {
+      cufeId: string;
+      cafeUri: string;
+      creator: string;
+      kyxId: BigNumber;
+      diddoc: string;
+      minted: boolean;
     }
   >;
+
+  token(overrides?: CallOverrides): Promise<string>;
 
   /**
    * Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.
@@ -354,28 +414,24 @@ export interface InstantRelayer extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getRelayers(
-    moniker: BytesLike,
+  getRequest(
+    cufeId: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  enrollRelayer(
+  createRequestWithProof(
     moniker: BytesLike,
-    uri: string,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    packetProof: ExistenceProofStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  payForExpediteBlock(
+  mintMFNFTwithProof(
     moniker: BytesLike,
-    uuid: BigNumberish,
-    destination: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  applyBlock(
-    moniker: BytesLike,
-    sender: string,
-    ticket: BigNumberish,
+    packet: BytesLike,
+    userProof: ExistenceProofStruct,
+    packetProof: ExistenceProofStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -389,30 +445,28 @@ export interface InstantRelayer extends BaseContract {
      */
     owner(overrides?: CallOverrides): Promise<string>;
 
-    relayers(
-      arg0: BytesLike,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    stablecoin(overrides?: CallOverrides): Promise<string>;
+    requestCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    tickets(
-      arg0: BytesLike,
-      arg1: string,
+    requests(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, boolean] & {
-        id: BigNumber;
-        destination: string;
-        open: boolean;
+      [string, string, string, BigNumber, string, boolean] & {
+        cufeId: string;
+        cafeUri: string;
+        creator: string;
+        kyxId: BigNumber;
+        diddoc: string;
+        minted: boolean;
       }
     >;
+
+    token(overrides?: CallOverrides): Promise<string>;
 
     /**
      * Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.
@@ -434,55 +488,29 @@ export interface InstantRelayer extends BaseContract {
 
     getFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getRelayers(
-      moniker: BytesLike,
+    getRequest(
+      cufeId: string,
       overrides?: CallOverrides
-    ): Promise<string[]>;
+    ): Promise<RequestStructOutput>;
 
-    enrollRelayer(
+    createRequestWithProof(
       moniker: BytesLike,
-      uri: string,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<string>;
 
-    payForExpediteBlock(
+    mintMFNFTwithProof(
       moniker: BytesLike,
-      uuid: BigNumberish,
-      destination: string,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    applyBlock(
-      moniker: BytesLike,
-      sender: string,
-      ticket: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
   };
 
   filters: {
-    "InstantBlockApplied(bytes32,address,string)"(
-      moniker?: BytesLike | null,
-      from?: string | null,
-      destination?: null
-    ): InstantBlockAppliedEventFilter;
-    InstantBlockApplied(
-      moniker?: BytesLike | null,
-      from?: string | null,
-      destination?: null
-    ): InstantBlockAppliedEventFilter;
-
-    "InstantBlockPaid(bytes32,address,uint256)"(
-      moniker?: BytesLike | null,
-      from?: string | null,
-      id?: null
-    ): InstantBlockPaidEventFilter;
-    InstantBlockPaid(
-      moniker?: BytesLike | null,
-      from?: string | null,
-      id?: null
-    ): InstantBlockPaidEventFilter;
-
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -491,6 +519,30 @@ export interface InstantRelayer extends BaseContract {
       previousOwner?: string | null,
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
+
+    "RequestAdded(string,string,string)"(
+      cufeId?: string | null,
+      cafeUri?: string | null,
+      diddoc?: null
+    ): RequestAddedEventFilter;
+    RequestAdded(
+      cufeId?: string | null,
+      cafeUri?: string | null,
+      diddoc?: null
+    ): RequestAddedEventFilter;
+
+    "RequestMinted(string,string,address,uint256)"(
+      cufeId?: string | null,
+      uri?: string | null,
+      tokenAddress?: null,
+      tokenId?: null
+    ): RequestMintedEventFilter;
+    RequestMinted(
+      cufeId?: string | null,
+      uri?: string | null,
+      tokenAddress?: null,
+      tokenId?: null
+    ): RequestMintedEventFilter;
 
     "Withdrawn(address,uint256)"(
       payee?: string | null,
@@ -509,12 +561,6 @@ export interface InstantRelayer extends BaseContract {
      */
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    relayers(
-      arg0: BytesLike,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
@@ -522,13 +568,11 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    stablecoin(overrides?: CallOverrides): Promise<BigNumber>;
+    requestCount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    tickets(
-      arg0: BytesLike,
-      arg1: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    requests(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
 
     /**
      * Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.
@@ -558,28 +602,24 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getRelayers(
-      moniker: BytesLike,
+    getRequest(
+      cufeId: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    enrollRelayer(
+    createRequestWithProof(
       moniker: BytesLike,
-      uri: string,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    payForExpediteBlock(
+    mintMFNFTwithProof(
       moniker: BytesLike,
-      uuid: BigNumberish,
-      destination: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    applyBlock(
-      moniker: BytesLike,
-      sender: string,
-      ticket: BigNumberish,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -594,12 +634,6 @@ export interface InstantRelayer extends BaseContract {
      */
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    relayers(
-      arg0: BytesLike,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     /**
      * Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.
      */
@@ -607,13 +641,14 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    stablecoin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    requestCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    tickets(
-      arg0: BytesLike,
-      arg1: string,
+    requests(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     /**
      * Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.
@@ -643,28 +678,24 @@ export interface InstantRelayer extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getRelayers(
-      moniker: BytesLike,
+    getRequest(
+      cufeId: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    enrollRelayer(
+    createRequestWithProof(
       moniker: BytesLike,
-      uri: string,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    payForExpediteBlock(
+    mintMFNFTwithProof(
       moniker: BytesLike,
-      uuid: BigNumberish,
-      destination: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    applyBlock(
-      moniker: BytesLike,
-      sender: string,
-      ticket: BigNumberish,
+      packet: BytesLike,
+      userProof: ExistenceProofStruct,
+      packetProof: ExistenceProofStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

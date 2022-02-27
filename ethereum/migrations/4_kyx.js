@@ -1,19 +1,7 @@
 const fs = require('fs')
 const ContractImportBuilder = require('../contract-import-builder')
 const KYX = artifacts.require('KYX')
-const XDVNFT = artifacts.require('XDVNFT')
 
-const { ethers } = require('ethers')
-const Bytes = artifacts.require('Bytes')
-const Memory = artifacts.require('Memory')
-const ICS23 = artifacts.require('ICS23')
-const Ics23Helper = artifacts.require('Ics23Helper')
-
-const AnconProtocol = artifacts.require('AnconProtocol')
-const {
-  AnconProtocol__factory,
-} = require('../types/lib/factories/AnconProtocol__factory')
-const { base64, hexlify, keccak256, toUtf8Bytes } = require('ethers/lib/utils')
 
 module.exports = async (deployer, network, accounts) => {
   const builder = new ContractImportBuilder()
@@ -46,11 +34,16 @@ module.exports = async (deployer, network, accounts) => {
     token = '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d' //USDC
   }
 
-  await deployer.deploy(KYX, token, chainId)
-  const verifier = await KYX.deployed()
+  await deployer.deploy(
+    KYX,
+    token,
+    '0x3A942779cBc73D5DA159DDcCe3FE9c1A16E5Fcba',
+    chainId,
+  )
+  const kyc = await KYX.deployed()
 
   //  await wxdv.enrollNFT(nft.address)
   // builder.addContract('XDVNFT', nft, nft.address, network)
   // builder.addContract('WXDV', wxdv, wxdv.address, network)
-  builder.addContract('AnconProtocol', verifier, verifier.address, network)
+  builder.addContract('KYX', kyc, kyc.address, network)
 }
