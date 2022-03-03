@@ -27,3 +27,4 @@ ethereum/build/contracts
 .env
 ethereum/.env
 .vscode
+ethereum/contracts/ancon/lib
