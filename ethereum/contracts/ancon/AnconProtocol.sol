@@ -276,9 +276,6 @@ contract AnconProtocol is ICS23 {
         returns (bytes memory)
     {
         return latestRootHashTable[moniker];
-        require(sent, "Failed to send Ether");
-
-        emit Withdrawn(payee, b);
     }
 
     function getProof(bytes memory did) public view returns (bytes memory) {
