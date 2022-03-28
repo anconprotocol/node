@@ -1,4 +1,4 @@
-# Ancon Protocol Node v0.6.0
+# Ancon Protocol Node v1.0.0
 
 
 ### Protocol for secure offchain data economy
@@ -501,17 +501,3 @@ In cross chain use cases, there are many to accomplish this, one is with atomic 
 
 > Copyright IFESA 2021, 2022
 
-## build
-# In root folder
-go build main.go
-## setup
-./main --init --moniker anconprotocol
-
-zip el folder #HOME/.ancon
-# este valor va en .env de updater-service con el moniker la instruccion anterior
-*Sep256k1 private key: 0x3da4eaace25ed777096278479b272a86713ebdfad069e8a2a5196bf907114958
-
-*Genesis value: 7b0a0909646174613a2022636572726f2d616e636f6e222c0a09097369676e61747572653a2022626167757165657261636f706a6e6d346e6f32376a737579636f697271766d61656b35336a743779743569626f366a7132706b6d66367335336e683671222c0a09097d
-*Genesis key: baguqeeracopjnm4no27jsuycoirqvmaek53jt7yt5ibo6jq2pkmf6s53nh6q
-*Proof: 1a730a4d657366657261736f6c7563696f6e6573626167757165657261636f706a6e6d346e6f32376a737579636f697271766d61656b35336a743779743569626f366a7132706b6d66367335336e6836711220d7e9dd662e5907b6817943a5e066c6db18401ec0194c9a704a1bd9e31e11803d1801
-*Last header hash: 03c2fdd1a30b71b5fdcecec2adc0422e0a6c417d3879ac655756accda1187cce
