@@ -237,6 +237,7 @@ func main() {
 	// }
 	r.GET("/oidc", oidcHandler.OIDCRequest)
 	r.GET("/auth/callback", oidcHandler.OIDCCallback)
+	r.POST("/siwe/verify", oidcHandler.SIWEVerify)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 

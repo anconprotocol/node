@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/buger/jsonparser"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/spruceid/siwe-go"
 
 	"golang.org/x/oauth2"
 
@@ -16,6 +19,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/sdk"
 
 	"github.com/gin-gonic/gin"
@@ -110,8 +114,52 @@ func (ctx *OidcHandler) OIDCRequest(c *gin.Context) {
 	c.SetCookie("nonce", nonce, 1000000, "/", ".did.pa", true, false)
 
 	u := ctx.Config.AuthCodeURL(state, oidc.Nonce(nonce))
-//	println(u)
+	//	println(u)
 	c.Redirect(http.StatusFound, u)
+
+}
+
+func (ctx *OidcHandler) SIWEVerify(c *gin.Context) {
+	var msg *siwe.Message
+	var err error
+
+	v, _ := c.GetRawData()
+
+	message, _ := jsonparser.GetString(v, "message")
+
+	if message == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing message").Error(),
+		})
+		return
+	}
+
+	signature, _ := jsonparser.GetString(v, "signature")
+
+	if signature == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing signature").Error(),
+		})
+		return
+	}
+
+	msg, err = siwe.ParseMessage(message)
+
+	publicKey, err := msg.VerifyEIP191(signature)
+	if err != nil {
+		c.JSON(401, gin.H{
+			"error": fmt.Errorf("invalid login").Error(),
+		})
+		return
+	}
+
+	publicKeyBytes := crypto.FromECDSAPub(publicKey)
+
+	c.JSON(200, gin.H{
+		"verified":  true,
+		"message":   msg.String(),
+		"publicKey": hexutil.Encode(publicKeyBytes),
+	})
 
 }
 func (ctx *OidcHandler) OIDCCallback(c *gin.Context) {
