@@ -11,7 +11,6 @@ import (
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/x/anconsync/handler"
-	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 
@@ -128,7 +127,7 @@ func main() {
 	}
 	wakuHandler := handler.NewWakuHandler(dagHandler, *peerAddr, *wakuAddr, *privateKeyPath)
 	wakuHandler.Start()
-	proofHandler := handler.NewProofHandler(dagHandler, *privateKeyPath)
+	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, *moniker, *privateKeyPath)
 
 	if *rootHash != "" {
 		hash, err := proofHandler.VerifyGenesis(*rootkey, *moniker)
@@ -142,11 +141,9 @@ func main() {
 
 	}
 
-	// TODO: Pending deprecate
-	adapter := ethereum.NewOnchainAdapter("", "", 0)
 	dagJsonHandler := handler.NewDagHandler(
 		dagHandler,
-		proofHandler.GetProofService(),
+		proofHandler,
 		wakuHandler,
 		*rootkey,
 		*moniker,
@@ -165,12 +162,12 @@ func main() {
 		AnconSyncContext: dagHandler,
 		Moniker:          *moniker,
 	}
-	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
+	//	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 
 	api := r.Group("/v1")
 	{
-		api.GET("/graphql", g)
-		api.POST("/graphql", g)
+		// api.GET("/graphql", g)
+		// api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
 		api.GET("/dag/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.POST("/dag", dagJsonHandler.DagJsonWrite)
@@ -185,6 +182,7 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	go dagJsonHandler.Listen(context.Background())
+	go proofHandler.Listen(context.Background())
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
 	} else {

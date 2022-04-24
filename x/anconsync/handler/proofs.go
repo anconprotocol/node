@@ -3,14 +3,18 @@ package handler
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
@@ -18,7 +22,15 @@ import (
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
+	"github.com/ipfs/go-graphsync/ipldutil"
+	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/fluent"
+	"github.com/ipld/go-ipld-prime/must"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
+	"github.com/joncrlsn/dque"
+	"github.com/status-im/go-waku/waku/v2/node"
+	"github.com/status-im/go-waku/waku/v2/protocol"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
 
@@ -29,6 +41,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/proofsignature"
 )
@@ -39,13 +52,17 @@ type Commit struct {
 }
 type ProofHandler struct {
 	*sdk.AnconSyncContext
-	db dbm.DB
-
-	LastCommit *Commit
-	api        proofsignature.IavlProofAPI
-	proofs     proofsignature.IavlProofService
-	RootKey    string
-	privateKey *ecdsa.PrivateKey
+	db                     dbm.DB
+	WakuPeer               *WakuHandler
+	LastCommit             *Commit
+	api                    proofsignature.IavlProofAPI
+	proofs                 proofsignature.IavlProofService
+	RootKey                string
+	ContentTopic           protocol.ContentTopic
+	Moniker                string
+	privateKey             *ecdsa.PrivateKey
+	rwLock                 sync.RWMutex
+	pendingTransactionPool *dque.DQue
 }
 
 func (h *ProofHandler) Commit() (int64, string, error) {
@@ -75,7 +92,7 @@ func (h *ProofHandler) GetProofAPI() *proofsignature.IavlProofAPI {
 	return &h.api
 
 }
-func NewProofHandler(ctx *sdk.AnconSyncContext, privateKeyPath string) *ProofHandler {
+func NewProofHandler(ctx *sdk.AnconSyncContext, wakuPeer *WakuHandler, moniker string, privateKeyPath string) *ProofHandler {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -94,9 +111,210 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, privateKeyPath string) *ProofHan
 		panic(err)
 	}
 	proofs, _ := proofsignature.NewIavlAPI(ctx.Store, ctx.Exchange, db, 2000, 0)
-	return &ProofHandler{AnconSyncContext: ctx, db: db, proofs: *proofs.Service, api: *proofs, privateKey: privateKey}
+	contentTopic := protocol.NewContentTopic(moniker, 1, "proofs", "json")
+
+	queueName := "memqueue"
+	queueDir := folder
+	segmentSize := 50
+
+	// Create a new queue with segment size of 50
+	pendingTransactionPool, err := dque.NewOrOpen(queueName, queueDir, segmentSize, QueueItemBuilder)
+
+	if err != nil {
+		panic(err)
+	}
+	return &ProofHandler{AnconSyncContext: ctx,
+		WakuPeer: wakuPeer,
+		db:       db,
+		proofs:   *proofs.Service, api: *proofs,
+		rwLock:                 sync.RWMutex{},
+		privateKey:             privateKey,
+		ContentTopic:           contentTopic,
+		Moniker:                moniker,
+		pendingTransactionPool: pendingTransactionPool,
+	}
 
 }
+
+type PoolItem struct {
+	Block DagBlockResult
+	Cid   string
+}
+
+func QueueItemBuilder() interface{} {
+	return &PoolItem{}
+}
+
+func (h *ProofHandler) AddToPool(item *PoolItem) error {
+
+	// Add an item to the queue
+	return h.pendingTransactionPool.Enqueue(item)
+}
+
+func (h *ProofHandler) Listen(ctx context.Context) {
+	sub, err := h.WakuPeer.Subscribe(ctx, h.ContentTopic.String())
+
+	if err != nil {
+		fmt.Errorf(err.Error())
+		return
+	}
+
+	go func() {
+		var i int
+		for {
+
+			if i == 5 {
+				// Commit tx batch
+				_, err = h.proofs.SaveVersion(&emptypb.Empty{})
+				i = 0
+			}
+			i++
+			time.Sleep(5000)
+			has, err := h.pendingTransactionPool.Peek()
+			if has == nil {
+				return
+			}
+			iface, err := h.pendingTransactionPool.Dequeue()
+			if err != nil {
+				return
+			}
+			// Assert type of the response to an Item pointer so we can work with it
+			item, ok := iface.(*PoolItem)
+			if !ok {
+				log.Fatal("Dequeued object is not an Item pointer")
+			}
+
+			// Load dag block
+			lnk, _ := sdk.ParseCidLink(item.Cid)
+			keypath := protocol.NewContentTopic(h.Moniker, 1, "block", lnk.String())
+			k := []byte(keypath.String())
+
+			// commit block
+			block, err := h.Store.Load(ipld.LinkContext{}, lnk)
+			bz, _ := block.AsBytes()
+			commit, _ := h.proofs.Set(k, bz)
+			hash, err := jsonparser.GetString(commit, "updated")
+
+			// get latest
+			_, latestBlockNumber := h.proofs.GetCurrentVersion()
+
+			proofblock := h.Apply(&DagBlockResult{
+				Issuer:        item.Block.Issuer,
+				Timestamp:     item.Block.Timestamp,
+				ContentHash:   item.Block.ContentHash,
+				Signature:     item.Block.Signature,
+				Digest:        item.Block.Digest,
+				Network:       item.Block.Network,
+				CommitHash:    string(hash),
+				Height:        int64(latestBlockNumber),
+				Key:           base64.StdEncoding.EncodeToString([]byte(k)),
+				LastBlockHash: item.Block.LastBlockHash,
+				// ParentHash:    currentCid.String(),
+			})
+			res := h.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, proofblock)
+
+			n, err := h.Store.Load(ipld.LinkContext{}, res)
+			h.WakuPeer.Publish(h.ContentTopic, n)
+
+		}
+
+		// Notify
+
+	}()
+
+	for value := range sub.C {
+
+		if value.Message().ContentTopic == h.ContentTopic.String() {
+			payload, err := node.DecodePayload(value.Message(), &node.KeyInfo{Kind: node.None})
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			// Decode payload
+			block, err := ipldutil.DecodeNode(payload.Data)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			// Get event and cid properties
+			node, err := block.LookupByString("event")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			eventType := must.String(node)
+			node, err = block.LookupByString("cid")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			key := must.String(node)
+			has, err := h.Store.DataStore.Has(ctx, key)
+
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			// If get, lookup and return block, otherwise put / store
+			if eventType == "get" {
+				if has {
+					lnk, _ := sdk.ParseCidLink(key)
+					block, _ := h.Store.Load(ipld.LinkContext{}, lnk)
+					h.WakuPeer.Publish(h.ContentTopic, block)
+				}
+			}
+		}
+
+	}
+}
+
+type DagBlockResult struct {
+	Issuer        string         `json:"issuer"`
+	Timestamp     int64          `json:"timestamp"`
+	Content       datamodel.Node `json:"content"`
+	ContentHash   datamodel.Link `json:"content_hash"`
+	CommitHash    string         `json:"commit_hash"`
+	Height        int64
+	Signature     string `json:"signature"`
+	Digest        string `json:"digest"`
+	Network       string `json:"network"`
+	Key           string `json:"key"`
+	RootKey       string
+	LastBlockHash string
+	ParentHash    string `json:"parent_hash"`
+}
+
+func (dagctx *ProofHandler) Apply(args *DagBlockResult) datamodel.Node {
+
+	block := fluent.MustBuildMap(basicnode.Prototype.Map, 13, func(na fluent.MapAssembler) {
+		na.AssembleEntry("issuer").AssignString(args.Issuer)
+		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
+		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
+		//	na.AssembleEntry("content").AssignNode(args.Content)
+		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
+		na.AssembleEntry("height").AssignInt(args.Height)
+		na.AssembleEntry("signature").AssignString(args.Signature)
+		na.AssembleEntry("digest").AssignString(args.Digest)
+		na.AssembleEntry("network").AssignString(args.Network)
+		na.AssembleEntry("key").AssignString(args.Key)
+		na.AssembleEntry("rootKey").AssignString(args.RootKey)
+		if args.LastBlockHash != "" {
+			lnk, _ := sdk.ParseCidLink(args.LastBlockHash)
+			na.AssembleEntry("lastBlockHash").AssignLink(lnk)
+		}
+		if args.ParentHash != "" {
+			lnk, _ := sdk.ParseCidLink(args.ParentHash)
+			na.AssembleEntry("parentHash").AssignLink(lnk)
+		}
+	})
+
+	return block
+}
+
 func (h *ProofHandler) VerifyGenesis(moniker string, key string) ([]byte, error) {
 
 	version := 0

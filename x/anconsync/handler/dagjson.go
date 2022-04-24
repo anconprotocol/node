@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-graphsync/ipldutil"
@@ -24,16 +22,13 @@ import (
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/ipld/go-ipld-prime/traversal"
-	"github.com/spf13/cast"
 	"github.com/status-im/go-waku/waku/v2/node"
 	"github.com/status-im/go-waku/waku/v2/protocol"
-
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type DagJsonHandler struct {
 	*sdk.AnconSyncContext
-	Proof         *proofsignature.IavlProofService
+	ProofHandler  *ProofHandler
 	WakuPeer      *WakuHandler
 	RootKey       string
 	Moniker       string
@@ -48,19 +43,18 @@ type Mutation struct {
 }
 
 func NewDagHandler(ctx *sdk.AnconSyncContext,
-	proof *proofsignature.IavlProofService,
+	proof *ProofHandler,
 	wakuPeer *WakuHandler,
 	rootKey string,
 	moniker string) *DagJsonHandler {
 
 	return &DagJsonHandler{
 		AnconSyncContext: ctx,
-		Proof:            proof,
+		ProofHandler:     proof,
 		WakuPeer:         wakuPeer,
 		RootKey:          rootKey,
 		Moniker:          moniker,
-
-		ContentTopic: protocol.NewContentTopic(moniker, 1, "dag", "json"),
+		ContentTopic:     protocol.NewContentTopic(moniker, 1, "dag", "json"),
 	}
 
 }
@@ -221,14 +215,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 
-	// internalKey := fmt.Sprintf("%s/%s", p, cid)
-	// dagctx.Proof.Set([]byte(internalKey), data)
-	// commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
-	// hash, err := jsonparser.GetString(commit, "root_hash")
-	// version, err := jsonparser.GetInt(commit, "version")
-
-	// lastHash := []byte(hash)
-	// blockNumber := cast.ToInt64(version)
 	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -237,23 +223,23 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	block := dagctx.Apply(&DagBlockResult{
-		Issuer:    addrrec,
-		Timestamp: time.Now().Unix(),
-		// Content:       n,
-		ContentHash: cid,
-		// CommitHash:    string(lastHash),
-		// Height:        blockNumber,
-		Signature: signature,
-		Digest:    hexutil.Encode(digest),
-		Network:   dagctx.Moniker,
-		// Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
-		// RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
-		// LastBlockHash: l,
-		// ParentHash:    parentHash,
-	})
-	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
-	dagctx.PreviousBlock = res
+	// get current
+
+	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
+
+	dbl := &DagBlockResult{
+		Issuer:        addrrec,
+		Timestamp:     time.Now().Unix(),
+		ContentHash:   cid,
+		Signature:     signature,
+		Digest:        hexutil.Encode(digest),
+		Network:       dagctx.Moniker,
+		LastBlockHash: string(lastHash),
+	}
+	block := dagctx.ApplyDagBlock(dbl)
+
+	dagctx.ProofHandler.AddToPool(&PoolItem{Block: *dbl, Cid: cid.String()})
+	// dagctx.PreviousBlock = res
 	topic, err := jsonparser.GetString(v, "topic")
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	contentTopic, err := protocol.StringToContentTopic(topic)
@@ -263,52 +249,38 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	dagctx.WakuPeer.Publish(contentTopic, n)
 
 	c.JSON(201, gin.H{
-		"cid": res.String(),
+		"cid": cid.String(),
 	})
 }
 
-type DagBlockResult struct {
-	Issuer        string         `json:"issuer"`
-	Timestamp     int64          `json:"timestamp"`
-	Content       datamodel.Node `json:"content"`
-	ContentHash   datamodel.Link `json:"content_hash"`
-	CommitHash    string         `json:"commit_hash"`
-	Height        int64
-	Signature     string `json:"signature"`
-	Digest        string `json:"digest"`
-	Network       string `json:"network"`
-	Key           string `json:"key"`
-	RootKey       string
-	LastBlockHash string
-	ParentHash    string `json:"parent_hash"`
+type DagBlock struct {
+	Issuer      string         `json:"issuer"`
+	Timestamp   int64          `json:"timestamp"`
+	ContentHash datamodel.Link `json:"content_hash"`
+	Signature   string         `json:"signature"`
+	Digest      string         `json:"digest"`
+	Network     string         `json:"network"`
 }
 
-func (dagctx *DagJsonHandler) Apply(args *DagBlockResult) datamodel.Node {
+func (dagctx *DagJsonHandler) ApplyDagBlock(args *DagBlockResult) datamodel.Node {
 
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 13, func(na fluent.MapAssembler) {
 		na.AssembleEntry("issuer").AssignString(args.Issuer)
 		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
 		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
-		//	na.AssembleEntry("content").AssignNode(args.Content)
-		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
-		na.AssembleEntry("height").AssignInt(args.Height)
 		na.AssembleEntry("signature").AssignString(args.Signature)
 		na.AssembleEntry("digest").AssignString(args.Digest)
 		na.AssembleEntry("network").AssignString(args.Network)
-		na.AssembleEntry("key").AssignString(args.Key)
-		na.AssembleEntry("rootKey").AssignString(args.RootKey)
+
 		if args.LastBlockHash != "" {
 			lnk, _ := sdk.ParseCidLink(args.LastBlockHash)
 			na.AssembleEntry("lastBlockHash").AssignLink(lnk)
-		}
-		if args.ParentHash != "" {
-			lnk, _ := sdk.ParseCidLink(args.ParentHash)
-			na.AssembleEntry("parentHash").AssignLink(lnk)
 		}
 	})
 
 	return block
 }
+
 func (dagctx *DagJsonHandler) ApplyFocusedTransform(node datamodel.Node, mutations []Mutation) (datamodel.Node, error) {
 	var current datamodel.Node
 	var err error
@@ -425,8 +397,6 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
-	p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
-
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 
 	data, err := hexutil.Decode(temp)
@@ -472,25 +442,9 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 	n, err := dagctx.ApplyFocusedTransform(current, mutations)
-	content, _ := sdk.Encode(n) // signature must match data + dif
-
-	ok, err := types.Authenticate(doc, []byte(content), signature)
-	if !ok {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid signature").Error(),
-		})
-		return
-	}
 
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
-	internalKey := fmt.Sprintf("%s/%s", p, cid)
-	dagctx.Proof.Set([]byte(internalKey), data)
-	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
-	hash, err := jsonparser.GetString(commit, "root_hash")
-	version, err := jsonparser.GetInt(commit, "version")
-	lastHash := []byte(hash)
-	blockNumber := cast.ToInt64(version)
 	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -498,47 +452,34 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
+	// get current
 
-	l := ""
-	if dagctx.PreviousBlock != nil {
-		l = dagctx.PreviousBlock.String()
-	}
+	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
 
-	block := dagctx.Apply(&DagBlockResult{
+	dbl := &DagBlockResult{
 		Issuer:        addrrec,
 		Timestamp:     time.Now().Unix(),
-		Content:       n,
 		ContentHash:   cid,
-		CommitHash:    string(lastHash),
-		Height:        blockNumber,
 		Signature:     signature,
 		Digest:        hexutil.Encode(digest),
 		Network:       dagctx.Moniker,
-		Key:           base64.StdEncoding.EncodeToString([]byte(internalKey)),
-		RootKey:       base64.StdEncoding.EncodeToString([]byte(p)),
-		LastBlockHash: l,
-		ParentHash:    currentCid.String(),
-	})
-	res := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(dagctx.Moniker))}, block)
-
-	if topic != "" {
-		topic = topic + ":" + addrrec
-
-		dagctx.Store.DataStore.Put(c.Request.Context(), topic, []byte(res.String()))
+		LastBlockHash: string(lastHash),
 	}
+	block := dagctx.ApplyDagBlock(dbl)
 
-	dagctx.PreviousBlock = res
-	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
-
+	dagctx.ProofHandler.AddToPool(&PoolItem{Block: *dbl, Cid: cid.String()})
+	// dagctx.PreviousBlock = res
+	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
+	contentTopic, err := protocol.StringToContentTopic(topic)
 	// block
-	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
-
+	dagctx.WakuPeer.Publish(contentTopic, block)
 	// metadata
-	dagctx.WakuPeer.Publish(dagctx.ContentTopic, n)
+	dagctx.WakuPeer.Publish(contentTopic, n)
 
-	c.JSON(200, gin.H{
-		"cid": res.String(),
+	c.JSON(201, gin.H{
+		"cid": cid.String(),
 	})
+
 }
 
 // @BasePath /v0
