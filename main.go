@@ -14,7 +14,7 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/impl"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -37,19 +37,19 @@ type SubgraphConfig struct {
 	EnableDageth bool
 }
 
-// @title        Ancon Protocol Sync API v0.4.0
-// @version      0.4.0
+// @title        Ancon Protocol Sync API v1.5.0
+// @version      1.5.0
 // @description  API
 
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      api.ancon.did.pa
-// @BasePath  /v0
+// @BasePath  /v1
 func main() {
 
 	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/34075/p2p/16Uiu2HAmAihQ3QDNyNxfYiN8qAvaBZKzqosmudoG9KYFMhW2YDXd", "A remote peer to sync")
-	addr := flag.String("addr", "/ip4/0.0.0.0/tcp/7702", "Host multiaddr")
+	wakuAddr := flag.String("wakuaddr", "0.0.0.0:8876", "Waku address")
 	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
 	dataFolder := flag.String("data", ".ancon", "Data directory")
 	enableCors := flag.Bool("cors", false, "Allow CORS")
@@ -64,18 +64,7 @@ func main() {
 	quic := flag.Bool("quic", false, "Enable QUIC")
 	tlsKey := flag.String("tlscert", "", "TLS certificate")
 	tlsCert := flag.String("tlskey", "", "TLS key")
-	ipfshost := flag.String("ipfshost", "", "IPFS Host")
 	privateKeyPath := flag.String("privatekeypath", "", "")
-	oidcclient := flag.String("oidcclient", "", "OIDC Client ID")
-	oidcsecret := flag.String("oidcsecret", "", "OIDC Secret")
-	oidcredirect := flag.String("oidcredirect", "http://localhost:7788/auth/callback", "OIDC Redirect URL")
-
-	subgraph := SubgraphConfig{}
-	subgraph.EnableDageth = *flag.Bool("enable-dageth", false, "enable EVM subgraph")
-	subgraph.EnableDagcosmos = *flag.Bool("enable-dagcosmos", false, "enable Cosmos subgraph")
-	subgraph.CosmosPrimaryAddress = *flag.String("cosmos-primary", "", "primary")
-	subgraph.EvmAddress = *flag.String("evm-node-address", "", "remote node address")
-	subgraph.EvmChainId = *flag.String("evm-chain-id", "", "chain id")
 
 	flag.Parse()
 	if *genKeys == true {
@@ -99,17 +88,9 @@ func main() {
 	}
 
 	s := sdk.NewStorage(*dataFolder)
+	dagHandler := &sdk.AnconSyncContext{Store: s}
 
-	ctx := context.Background()
-	host := impl.NewPeer(ctx, *addr)
-
-	exchange, ipfspeer := impl.NewRouter(ctx, host, s.LinkSystem, *peerAddr)
-
-	fmt.Println(ipfspeer.ID)
-
-	docs.SwaggerInfo.BasePath = "/v0"
-
-	dagHandler := sdk.NewAnconSyncContext(s, exchange, ipfspeer)
+	docs.SwaggerInfo.BasePath = "/v1"
 
 	if *init == true {
 
@@ -145,7 +126,8 @@ func main() {
 
 		return
 	}
-
+	wakuHandler := handler.NewWakuHandler(dagHandler, *peerAddr, *wakuAddr, *privateKeyPath)
+	wakuHandler.Start()
 	proofHandler := handler.NewProofHandler(dagHandler, *privateKeyPath)
 
 	if *rootHash != "" {
@@ -162,27 +144,21 @@ func main() {
 
 	// TODO: Pending deprecate
 	adapter := ethereum.NewOnchainAdapter("", "", 0)
-
-	oidcHandler := handler.NewOidcHandler(dagHandler,
-		*oidcclient,
-		*oidcsecret,
-		*oidcredirect,
+	dagJsonHandler := handler.NewDagHandler(
+		dagHandler,
+		proofHandler.GetProofService(),
+		wakuHandler,
+		*rootkey,
+		*moniker,
 	)
-	dagJsonHandler := handler.DagJsonHandler{
-		AnconSyncContext: dagHandler,
-		Proof:            proofHandler.GetProofService(),
-		RootKey:          *rootkey,
-		IPFSHost:         *ipfshost,
-		Moniker:          *moniker,
-	}
 
-	didHandler := handler.Did{
-		AnconSyncContext: dagHandler,
-		Proof:            proofHandler.GetProofService(),
-		RootKey:          *rootkey,
-		IPFSHost:         *ipfshost,
-		Moniker:          *moniker,
-	}
+	didHandler := handler.NewDidHandler(
+		dagHandler,
+		proofHandler.GetProofService(),
+		wakuHandler,
+		*rootkey,
+		*moniker,
+	)
 
 	fileHandler := handler.FileHandler{
 		RootKey:          *rootkey,
@@ -191,37 +167,14 @@ func main() {
 	}
 	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 
-	// ticker := time.NewTicker(1500 * time.Millisecond)
-	// done := make(chan bool)
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-done:
-	// 			return
-	// 		case <-ticker.C:
-	// 			block, hash, _ := proofHandler.Commit()
-	// 			fmt.Printf("block at %d %s\r\n", block, hash)
-	// 		}
-	// 	}
-	// }()
-
-	// defer ticker.Stop()
-
-	api := r.Group("/v0")
+	api := r.Group("/v1")
 	{
-		api.POST("/file", fileHandler.FileWrite)
-		// api.POST("/code", fileHandler.UploadContract)
 		api.GET("/graphql", g)
 		api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
-		api.GET("/dagjson/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.GET("/dag/:cid/*path", dagJsonHandler.DagJsonRead)
 		api.POST("/dag", dagJsonHandler.DagJsonWrite)
-		api.POST("/dagjson", dagJsonHandler.DagJsonWrite)
 		api.PUT("/dag", dagJsonHandler.Update)
-		api.PUT("/dagjson", dagJsonHandler.Update)
-		// api.GET("/dagcbor/:cid/*path", dagCborHandler.DagCborRead)
-		// api.POST("/dagcbor", dagCborHandler.DagCborWrite)
 		api.POST("/did", didHandler.CreateDid)
 		api.POST("/did/web", didHandler.CreateDid)
 		api.GET("/did/:did", didHandler.ReadDid)
@@ -229,18 +182,9 @@ func main() {
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
 		api.GET("/topics", dagJsonHandler.UserDag)
 	}
-	// if subgraph.EnableDagcosmos {
-	// 	ctx := context.WithValue(context.Background(), "dag", dagHandler)
-	// 	indexer := cosmos.New(ctx, subgraph.CosmosPrimaryAddress, "/websocket")
-	// 	r.GET("/indexer/cosmos/tip", indexer.TipEvent)
-	// 	indexer.Subscribe(ctx, cosmos.NewBlock)
-	// }
-	r.GET("/oidc", oidcHandler.OIDCRequest)
-	r.GET("/auth/callback", oidcHandler.OIDCCallback)
-	r.POST("/siwe/verify", oidcHandler.SIWEVerify)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	// r.POST("/rpc", handler.EVMHandler(*dagHandler, proofHandler.GetProofAPI()))
 
+	go dagJsonHandler.Listen(context.Background())
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
 	} else {

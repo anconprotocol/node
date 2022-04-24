@@ -28,7 +28,7 @@ export class DeployContractTool {
       Buffer.from(this.privateKey, 'hex'),
     )
     data.signature = hexlify((sig.toFixedLength()))
-    const res = await axios.post(`${this.apiUrl}/v0/code`, {
+    const res = await axios.post(`${this.apiUrl}/v1/code`, {
       body: data,
       headers: {
         'Content-Type': 'application/json',

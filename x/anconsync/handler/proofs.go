@@ -33,7 +33,6 @@ import (
 	"github.com/anconprotocol/sdk/proofsignature"
 )
 
-
 type Commit struct {
 	LastHash []byte
 	Height   int64
@@ -84,7 +83,7 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, privateKeyPath string) *ProofHan
 
 	privateKey, err := crypto.GenerateOrReadPrivateKey(privateKeyPath)
 	if err != nil {
-//		panic(err)
+		//		panic(err)
 	}
 
 	// os.OpenFile(,,privateKeyPath)
@@ -234,7 +233,7 @@ func GenerateKeys() (string, error) {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/proofs/verify [post]
+// @Router /v1/proofs/verify [post]
 func (dagctx *ProofHandler) ReadCurrentRootHash(c *gin.Context) {
 
 	lastHash, err := dagctx.proofs.Hash(nil)
@@ -278,7 +277,7 @@ func (dagctx *ProofHandler) ReadCurrentRootHash(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/proofs [post]
+// @Router /v1/proofs [post]
 func (dagctx *ProofHandler) Create(c *gin.Context) {
 
 	v, _ := c.GetRawData()
@@ -323,7 +322,7 @@ func (dagctx *ProofHandler) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v0/proofs/get/{path} [get]
+// @Router /v1/proofs/get/{path} [get]
 func (dagctx *ProofHandler) Read(c *gin.Context) {
 
 	key, _ := c.Params.Get("key")

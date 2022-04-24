@@ -1,6 +1,6 @@
 
 
-POST http://localhost:7788/v0/did/web
+POST http://localhost:7788/v1/did/web
 Content-Type: application/json
    
 {

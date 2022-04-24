@@ -36,7 +36,7 @@ func GetDidDocumentAuthentication(data []byte) (*ecdsa.PublicKey, error) {
 	return crypto.ParsePublicKey(pub.Value)
 
 }
-func Authenticate(diddoc []byte, data []byte, sig string) (bool, error) {
+func 			Authenticate(diddoc []byte, data []byte, sig string) (bool, error) {
 	// jsonWebKey := didDoc.VerificationMethods()
 	// id := jsonWebKey[did.Authentication][0].VerificationMethod.ID
 	// pub, _ := did.LookupPublicKey(id, didDoc)

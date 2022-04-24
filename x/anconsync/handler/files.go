@@ -36,7 +36,7 @@ type FileHandler struct {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/file [post]
+// @Router /v1/file [post]
 func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -90,7 +90,7 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v0/file/{cid}/{path} [get]
+// @Router /v1/file/{cid}/{path} [get]
 func (dagctx *FileHandler) FileRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
@@ -150,7 +150,7 @@ func DecodeNode(encoded []byte) (ipld.Node, error) {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/code [post]
+// @Router /v1/code [post]
 func (dagctx *FileHandler) UploadContract(c *gin.Context) {
 
 	v, _ := c.GetRawData()
