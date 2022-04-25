@@ -86,6 +86,8 @@ func main() {
 		r.Use(cors.New(config))
 	}
 
+	ctx := context.Background()
+
 	s := sdk.NewStorage(*dataFolder)
 	dagHandler := &sdk.AnconSyncContext{Store: s}
 
@@ -181,8 +183,9 @@ func main() {
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	go dagJsonHandler.Listen(context.Background())
-	go proofHandler.Listen(context.Background())
+	go dagJsonHandler.Listen(ctx)
+	go proofHandler.Listen(ctx)
+	proofHandler.HandleIncomingProofRequests()
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
 	} else {

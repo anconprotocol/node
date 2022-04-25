@@ -153,14 +153,6 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 
-	doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing did").Error(),
-		})
-		return
-	}
-
 	// p := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), from)
 	hexdata, _ := jsonparser.GetString(v, "data")
 
@@ -180,13 +172,22 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	// ok, err := types.Authenticate(doc, data, signature)
-	// if !ok {
-	// 	c.JSON(400, gin.H{
-	// 		"error": fmt.Errorf("invalid signature").Error(),
-	// 	})
-	// 	return
-	// }
+	resolution, err := types.ResolveDIDDoc(from)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did").Error(),
+		})
+		return
+	}
+
+	// if DID is valid, assume sigature is ok?
+	ok, err := types.IsValidSignature(resolution, data, signature)
+	if !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did signature").Error(),
+		})
+		return
+	}
 
 	///	parentHash, _ := jsonparser.GetString(v, "parent")
 	path, _ := jsonparser.GetString(v, "path")
@@ -214,21 +215,12 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		return
 	}
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
-
-	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid did %v", err).Error(),
-		})
-		return
-	}
-
 	// get current
 
 	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
 
 	dbl := &DagBlockResult{
-		Issuer:        addrrec,
+		Issuer:        from,
 		Timestamp:     time.Now().Unix(),
 		ContentHash:   cid,
 		Signature:     signature,
@@ -237,8 +229,16 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		LastBlockHash: string(lastHash),
 	}
 	block := dagctx.ApplyDagBlock(dbl)
+	key := dagctx.Store.LinkSystem.MustComputeLink(sdk.GetDagJSONLinkPrototype(), block)
+	bz, err := block.AsBytes()
+	err = dagctx.Store.DataStore.Put(c.Request.Context(), (key.Binary()), bz)
 
-	dagctx.ProofHandler.AddToPool(&PoolItem{Block: *dbl, Cid: cid.String()})
+	// block, err = dagctx.Store.Load(ipld.LinkContext{
+	// 	LinkPath: ipld.ParsePath("/"),
+	// }, key)
+
+	// fmt.Println(block, err)
+	dagctx.ProofHandler.AddToPool(cid.String())
 	// dagctx.PreviousBlock = res
 	topic, err := jsonparser.GetString(v, "topic")
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
@@ -389,13 +389,13 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		return
 	}
 
-	doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("missing did").Error(),
-		})
-		return
-	}
+	// doc, err := dagctx.Store.DataStore.Get(context.Background(), from)
+	// if err != nil {
+	// 	c.JSON(400, gin.H{
+	// 		"error": fmt.Errorf("missing did").Error(),
+	// 	})
+	// 	return
+	// }
 
 	temp, _ := jsonparser.GetUnsafeString(v, "data")
 
@@ -411,6 +411,24 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		})
 		return
 	}
+
+	resolution, err := types.ResolveDIDDoc(from)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did").Error(),
+		})
+		return
+	}
+
+	// if DID is valid, assume sigature is ok?
+	ok, err := types.IsValidSignature(resolution, data, signature)
+	if err != nil || !ok {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("invalid did signature").Error(),
+		})
+		return
+	}
+
 	digest := crypto.Keccak256([]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)))
 	var items []map[string]interface{}
 	json.Unmarshal(data, &items)
@@ -445,19 +463,10 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 
-	addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("invalid did %v", err).Error(),
-		})
-		return
-	}
-	// get current
-
 	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
 
 	dbl := &DagBlockResult{
-		Issuer:        addrrec,
+		Issuer:        from,
 		Timestamp:     time.Now().Unix(),
 		ContentHash:   cid,
 		Signature:     signature,
@@ -466,8 +475,9 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		LastBlockHash: string(lastHash),
 	}
 	block := dagctx.ApplyDagBlock(dbl)
+	cid = dagctx.Store.Store(ipld.LinkContext{}, block)
+	dagctx.ProofHandler.AddToPool(cid.Binary())
 
-	dagctx.ProofHandler.AddToPool(&PoolItem{Block: *dbl, Cid: cid.String()})
 	// dagctx.PreviousBlock = res
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	contentTopic, err := protocol.StringToContentTopic(topic)

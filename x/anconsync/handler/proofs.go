@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -18,32 +17,32 @@ import (
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
+	"github.com/anconprotocol/bigqueue"
 	"github.com/buger/jsonparser"
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-graphsync/ipldutil"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
-	"github.com/ipld/go-ipld-prime/fluent"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
-	"github.com/joncrlsn/dque"
+	"github.com/ipld/go-ipld-prime/traversal"
+	"github.com/mr-tron/base58/base58"
+	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"github.com/status-im/go-waku/waku/v2/node"
 	"github.com/status-im/go-waku/waku/v2/protocol"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
 
-	"github.com/mr-tron/base58/base58"
-	"github.com/pkg/errors"
-	"github.com/spf13/cast"
-	dbm "github.com/tendermint/tm-db"
-
-	"google.golang.org/protobuf/types/known/emptypb"
-
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	"github.com/anconprotocol/sdk/proofsignature"
+	dbm "github.com/tendermint/tm-db"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Commit struct {
@@ -62,7 +61,7 @@ type ProofHandler struct {
 	Moniker                string
 	privateKey             *ecdsa.PrivateKey
 	rwLock                 sync.RWMutex
-	pendingTransactionPool *dque.DQue
+	pendingTransactionPool *bigqueue.FileQueue
 }
 
 func (h *ProofHandler) Commit() (int64, string, error) {
@@ -113,12 +112,24 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, wakuPeer *WakuHandler, moniker s
 	proofs, _ := proofsignature.NewIavlAPI(ctx.Store, ctx.Exchange, db, 2000, 0)
 	contentTopic := protocol.NewContentTopic(moniker, 1, "proofs", "json")
 
-	queueName := "memqueue"
-	queueDir := folder
-	segmentSize := 50
-
+	queueName := "txpool"
+	queueDir := filepath.Join(userHomeDir, ".ancon")
 	// Create a new queue with segment size of 50
-	pendingTransactionPool, err := dque.NewOrOpen(queueName, queueDir, segmentSize, QueueItemBuilder)
+	var queue = new(bigqueue.FileQueue)
+
+	// create customized options
+	var options = &bigqueue.Options{
+		DataPageSize:      bigqueue.DefaultDataPageSize,
+		IndexItemsPerPage: bigqueue.DefaultIndexItemsPerPage,
+		AutoGCBySeconds:   600,
+	}
+
+	err = queue.Open(queueDir, queueName, options)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	//	defer queue.Close()
 
 	if err != nil {
 		panic(err)
@@ -131,7 +142,7 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, wakuPeer *WakuHandler, moniker s
 		privateKey:             privateKey,
 		ContentTopic:           contentTopic,
 		Moniker:                moniker,
-		pendingTransactionPool: pendingTransactionPool,
+		pendingTransactionPool: queue,
 	}
 
 }
@@ -145,10 +156,10 @@ func QueueItemBuilder() interface{} {
 	return &PoolItem{}
 }
 
-func (h *ProofHandler) AddToPool(item *PoolItem) error {
+func (h *ProofHandler) AddToPool(item string) (int64, error) {
 
 	// Add an item to the queue
-	return h.pendingTransactionPool.Enqueue(item)
+	return h.pendingTransactionPool.Enqueue([]byte(item))
 }
 
 func (h *ProofHandler) Listen(ctx context.Context) {
@@ -159,68 +170,42 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 		return
 	}
 
-	go func() {
-		var i int
-		for {
-
-			if i == 5 {
-				// Commit tx batch
-				_, err = h.proofs.SaveVersion(&emptypb.Empty{})
-				i = 0
-			}
-			i++
-			time.Sleep(5000)
-			has, err := h.pendingTransactionPool.Peek()
-			if has == nil {
-				return
-			}
-			iface, err := h.pendingTransactionPool.Dequeue()
-			if err != nil {
-				return
-			}
+	h.pendingTransactionPool.Subscribe(func(index int64, item []byte, err error) {
+		if err == nil {
 			// Assert type of the response to an Item pointer so we can work with it
-			item, ok := iface.(*PoolItem)
-			if !ok {
-				log.Fatal("Dequeued object is not an Item pointer")
-			}
 
 			// Load dag block
-			lnk, _ := sdk.ParseCidLink(item.Cid)
+			lnk, err := cid.Decode(string(item))
 			keypath := protocol.NewContentTopic(h.Moniker, 1, "block", lnk.String())
 			k := []byte(keypath.String())
 
 			// commit block
-			block, err := h.Store.Load(ipld.LinkContext{}, lnk)
-			bz, _ := block.AsBytes()
-			commit, _ := h.proofs.Set(k, bz)
-			hash, err := jsonparser.GetString(commit, "updated")
+			block, err := h.Store.Load(ipld.LinkContext{
+				LinkPath: ipld.ParsePath("/"),
+			}, cidlink.Link{Cid: lnk})
+			fmt.Println(err)
+			bz, _ := sdk.Encode(block)
+			commit, _ := h.proofs.Set(k, []byte(bz))
+			hash, _ := jsonparser.GetString(commit, "updated")
 
 			// get latest
-			_, latestBlockNumber := h.proofs.GetCurrentVersion()
+			message, _ := h.proofs.Hash(&emptypb.Empty{})
+			height, _ := jsonparser.GetInt(message, "version")
 
-			proofblock := h.Apply(&DagBlockResult{
-				Issuer:        item.Block.Issuer,
-				Timestamp:     item.Block.Timestamp,
-				ContentHash:   item.Block.ContentHash,
-				Signature:     item.Block.Signature,
-				Digest:        item.Block.Digest,
-				Network:       item.Block.Network,
-				CommitHash:    string(hash),
-				Height:        int64(latestBlockNumber),
-				Key:           base64.StdEncoding.EncodeToString([]byte(k)),
-				LastBlockHash: item.Block.LastBlockHash,
-				// ParentHash:    currentCid.String(),
-			})
+			proofblock := h.Apply(block, cast.ToInt8(height), hash)
 			res := h.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, proofblock)
 
-			n, err := h.Store.Load(ipld.LinkContext{}, res)
+			n, _ := h.Store.Load(ipld.LinkContext{
+				LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker)),
+			}, res)
 			h.WakuPeer.Publish(h.ContentTopic, n)
-
+			fmt.Printf("cid '%s' created", res)
 		}
 
-		// Notify
+	})
 
-	}()
+	// free subscribe action
+	defer h.pendingTransactionPool.FreeSubscribe()
 
 	for value := range sub.C {
 
@@ -272,6 +257,23 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 	}
 }
 
+func (h *ProofHandler) HandleIncomingProofRequests() {
+	go func() {
+
+		for _ = range time.Tick(time.Second * 12) {
+			// Commit tx batch
+			message, _ := h.proofs.SaveVersion(&emptypb.Empty{})
+
+			// get latest
+			height, _ := jsonparser.GetInt(message, "version")
+			fmt.Println("new block: ", height)
+		}
+	}()
+
+	// Notify
+
+}
+
 type DagBlockResult struct {
 	Issuer        string         `json:"issuer"`
 	Timestamp     int64          `json:"timestamp"`
@@ -288,30 +290,43 @@ type DagBlockResult struct {
 	ParentHash    string `json:"parent_hash"`
 }
 
-func (dagctx *ProofHandler) Apply(args *DagBlockResult) datamodel.Node {
+func (dagctx *ProofHandler) Apply(n datamodel.Node, height int8, hash string) datamodel.Node {
+	prog := traversal.Progress{
+		Cfg: &traversal.Config{
+			LinkSystem:                     dagctx.Store.LinkSystem,
+			LinkTargetNodePrototypeChooser: basicnode.Chooser,
+		},
+	}
+	current, _ := prog.FocusedTransform(
+		n,
+		datamodel.ParsePath("height"),
+		func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+			nb := basicnode.Prototype.Any.NewBuilder()
+			nb.AssignInt(int64(height))
+			return nb.Build(), nil
+		}, false)
 
-	block := fluent.MustBuildMap(basicnode.Prototype.Map, 13, func(na fluent.MapAssembler) {
-		na.AssembleEntry("issuer").AssignString(args.Issuer)
-		na.AssembleEntry("timestamp").AssignInt(args.Timestamp)
-		na.AssembleEntry("contentHash").AssignLink(args.ContentHash)
-		//	na.AssembleEntry("content").AssignNode(args.Content)
-		na.AssembleEntry("commitHash").AssignString(args.CommitHash)
-		na.AssembleEntry("height").AssignInt(args.Height)
-		na.AssembleEntry("signature").AssignString(args.Signature)
-		na.AssembleEntry("digest").AssignString(args.Digest)
-		na.AssembleEntry("network").AssignString(args.Network)
-		na.AssembleEntry("key").AssignString(args.Key)
-		na.AssembleEntry("rootKey").AssignString(args.RootKey)
-		if args.LastBlockHash != "" {
-			lnk, _ := sdk.ParseCidLink(args.LastBlockHash)
-			na.AssembleEntry("lastBlockHash").AssignLink(lnk)
-		}
-		if args.ParentHash != "" {
-			lnk, _ := sdk.ParseCidLink(args.ParentHash)
-			na.AssembleEntry("parentHash").AssignLink(lnk)
-		}
-	})
-
+	block, _ := prog.FocusedTransform(
+		current,
+		datamodel.ParsePath("commitHash"),
+		func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+			nb := basicnode.Prototype.Any.NewBuilder()
+			nb.AssignString(hash)
+			return nb.Build(), nil
+		}, false)
+	// &DagBlockResult{
+	// 	Issuer:        item.Block.Issuer,
+	// 	Timestamp:     item.Block.Timestamp,
+	// 	ContentHash:   item.Block.ContentHash,
+	// 	Signature:     item.Block.Signature,
+	// 	Digest:        item.Block.Digest,
+	// 	Network:       item.Block.Network,
+	// 	CommitHash:    string(hash),
+	// 	Height:        int64(latestBlockNumber),
+	// 	Key:           base64.StdEncoding.EncodeToString([]byte(k)),
+	// 	LastBlockHash: item.Block.LastBlockHash,
+	// 	// ParentHash:    currentCid.String(),
+	// }
 	return block
 }
 

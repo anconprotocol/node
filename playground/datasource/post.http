@@ -1,10 +1,12 @@
 
 
-POST http://localhost:7788/v1/dagjson
+POST http://localhost:7788/v1/dag
+
 Content-Type: application/json
 
 {
   "path": "/",
+  "from": "0x2a3D91a8D48C2892b391122b6c3665f52bCace23p",
   "data": {
     "name": "bee swarm metadata sample",
     "owner": "0x2a3D91a8D48C2892b391122b6c3665f52bCace23p",

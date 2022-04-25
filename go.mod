@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/anconprotocol/sdk v0.2.4
 	github.com/ipfs/go-cid v0.1.0
-	github.com/ipld/go-ipld-prime v0.14.3
+	github.com/ipld/go-ipld-prime v0.16.0
 	github.com/tendermint/tendermint v0.35.0
 )
 
@@ -17,7 +17,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.17
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
-	github.com/hyperledger/aries-framework-go v0.1.7
+	github.com/hyperledger/aries-framework-go v0.1.8
 	github.com/ipfs/go-graphsync v0.11.5
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.0.3
@@ -82,7 +82,6 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/godbus/dbus/v5 v5.0.4 // indirect
-	github.com/gofrs/flock v0.7.1 // indirect
 	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -103,7 +102,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huin/goupnp v1.0.3-0.20220313090229-ca81a64b4204 // indirect
-	github.com/hyperledger/aries-framework-go/spi v0.0.0-20210820175050-dcc7a225178d // indirect
+	github.com/hyperledger/aries-framework-go/spi v0.0.0-20220322085443-50e8f9bd208b // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/ipfs/go-ipfs-util v0.0.2 // indirect
 	github.com/ipfs/go-log v1.0.5 // indirect
@@ -112,7 +111,6 @@ require (
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jbenet/go-temp-err-catcher v0.1.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
-	github.com/joncrlsn/dque v0.0.0-20211108142734-c2ef48c5192a // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/kilic/bls12-381 v0.1.1-0.20210503002446-7b7597926c69 // indirect
@@ -245,6 +243,7 @@ require (
 )
 
 require (
+	github.com/anconprotocol/bigqueue v0.0.0-20220425222102-cca977e442a8
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/graphql-go/handler v0.2.3
