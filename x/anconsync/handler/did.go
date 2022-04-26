@@ -15,9 +15,9 @@ import (
 	"github.com/anconprotocol/sdk"
 	"github.com/buger/jsonparser"
 	"github.com/spf13/cast"
+	"github.com/status-im/go-waku/waku/v2/protocol"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/anconprotocol/sdk/impl"
 	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
@@ -43,16 +43,34 @@ const (
 	documentPath = "/did.json"
 )
 
-type Did struct {
+type DidHandler struct {
 	*sdk.AnconSyncContext
-	Proof    *proofsignature.IavlProofService
-	IPFSHost string
-	RootKey  string
-	Moniker  string
+	Proof        *proofsignature.IavlProofService
+	WakuPeer     *WakuHandler
+	RootKey      string
+	Moniker      string
+	ContentTopic protocol.ContentTopic
+}
+
+func NewDidHandler(ctx *sdk.AnconSyncContext,
+	proof *proofsignature.IavlProofService,
+	wakuPeer *WakuHandler,
+	rootKey string,
+	moniker string) *DidHandler {
+
+	return &DidHandler{
+		AnconSyncContext: ctx,
+		Proof:            proof,
+		WakuPeer:         wakuPeer,
+		RootKey:          rootKey,
+		Moniker:          moniker,
+		ContentTopic:     protocol.NewContentTopic(moniker, 1, "did", "json"),
+	}
+
 }
 
 // BuildDidWeb ....
-func (dagctx *Did) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, error) {
+func (dagctx *DidHandler) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, error) {
 	ti := time.Now()
 	// did web
 	base := append([]byte("did:web:ipfs:user:"), []byte(vanityName)...)
@@ -90,7 +108,7 @@ func (dagctx *Did) BuildDidWeb(vanityName string, pubkey []byte) (*did.Doc, erro
 }
 
 // BuildDidWeb ....
-func (dagctx *Did) BuildEthrDid(name string, pubkey []byte) (*did.Doc, error) {
+func (dagctx *DidHandler) BuildEthrDid(name string, pubkey []byte) (*did.Doc, error) {
 	ti := time.Now()
 	// did web
 	base := []byte(name)
@@ -128,7 +146,7 @@ func (dagctx *Did) BuildEthrDid(name string, pubkey []byte) (*did.Doc, error) {
 }
 
 // BuildDidKey ....
-func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
+func (dagctx *DidHandler) BuildDidKey() (*did.Doc, error) {
 
 	pubKey, _, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -171,7 +189,7 @@ func (dagctx *Did) BuildDidKey() (*did.Doc, error) {
 	return doc, nil
 }
 
-func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
+func (dagctx *DidHandler) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 
 	// path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
@@ -209,7 +227,7 @@ func (dagctx *Did) ReadDidWebUrl(c *gin.Context) {
 	c.JSON(200, data)
 
 }
-func (dagctx *Did) ReadDid(c *gin.Context) {
+func (dagctx *DidHandler) ReadDid(c *gin.Context) {
 	did := c.Param("did")
 	// address, _, err := dagctx.ParseDIDWeb(did, true)
 	// if err != nil {
@@ -259,7 +277,7 @@ func (dagctx *Did) ReadDid(c *gin.Context) {
 	c.JSON(200, json.RawMessage(data))
 }
 
-func (dagctx *Did) CreateDid(c *gin.Context) {
+func (dagctx *DidHandler) CreateDid(c *gin.Context) {
 	var v map[string]string
 
 	c.BindJSON(&v)
@@ -317,8 +335,6 @@ func (dagctx *Did) CreateDid(c *gin.Context) {
 	lastHash := []byte(hash)
 	blockNumber := cast.ToInt64(version)
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
-		// addrrec, err := jsonparser.GetString((doc), "verificationMethod", "[0]", "ethereumAddress")
-
 		na.AssembleEntry("issuer").AssignString(addr)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("contentHash").AssignLink(cid)
@@ -334,17 +350,14 @@ func (dagctx *Did) CreateDid(c *gin.Context) {
 	if ethrdid != "" {
 		dagctx.Store.DataStore.Put(c.Request.Context(), "raw:"+ethrdid, []byte(resp))
 	}
-	tx, err := impl.PushBlock(c.Request.Context(), dagctx.IPFSHost, []byte(resp))
+	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
 
 	c.JSON(201, gin.H{
 		"cid": res.String(),
-		"ipfs": map[string]interface{}{
-			"tx": tx,
-		},
 	})
 }
 
-func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, pubbytes []byte) (ipld.Link, string, error) {
+func (dagctx *DidHandler) AddDid(didType AvailableDid, domainName string, addr string, pubbytes []byte) (ipld.Link, string, error) {
 
 	var didDoc *did.Doc
 	var err error
@@ -394,8 +407,8 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	if err != nil {
 		return nil, "", err
 	}
-	resp, _ := sdk.Encode(n)
-	impl.PushBlock(ctx, dagctx.IPFSHost, []byte(resp))
+
+	dagctx.WakuPeer.Publish(dagctx.ContentTopic, n)
 
 	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
 	dagctx.Store.DataStore.Put(ctx, domainName, patch)
@@ -414,7 +427,7 @@ func (dagctx *Did) AddDid(didType AvailableDid, domainName string, addr string, 
 	return lnk, internalKey, nil
 }
 
-func (dagctx *Did) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {
+func (dagctx *DidHandler) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {
 	var address, host string
 
 	parsedDID, err := did.Parse(id)

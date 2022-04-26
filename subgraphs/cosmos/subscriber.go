@@ -41,7 +41,7 @@ func (i *CosmosIndexer) Subscribe(ctx context.Context, subscriptionType Subscrip
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/tip [post]
+// @Router /v1/tip [post]
 func (i *CosmosIndexer) TipEvent(c *gin.Context) {
 	c.JSON(201, gin.H{
 		"cid": i.LastLink,

@@ -62,8 +62,8 @@ docker-compose up
 
 
 
-## `POST /v0/did/web`
-## `POST /v0/did`
+## `POST /v1/did/web`
+## `POST /v1/did`
 
 > Creates a new Decentralized Identity
 
@@ -103,7 +103,7 @@ example of the returned object:
 ```
 
 
-## `GET /v0/did/:did`
+## `GET /v1/did/:did`
 
 > Returns did document as json
 
@@ -240,8 +240,8 @@ example of the returned object:
 
 ```
 
-## `PUT /v0/dagjson`
-## `PUT /v0/dag`
+## `PUT /v1/dagjson`
+## `PUT /v1/dag`
 
 > Mutates a dag-json in users path. Must have registerd DID and messasge must be signed with signature matching DID.
 
@@ -304,8 +304,8 @@ example of the returned object:
 ```
 
 
-## `POST /v0/dagjson`
-## `POST /v0/dag`
+## `POST /v1/dagjson`
+## `POST /v1/dag`
 
 > Stores json as dag-json in users path. Must have registerd DID and messasge must be signed with signature matching DID.
 
@@ -343,8 +343,8 @@ example of the returned object:
 
 
 
-## `GET /v0/dagjson/:cid/*path?`
-## `GET /v0/dag/:cid/*path`
+## `GET /v1/dagjson/:cid/*path?`
+## `GET /v1/dag/:cid/*path`
 
 > Reads a dag-json block
 
@@ -370,7 +370,7 @@ Reserved space for subgraph networks
 You can query any namespace by adding `namespace` as a query string
 
 ```html
-https://api.ancon.did.pa/v0/dagjson/baguqeerac33uoqmawkru523zwubchxitrsinqskl7yjr67nqsxtocqv7to7q/?namespace=anconprotocol/users/0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
+https://api.ancon.did.pa/v1/dagjson/baguqeerac33uoqmawkru523zwubchxitrsinqskl7yjr67nqsxtocqv7to7q/?namespace=anconprotocol/users/0x32A21c1bB6E7C20F547e930b53dAC57f42cd25F6
 ```
 
 ### DAG Response
@@ -435,7 +435,7 @@ Recommended usage is to create a client load balancer with fallback functionalit
 ```
 
 
-## `GET /v0/file/:cid/*path`
+## `GET /v1/file/:cid/*path`
 
 > Reads a dag-json block
 

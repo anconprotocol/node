@@ -1,3 +1,0 @@
-Could not find suitable configuration file.
-Truffle v5.4.33 (core: 5.4.33)
-Node v16.14.0

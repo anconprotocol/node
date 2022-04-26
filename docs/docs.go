@@ -27,7 +27,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v0/code": {
+        "/v1/code": {
             "post": {
                 "description": "Execute library smartcontracts.",
                 "consumes": [
@@ -50,7 +50,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/dagcbor": {
+        "/v1/dagcbor": {
             "post": {
                 "description": "Writes a dag-cbor block which syncs with IPFS. Returns a CID.",
                 "consumes": [
@@ -73,7 +73,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/dagcbor/{cid}/{path}": {
+        "/v1/dagcbor/{cid}/{path}": {
             "get": {
                 "description": "Returns CBOR",
                 "consumes": [
@@ -93,7 +93,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/dagjson": {
+        "/v1/dagjson": {
             "put": {
                 "description": "updates a dag-json block which syncs with IPFS. Returns a CID.",
                 "consumes": [
@@ -137,7 +137,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/dagjson/{cid}/{path}": {
+        "/v1/dagjson/{cid}/{path}": {
             "get": {
                 "description": "Returns JSON",
                 "consumes": [
@@ -157,7 +157,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/file": {
+        "/v1/file": {
             "post": {
                 "description": "Writes a raw block which syncs with IPFS. Returns a CID.",
                 "consumes": [
@@ -180,7 +180,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/file/{cid}/{path}": {
+        "/v1/file/{cid}/{path}": {
             "get": {
                 "description": "Returns JSON",
                 "consumes": [
@@ -200,7 +200,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/proofs": {
+        "/v1/proofs": {
             "post": {
                 "description": "Writes an ics23 proof",
                 "consumes": [
@@ -223,7 +223,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/proofs/get/{path}": {
+        "/v1/proofs/get/{path}": {
             "get": {
                 "description": "Returns JSON",
                 "consumes": [
@@ -243,7 +243,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/proofs/qr": {
+        "/v1/proofs/qr": {
             "post": {
                 "description": "Returns JSON",
                 "consumes": [
@@ -263,7 +263,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/proofs/verify": {
+        "/v1/proofs/verify": {
             "post": {
                 "description": "Verifies an ics23 proof",
                 "consumes": [
@@ -286,7 +286,7 @@ var doc = `{
                 }
             }
         },
-        "/v0/tip": {
+        "/v1/tip": {
             "post": {
                 "description": "Writes a dag-json block which syncs with IPFS. Returns a CID.",
                 "consumes": [

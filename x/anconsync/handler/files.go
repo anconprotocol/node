@@ -6,10 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
-	"github.com/buger/jsonparser"
 
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"
@@ -36,7 +34,7 @@ type FileHandler struct {
 // @Accept json
 // @Produce json
 // @Success 201 {string} cid
-// @Router /v0/file [post]
+// @Router /v1/file [post]
 func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -90,7 +88,7 @@ func (dagctx *FileHandler) FileWrite(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v0/file/{cid}/{path} [get]
+// @Router /v1/file/{cid}/{path} [get]
 func (dagctx *FileHandler) FileRead(c *gin.Context) {
 	lnk, err := cid.Parse(c.Param("cid"))
 	if err != nil {
@@ -139,80 +137,4 @@ func DecodeNode(encoded []byte) (ipld.Node, error) {
 		return nil, err
 	}
 	return nb.Build(), nil
-}
-
-// @BasePath /v0
-// UploadContract godoc
-// @Summary Upload hybrid smartcontracts
-// @Schemes
-// @Description Execute library smartcontracts.
-// @Tags file
-// @Accept json
-// @Produce json
-// @Success 201 {string} cid
-// @Router /v0/code [post]
-func (dagctx *FileHandler) UploadContract(c *gin.Context) {
-
-	v, _ := c.GetRawData()
-
-	code, err := jsonparser.GetString(v, "body", "code")
-	contract, err := hexutil.Decode(code)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("error in code %v", err).Error(),
-		})
-		return
-	}
-
-	from, err := jsonparser.GetString(v, "body", "from")
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("error in from %v", err).Error(),
-		})
-		return
-	}
-
-	signature, err := jsonparser.GetString(v, "body", "signature")
-	sig := hexutil.MustDecode(signature)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("error in signature %v", err).Error(),
-		})
-		return
-	}
-
-	didCid, err := dagctx.Store.DataStore.Get(c.Request.Context(), from)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("did not found %v", err),
-		})
-		return
-	}
-
-	hash := fmt.Sprintf(`%s%s`, code, from)
-	ok, err := types.Authenticate(didCid, []byte(hash), string(sig))
-
-	if !ok || err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("Error parsing signer %v", err),
-		})
-		return
-	}
-
-	js := fmt.Sprintf(`{"code": "%s"}`, hexutil.Encode(contract))
-	n, err := sdk.Decode(basicnode.Prototype.Any, js)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("decode Error %v", err).Error(),
-		})
-		return
-	}
-
-	p := types.GetUserPath(dagctx.Moniker)
-	lnk := dagctx.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, n)
-	c.JSON(201, gin.H{
-		"address": lnk.String(),
-	})
-
-	// impl.PushBlock(c.Request.Context(), "https://ipfs.xdv.digital", []byte(js), cid)
 }
