@@ -13,6 +13,7 @@ import (
 
 	"github.com/status-im/go-waku/waku/v2/node"
 	"github.com/status-im/go-waku/waku/v2/protocol"
+	"github.com/status-im/go-waku/waku/v2/protocol/filter"
 	"github.com/status-im/go-waku/waku/v2/protocol/lightpush"
 	"github.com/status-im/go-waku/waku/v2/protocol/pb"
 	"github.com/status-im/go-waku/waku/v2/protocol/relay"
@@ -43,6 +44,7 @@ func NewWakuHandler(ctx *sdk.AnconSyncContext, peerAddr string, address string, 
 		node.WithWakuRelay(),
 		node.WithLightPush(),
 		node.WithWakuStore(true, true),
+		node.WithWakuFilter(true),
 	)
 	if err != nil {
 		panic(err)
@@ -62,6 +64,7 @@ func (h *WakuHandler) Start() {
 	h.Node.AddPeer(h.PeerAddress, store.StoreID_v20beta4)
 	h.Node.AddPeer(h.PeerAddress, lightpush.LightPushID_v20beta1)
 	h.Node.AddPeer(h.PeerAddress, relay.WakuRelayID_v200)
+	h.Node.AddPeer(h.PeerAddress, filter.FilterID_v20beta1)
 
 	if err := h.Node.Start(); err != nil {
 		panic(err)

@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -22,11 +23,12 @@ import (
 	"github.com/cosmos/iavl"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-graphsync/ipldutil"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+
+	ipldjson "github.com/ipld/go-ipld-prime/codec/json"
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/ipld/go-ipld-prime/traversal"
@@ -157,110 +159,109 @@ func QueueItemBuilder() interface{} {
 	return &PoolItem{}
 }
 
-func (h *ProofHandler) AddToPool(item string) (int64, error) {
+func (h *ProofHandler) AddToPool(item []byte) (int64, error) {
 
 	// Add an item to the queue
-	return h.pendingTransactionPool.Enqueue([]byte(item))
+	return h.pendingTransactionPool.Enqueue(item)
 }
 
 func (h *ProofHandler) Listen(ctx context.Context) {
-	sub, err := h.WakuPeer.Subscribe(ctx, h.ContentTopic.String())
+	go func() {
 
-	if err != nil {
-		fmt.Errorf(err.Error())
-		return
-	}
+		sub, err := h.WakuPeer.Subscribe(ctx, h.ContentTopic.String())
 
-	h.pendingTransactionPool.Subscribe(func(index int64, item []byte, err error) {
-		if err == nil {
-			// Assert type of the response to an Item pointer so we can work with it
-
-			// Load dag block
-			lnk, err := cid.Decode(string(item))
-			keypath := protocol.NewContentTopic(h.Moniker, 1, "block", lnk.String())
-			k := []byte(keypath.String())
-
-			// commit block
-			block, err := h.Store.Load(ipld.LinkContext{
-				LinkPath: ipld.ParsePath("/"),
-			}, cidlink.Link{Cid: lnk})
-			fmt.Println(err)
-			bz, _ := sdk.Encode(block)
-			commit, _ := h.proofs.Set(k, []byte(bz))
-			hash, _ := jsonparser.GetString(commit, "updated")
-
-			// get latest
-			message, _ := h.proofs.Hash(&emptypb.Empty{})
-			height, _ := jsonparser.GetInt(message, "version")
-
-			proofblock := h.Apply(block, cast.ToInt8(height), hash)
-			res := h.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, proofblock)
-
-			n, _ := h.Store.Load(ipld.LinkContext{
-				LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker)),
-			}, res)
-			h.WakuPeer.Publish(h.ContentTopic, n)
-			fmt.Printf("cid '%s' created", res)
+		if err != nil {
+			fmt.Errorf(err.Error())
+			return
 		}
 
-	})
+		h.pendingTransactionPool.Subscribe(func(index int64, item []byte, err error) {
+			if err == nil {
+				var lnk cidlink.Link
+				json.Unmarshal(item, &lnk)
+				block, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{}, lnk, basicnode.Prototype.Any)
+				block, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
 
-	// free subscribe action
-	defer h.pendingTransactionPool.FreeSubscribe()
-
-	for value := range sub.C {
-
-		if value.Message().ContentTopic == h.ContentTopic.String() {
-			payload, err := node.DecodePayload(value.Message(), &node.KeyInfo{Kind: node.None})
-			if err != nil {
 				fmt.Println(err)
-				return
-			}
-			// Decode payload
-			block, err := ipldutil.DecodeNode(payload.Data)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+				// Load dag block
+				keypath := protocol.NewContentTopic(h.Moniker, 1, "block", lnk.String())
+				k := []byte(keypath.String())
 
-			// Get event and cid properties
-			node, err := block.LookupByString("event")
-			if err != nil {
 				fmt.Println(err)
-				return
-			}
 
-			eventType := must.String(node)
-			node, err = block.LookupByString("cid")
-			if err != nil {
-				fmt.Println(err)
-				return
+				h.proofs.Set(k, []byte(bz))
+
+				// get latest
+				commit, _ := h.proofs.Hash(&emptypb.Empty{})
+				height, _ := jsonparser.GetInt(commit, "version")
+				hash, _ := jsonparser.GetString(commit, "hash")
+
+				proofblock := h.Apply(block, (height), hash)
+				res := h.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, proofblock)
+
+				n, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, res, basicnode.Prototype.Map)
+				n, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
+
+				h.WakuPeer.Publish(h.ContentTopic, n)
+				fmt.Printf("cid '%s' created", res)
 			}
 
-			key := must.String(node)
-			has, err := h.Store.DataStore.Has(ctx, key)
+		})
 
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+		// free subscribe action
+		defer h.pendingTransactionPool.FreeSubscribe()
+		for value := range sub.C {
 
-			// If get, lookup and return block, otherwise put / store
-			if eventType == "get" {
-				if has {
-					lnk, _ := sdk.ParseCidLink(key)
-					block, _ := h.Store.Load(ipld.LinkContext{}, lnk)
-					h.WakuPeer.Publish(h.ContentTopic, block)
+			if value.Message().ContentTopic == h.ContentTopic.String() {
+				payload, err := node.DecodePayload(value.Message(), &node.KeyInfo{Kind: node.None})
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				// Decode payload
+				block, err := ipldutil.DecodeNode(payload.Data)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				// Get event and cid properties
+				node, err := block.LookupByString("event")
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				eventType := must.String(node)
+				node, err = block.LookupByString("cid")
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				key := must.String(node)
+				has, err := h.Store.DataStore.Has(ctx, key)
+
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				// If get, lookup and return block, otherwise put / store
+				if eventType == "get" {
+					if has {
+						lnk, _ := sdk.ParseCidLink(key)
+						block, _ := h.Store.Load(ipld.LinkContext{}, lnk)
+						h.WakuPeer.Publish(h.ContentTopic, block)
+					}
 				}
 			}
 		}
-
-	}
+	}()
 }
 
 func (h *ProofHandler) HandleIncomingProofRequests() {
 	go func() {
-
 		for _ = range time.Tick(time.Second * 12) {
 			// Commit tx batch
 			message, _ := h.proofs.SaveVersion(&emptypb.Empty{})
@@ -291,7 +292,7 @@ type DagBlockResult struct {
 	ParentHash    string `json:"parent_hash"`
 }
 
-func (dagctx *ProofHandler) Apply(n datamodel.Node, height int8, hash string) datamodel.Node {
+func (dagctx *ProofHandler) Apply(n datamodel.Node, height int64, hash string) datamodel.Node {
 	prog := traversal.Progress{
 		Cfg: &traversal.Config{
 			LinkSystem:                     dagctx.Store.LinkSystem,
@@ -556,11 +557,14 @@ func (dagctx *ProofHandler) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200
-// @Router /v1/proofs/get/{path} [get]
+// @Router /v1/proof/{path} [get]
 func (dagctx *ProofHandler) Read(c *gin.Context) {
 
 	key, _ := c.Params.Get("key")
 
+	if key == "" {
+		key, _ = c.GetQuery("key")
+	}
 	if key == "" {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("missing key").Error(),

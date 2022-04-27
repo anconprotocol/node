@@ -178,14 +178,16 @@ func main() {
 		api.POST("/did/web", didHandler.CreateDid)
 		api.GET("/did/:did", didHandler.ReadDid)
 		api.GET("/proof/:key", proofHandler.Read)
+		api.GET("/proof", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
 		api.GET("/topics", dagJsonHandler.UserDag)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	go dagJsonHandler.Listen(ctx)
-	go proofHandler.Listen(ctx)
+	dagJsonHandler.ListenAndSync(ctx)
+	proofHandler.Listen(ctx)
 	proofHandler.HandleIncomingProofRequests()
+
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
 	} else {
