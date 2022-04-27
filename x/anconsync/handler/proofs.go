@@ -179,12 +179,12 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 			if err == nil {
 				var lnk cidlink.Link
 				json.Unmarshal(item, &lnk)
-				block, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{}, lnk, basicnode.Prototype.Any)
-				block, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
+				_, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{}, lnk, basicnode.Prototype.Any)
+				block, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
 
-				fmt.Println(err)
+				contentHash, _ := jsonparser.GetString(bz, "contentHash", "/")
 				// Load dag block
-				keypath := protocol.NewContentTopic(h.Moniker, 1, "block", lnk.String())
+				keypath := protocol.NewContentTopic(h.Moniker, 1, "block", contentHash)
 				k := []byte(keypath.String())
 
 				fmt.Println(err)
@@ -196,11 +196,17 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 				height, _ := jsonparser.GetInt(commit, "version")
 				hash, _ := jsonparser.GetString(commit, "hash")
 
-				proofblock := h.Apply(block, (height), hash)
-				res := h.Store.Store(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, proofblock)
+				proofblock := h.Apply(block, (height), hash, base64.StdEncoding.EncodeToString((k)))
+				res := h.Store.Store(
+					ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))},
+					proofblock,
+				)
 
-				n, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, res, basicnode.Prototype.Map)
-				n, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
+				_, bz, err = h.Store.LinkSystem.LoadPlusRaw(
+					ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))},
+					res,
+					basicnode.Prototype.Any)
+				n, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
 
 				h.WakuPeer.Publish(h.ContentTopic, n)
 				fmt.Printf("cid '%s' created", res)
@@ -292,7 +298,7 @@ type DagBlockResult struct {
 	ParentHash    string `json:"parent_hash"`
 }
 
-func (dagctx *ProofHandler) Apply(n datamodel.Node, height int64, hash string) datamodel.Node {
+func (dagctx *ProofHandler) Apply(n datamodel.Node, height int64, hash string, key string) datamodel.Node {
 	prog := traversal.Progress{
 		Cfg: &traversal.Config{
 			LinkSystem:                     dagctx.Store.LinkSystem,
@@ -316,20 +322,16 @@ func (dagctx *ProofHandler) Apply(n datamodel.Node, height int64, hash string) d
 			nb.AssignString(hash)
 			return nb.Build(), nil
 		}, false)
-	// &DagBlockResult{
-	// 	Issuer:        item.Block.Issuer,
-	// 	Timestamp:     item.Block.Timestamp,
-	// 	ContentHash:   item.Block.ContentHash,
-	// 	Signature:     item.Block.Signature,
-	// 	Digest:        item.Block.Digest,
-	// 	Network:       item.Block.Network,
-	// 	CommitHash:    string(hash),
-	// 	Height:        int64(latestBlockNumber),
-	// 	Key:           base64.StdEncoding.EncodeToString([]byte(k)),
-	// 	LastBlockHash: item.Block.LastBlockHash,
-	// 	// ParentHash:    currentCid.String(),
-	// }
-	return block
+
+	dagblock, _ := prog.FocusedTransform(
+		block,
+		datamodel.ParsePath("key"),
+		func(progress traversal.Progress, prev datamodel.Node) (datamodel.Node, error) {
+			nb := basicnode.Prototype.Any.NewBuilder()
+			nb.AssignString(key)
+			return nb.Build(), nil
+		}, false)
+	return dagblock
 }
 
 func (h *ProofHandler) VerifyGenesis(moniker string, key string) ([]byte, error) {

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
@@ -20,6 +19,7 @@ import (
 	ipldjson "github.com/ipld/go-ipld-prime/codec/json"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
@@ -260,7 +260,9 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	cidd := dagctx.Store.Store(ipld.LinkContext{}, n)
 	// get current
 
-	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
+	// get latest
+	commit, _ := dagctx.ProofHandler.proofs.Hash(&emptypb.Empty{})
+	hash, _ := jsonparser.GetString(commit, "hash")
 
 	dbl := &DagBlockResult{
 		Issuer:        from,
@@ -269,7 +271,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		Signature:     signature,
 		Digest:        hexutil.Encode(digest),
 		Network:       dagctx.Moniker,
-		LastBlockHash: string(lastHash),
+		LastBlockHash: hash,
 	}
 	block := dagctx.ApplyDagBlock(dbl)
 
@@ -317,11 +319,7 @@ func (dagctx *DagJsonHandler) ApplyDagBlock(args *DagBlockResult) datamodel.Node
 		na.AssembleEntry("signature").AssignString(args.Signature)
 		na.AssembleEntry("digest").AssignString(args.Digest)
 		na.AssembleEntry("network").AssignString(args.Network)
-
-		if args.LastBlockHash != "" {
-			lnk, _ := sdk.ParseCidLink(args.LastBlockHash)
-			na.AssembleEntry("lastBlockHash").AssignLink(lnk)
-		}
+		na.AssembleEntry("lastBlockHash").AssignString(args.LastBlockHash)
 	})
 
 	return block
@@ -562,73 +560,28 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		return
 	}
 
-	path := c.Param("path")
+	traversalPath := ipld.ParsePath(c.Query("namespace"))
 
-	var n datamodel.Node
-	if path != "" {
-		var traversalPath ipld.Path
-		if c.Query("namespace") != "" {
-			traversalPath = ipld.ParsePath(c.Query("namespace"))
-		} else {
-			traversalPath = ipld.ParsePath("/")
-		}
-		prog := traversal.Progress{
-			Cfg: &traversal.Config{
-				LinkSystem:                     dagctx.Store.LinkSystem,
-				LinkTargetNodePrototypeChooser: basicnode.Chooser,
-			},
-			// Path: traversalPath,
-		}
-		_, bz, err := dagctx.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{
-			LinkPath: traversalPath,
-		}, lnk, basicnode.Prototype.Any)
-		n, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
+	if c.Query("namespace") == "" {
+		traversalPath = ipld.Path{}
+	}
 
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		if path != "/" {
-			path = strings.TrimPrefix(path, "/")
+	_, bz, err := dagctx.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{
+		LinkPath: traversalPath,
+	}, lnk, basicnode.Prototype.Any)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%s", err.Error()),
+		})
+		return
+	}
 
-			node, err := prog.Get(n, datamodel.ParsePath(path))
-
-			if err != nil {
-				child, _ := n.LookupByString(path)
-				if child.Kind() == datamodel.Kind_Link {
-					// l, _ := child.AsLink()
-					err = prog.Focus(child, datamodel.ParsePath("/"), func(p traversal.Progress, n datamodel.Node) error {
-						l, _ := n.AsLink()
-
-						_, bz, err := dagctx.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{
-							LinkPath: traversalPath,
-						}, l, basicnode.Prototype.Any)
-						node, err = ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
-
-						return err
-					})
-				}
-			}
-			if err != nil {
-				c.JSON(400, gin.H{
-					"error": fmt.Errorf("%v", err),
-				})
-				return
-			}
-
-			trasEnc, err := sdk.Encode(node)
-			c.JSON(200, json.RawMessage(trasEnc))
-			if err != nil {
-				c.JSON(400, gin.H{
-					"error": fmt.Errorf("%s", err.Error()),
-				})
-				return
-			}
-			return
-		}
-
+	n, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("%s", err.Error()),
+		})
+		return
 	}
 
 	data, err := sdk.Encode(n)
@@ -641,36 +594,9 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 
 	if data != "" {
 		c.JSON(200, json.RawMessage(data))
+		return
 	}
 
-	var contentData string
-
-	datanode, err := n.LookupByString("contentHash")
-	if err == nil && c.Query("compact") != "true" {
-		lnkNode, _ := datanode.AsLink()
-		// fetch
-
-		_, bz, err := dagctx.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{
-			LinkPath: ipld.ParsePath("/"),
-		}, lnkNode, basicnode.Prototype.Any)
-		contentHashNode, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
-
-		contentData, err = sdk.Encode(contentHashNode)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%s", err.Error()),
-			})
-			return
-		}
-		response, err := jsonparser.Set([]byte(data), []byte(contentData), "content")
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%s", err.Error()),
-			})
-			return
-		}
-		c.JSON(200, json.RawMessage(response))
-	}
 }
 
 // @BasePath /v0

@@ -171,7 +171,7 @@ func main() {
 		// api.GET("/graphql", g)
 		// api.POST("/graphql", g)
 		api.GET("/file/:cid/*path", fileHandler.FileRead)
-		api.GET("/dag/:cid/*path", dagJsonHandler.DagJsonRead)
+		api.GET("/dag/:cid", dagJsonHandler.DagJsonRead)
 		api.POST("/dag", dagJsonHandler.DagJsonWrite)
 		api.PUT("/dag", dagJsonHandler.Update)
 		api.POST("/did", didHandler.CreateDid)
