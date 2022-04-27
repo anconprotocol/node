@@ -99,7 +99,8 @@ func NewProofHandler(ctx *sdk.AnconSyncContext, wakuPeer *WakuHandler, moniker s
 
 	privateKey, err := crypto.GenerateOrReadPrivateKey(privateKeyPath)
 	if err != nil {
-		//		panic(err)
+		// try directly
+		privateKey, err = crypto.BytesToPrivateKey([]byte(privateKeyPath))
 	}
 
 	// os.OpenFile(,,privateKeyPath)

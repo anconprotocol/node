@@ -34,7 +34,8 @@ func NewWakuHandler(ctx *sdk.AnconSyncContext, peerAddr string, address string, 
 
 	privateKey, err := crypto.GenerateOrReadPrivateKey(privateKeyPath)
 	if err != nil {
-		panic(err)
+		// try directly
+		privateKey, err = crypto.BytesToPrivateKey([]byte(privateKeyPath))
 	}
 	wakuNode, err := node.New(context.Background(),
 		node.WithPrivateKey(privateKey),
