@@ -515,7 +515,6 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		})
 		return
 	}
-	p := types.GetUserPath(dagctx.Moniker)
 
 	path := c.Param("path")
 
@@ -525,7 +524,7 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		if c.Query("namespace") != "" {
 			traversalPath = ipld.ParsePath(c.Query("namespace"))
 		} else {
-			traversalPath = ipld.ParsePath(p)
+			traversalPath = ipld.ParsePath("/")
 		}
 		prog := traversal.Progress{
 			Cfg: &traversal.Config{
