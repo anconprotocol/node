@@ -243,13 +243,15 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	topic, err := jsonparser.GetString(v, "topic")
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	contentTopic, err := protocol.StringToContentTopic(topic)
+
 	// block
 	dagctx.WakuPeer.Publish(contentTopic, block)
+
 	// metadata
 	dagctx.WakuPeer.Publish(contentTopic, n)
 
 	c.JSON(201, gin.H{
-		"cid": cid.String(),
+		"cid": key.String(),
 	})
 }
 
@@ -475,19 +477,21 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 		LastBlockHash: string(lastHash),
 	}
 	block := dagctx.ApplyDagBlock(dbl)
-	cid = dagctx.Store.Store(ipld.LinkContext{}, block)
-	dagctx.ProofHandler.AddToPool(cid.Binary())
-
+	key := dagctx.Store.LinkSystem.MustComputeLink(sdk.GetDagJSONLinkPrototype(), block)
+	bz, err := block.AsBytes()
+	err = dagctx.Store.DataStore.Put(c.Request.Context(), (key.Binary()), bz)
 	// dagctx.PreviousBlock = res
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
 	contentTopic, err := protocol.StringToContentTopic(topic)
+
 	// block
 	dagctx.WakuPeer.Publish(contentTopic, block)
+
 	// metadata
 	dagctx.WakuPeer.Publish(contentTopic, n)
 
 	c.JSON(201, gin.H{
-		"cid": cid.String(),
+		"cid": key.String(),
 	})
 
 }
