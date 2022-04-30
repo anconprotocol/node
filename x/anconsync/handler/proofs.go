@@ -179,7 +179,10 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 			if err == nil {
 				var lnk cidlink.Link
 				json.Unmarshal(item, &lnk)
-				_, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{}, lnk, basicnode.Prototype.Any)
+
+				_, bz, err := h.Store.LinkSystem.LoadPlusRaw(ipld.LinkContext{
+					LinkPath: ipld.ParsePath("/"),
+				}, lnk, basicnode.Prototype.Any)
 				block, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
 
 				contentHash, _ := jsonparser.GetString(bz, "contentHash", "/")
@@ -203,7 +206,9 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 				)
 
 				_, bz, err = h.Store.LinkSystem.LoadPlusRaw(
-					ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))},
+					ipld.LinkContext{
+						LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker)),
+					},
 					res,
 					basicnode.Prototype.Any)
 				n, err := ipld.DecodeUsingPrototype(bz, ipldjson.Decode, basicnode.Prototype.Map)
@@ -246,7 +251,6 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 				}
 
 				key := must.String(node)
-				has, err := h.Store.DataStore.Has(ctx, key)
 
 				if err != nil {
 					fmt.Println(err)
@@ -255,11 +259,10 @@ func (h *ProofHandler) Listen(ctx context.Context) {
 
 				// If get, lookup and return block, otherwise put / store
 				if eventType == "get" {
-					if has {
-						lnk, _ := sdk.ParseCidLink(key)
-						block, _ := h.Store.Load(ipld.LinkContext{}, lnk)
-						h.WakuPeer.Publish(h.ContentTopic, block)
-					}
+					lnk, _ := sdk.ParseCidLink(key)
+					block, _ := h.Store.Load(
+						ipld.LinkContext{LinkPath: ipld.ParsePath(types.GetUserPath(h.Moniker))}, lnk)
+					h.WakuPeer.Publish(h.ContentTopic, block)
 				}
 			}
 		}
@@ -283,6 +286,7 @@ func (h *ProofHandler) HandleIncomingProofRequests() {
 }
 
 type DagBlockResult struct {
+	Path          string         `json:"path"`
 	Issuer        string         `json:"issuer"`
 	Timestamp     int64          `json:"timestamp"`
 	Content       datamodel.Node `json:"content"`

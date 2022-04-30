@@ -89,6 +89,7 @@ func main() {
 	ctx := context.Background()
 
 	s := sdk.NewStorage(*dataFolder)
+
 	dagHandler := &sdk.AnconSyncContext{Store: s}
 
 	docs.SwaggerInfo.BasePath = "/v1"
@@ -180,7 +181,6 @@ func main() {
 		api.GET("/proof/:key", proofHandler.Read)
 		api.GET("/proof", proofHandler.Read)
 		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
-		api.GET("/topics", dagJsonHandler.UserDag)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

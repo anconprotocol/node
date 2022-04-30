@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
@@ -13,12 +12,12 @@ import (
 
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
 	"github.com/spf13/cast"
 	"github.com/status-im/go-waku/waku/v2/protocol"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
 	"github.com/ipld/go-ipld-prime"
@@ -193,8 +192,9 @@ func (dagctx *DidHandler) ReadDidWebUrl(c *gin.Context) {
 	did := c.Param("did")
 
 	// path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
+	p := types.GetUserPath(dagctx.Moniker)
 
-	value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
+	value, err := dagctx.Store.Get(p, did)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("did web not found %v", err),
@@ -241,7 +241,7 @@ func (dagctx *DidHandler) ReadDid(c *gin.Context) {
 	lnk, err := sdk.ParseCidLink(did)
 	if err != nil {
 
-		value, err := dagctx.Store.DataStore.Get(c.Request.Context(), did)
+		value, err := dagctx.Store.Get(p, did)
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("did web not found %v", err),
@@ -348,7 +348,7 @@ func (dagctx *DidHandler) CreateDid(c *gin.Context) {
 
 	resp, _ := sdk.Encode(block)
 	if ethrdid != "" {
-		dagctx.Store.DataStore.Put(c.Request.Context(), "raw:"+ethrdid, []byte(resp))
+		dagctx.Store.Put(p, "raw:"+ethrdid, []byte(resp))
 	}
 	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
 
@@ -361,17 +361,17 @@ func (dagctx *DidHandler) AddDid(didType AvailableDid, domainName string, addr s
 
 	var didDoc *did.Doc
 	var err error
-	ctx := context.Background()
+	//	ctx := context.Background()
 
 	if didType == DidTypeWeb {
 
-		exists, err := dagctx.Store.DataStore.Has(ctx, domainName)
-		if err != nil {
-			return nil, "", fmt.Errorf("invalid domain name: %v", domainName)
-		}
-		if exists {
-			return nil, "", fmt.Errorf("invalid domain name: %v", domainName)
-		}
+		// exists, err := dagctx.Store.Has(ctx, domainName)
+		// if err != nil {
+		// 	return nil, "", fmt.Errorf("invalid domain name: %v", domainName)
+		// }
+		// if exists {
+		// 	return nil, "", fmt.Errorf("invalid domain name: %v", domainName)
+		// }
 
 		didDoc, err = dagctx.BuildDidWeb(domainName, pubbytes)
 		if err != nil {
@@ -408,10 +408,10 @@ func (dagctx *DidHandler) AddDid(didType AvailableDid, domainName string, addr s
 		return nil, "", err
 	}
 
-	dagctx.WakuPeer.Publish(dagctx.ContentTopic, n)
+	//	dagctx.WakuPeer.Publish(dagctx.ContentTopic, n)
 
-	dagctx.Store.DataStore.Put(ctx, didDoc.ID, []byte(lnk.String()))
-	dagctx.Store.DataStore.Put(ctx, domainName, patch)
+	dagctx.Store.Put(p, didDoc.ID, []byte(lnk.String()))
+	dagctx.Store.Put(p, domainName, patch)
 
 	// proofs
 	internalKey := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), lnk.String())

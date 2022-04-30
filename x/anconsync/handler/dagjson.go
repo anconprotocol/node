@@ -137,8 +137,8 @@ func (h *DagJsonHandler) handleMesssage(ctx context.Context, message *pb.WakuMes
 			return
 		}
 
-		has, err := h.Store.DataStore.Has(ctx, key)
-
+		lnk, _ := sdk.ParseCidLink(key)
+		y, err := h.Store.Load(ipld.LinkContext{}, lnk)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -146,10 +146,8 @@ func (h *DagJsonHandler) handleMesssage(ctx context.Context, message *pb.WakuMes
 
 		// If get, lookup and return block, otherwise put / store
 		if eventType == "get" {
-			if has {
-				lnk, _ := sdk.ParseCidLink(key)
-				payload, _ := h.Store.Load(ipld.LinkContext{}, lnk)
-				h.WakuPeer.Publish(h.ContentTopic, payload)
+			if y != nil {
+				h.WakuPeer.Publish(h.ContentTopic, y)
 			} else {
 				var mapper = make(map[string]string)
 				mapper["event"] = "fetch_not_found"
@@ -257,15 +255,30 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		})
 		return
 	}
-	cidd := dagctx.Store.Store(ipld.LinkContext{}, n)
+	if path == "/" {
+		path = types.GetUserPath(dagctx.Moniker)
+	}
+	cidd := dagctx.Store.Store(ipld.LinkContext{
+		LinkPath: ipld.ParsePath(path),
+	}, n)
 	// get current
 
 	// get latest
 	commit, _ := dagctx.ProofHandler.proofs.Hash(&emptypb.Empty{})
 	hash, _ := jsonparser.GetString(commit, "hash")
+	// topic, err := jsonparser.GetString(v, "topic")
+	// var contentTopic protocol.ContentTopic
+	// if topic == "" {
+	// 	// Always add to default topic
+	// 	// /did.../1/default/json
+	// 	contentTopic, _ = protocol.StringToContentTopic(fmt.Sprintf("/%s/1/default/json", from))
+	// } else {
+	// 	contentTopic, _ = protocol.StringToContentTopic(fmt.Sprintf("/%s/1/%s/json", from, topic))
+	// }
 
 	dbl := &DagBlockResult{
 		Issuer:        from,
+		Path:          path,
 		Timestamp:     time.Now().Unix(),
 		ContentHash:   cidd,
 		Signature:     signature,
@@ -275,9 +288,11 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	}
 	block := dagctx.ApplyDagBlock(dbl)
 
-	key := dagctx.Store.Store(ipld.LinkContext{}, block)
+	key := dagctx.Store.Store(ipld.LinkContext{
+		LinkPath: ipld.ParsePath("/"),
+	}, block)
 	id, err := json.Marshal(key)
-	fmt.Println(id)
+
 	dagctx.ProofHandler.AddToPool(id)
 
 	// block, err = dagctx.Store.Load(ipld.LinkContext{
@@ -286,15 +301,14 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	// fmt.Println(block, err)
 	// dagctx.PreviousBlock = res
-	topic, err := jsonparser.GetString(v, "topic")
 	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
-	contentTopic, err := protocol.StringToContentTopic(topic)
+	// contentTopic, err := protocol.StringToContentTopic(topic)
 
 	// block
-	dagctx.WakuPeer.Publish(contentTopic, block)
+	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
 
-	// metadata
-	dagctx.WakuPeer.Publish(contentTopic, n)
+	// // metadata
+	// dagctx.WakuPeer.Publish(contentTopic, n)
 
 	c.JSON(201, gin.H{
 		"cid": key.String(),
@@ -320,6 +334,7 @@ func (dagctx *DagJsonHandler) ApplyDagBlock(args *DagBlockResult) datamodel.Node
 		na.AssembleEntry("digest").AssignString(args.Digest)
 		na.AssembleEntry("network").AssignString(args.Network)
 		na.AssembleEntry("lastBlockHash").AssignString(args.LastBlockHash)
+		na.AssembleEntry("path").AssignString(args.Path)
 	})
 
 	return block
@@ -597,84 +612,4 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		return
 	}
 
-}
-
-// @BasePath /v0
-// UserDag godoc
-// @Summary Reads JSON from a dag-json block
-// @Schemes
-// @Description Returns JSON
-// @Tags dag-json
-// @Accept json
-// @Produce json
-// @Success 200
-// @Router /v1/dag/topics/ [get]
-func (dagctx *DagJsonHandler) UserDag(c *gin.Context) {
-	user := c.Query("from")
-	topic := c.Query("topic")
-	concat := fmt.Sprintf("%s:%s", topic, user)
-
-	concatLink, err := dagctx.Store.DataStore.Get(c.Request.Context(), concat)
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err.Error()),
-		})
-	}
-
-	lnk, err := sdk.ParseCidLink(string(concatLink))
-
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err.Error()),
-		})
-		return
-	}
-
-	var n datamodel.Node
-	p := types.GetUserPath(dagctx.Moniker)
-
-	n, err = dagctx.Store.Load(ipld.LinkContext{LinkPath: ipld.ParsePath(p)}, lnk)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%v", err.Error()),
-		})
-		return
-	}
-
-	data, err := sdk.Encode(n)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": fmt.Errorf("%s", err.Error()),
-		})
-		return
-	}
-
-	var contentData string
-
-	datanode, err := n.LookupByString("contentHash")
-	if err == nil && c.Query("compact") != "true" {
-		lnkNode, _ := datanode.AsLink()
-		// fetch
-		contentHashNode, _ := dagctx.Store.Load(ipld.LinkContext{
-			LinkPath: ipld.ParsePath("/"),
-		}, lnkNode)
-		contentData, err = sdk.Encode(contentHashNode)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%s", err.Error()),
-			})
-			return
-		}
-		response, err := jsonparser.Set([]byte(data), []byte(contentData), "content")
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("%s", err.Error()),
-			})
-			return
-		}
-		c.JSON(200, json.RawMessage(response))
-	} else {
-		c.JSON(200, json.RawMessage(data))
-	}
 }
