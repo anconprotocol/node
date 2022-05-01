@@ -2,12 +2,17 @@ package handler
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
+	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
@@ -19,7 +24,9 @@ import (
 	ipldjson "github.com/ipld/go-ipld-prime/codec/json"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"github.com/spf13/cast"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
 
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
@@ -264,8 +271,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	// get current
 
 	// get latest
-	commit, _ := dagctx.ProofHandler.proofs.Hash(&emptypb.Empty{})
-	hash, _ := jsonparser.GetString(commit, "hash")
+	hash := dagctx.Store.GetTreeHash()
 	// topic, err := jsonparser.GetString(v, "topic")
 	// var contentTopic protocol.ContentTopic
 	// if topic == "" {
@@ -284,25 +290,13 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 		Signature:     signature,
 		Digest:        hexutil.Encode(digest),
 		Network:       dagctx.Moniker,
-		LastBlockHash: hash,
+		LastBlockHash: string(hash),
 	}
 	block := dagctx.ApplyDagBlock(dbl)
 
 	key := dagctx.Store.Store(ipld.LinkContext{
 		LinkPath: ipld.ParsePath("/"),
 	}, block)
-	id, err := json.Marshal(key)
-
-	dagctx.ProofHandler.AddToPool(id)
-
-	// block, err = dagctx.Store.Load(ipld.LinkContext{
-	// 	LinkPath: ipld.ParsePath("/"),
-	// }, key)
-
-	// fmt.Println(block, err)
-	// dagctx.PreviousBlock = res
-	//	dagctx.Store.DataStore.Put(c.Request.Context(), fmt.Sprintf("block:%d", blockNumber), []byte(res.String()))
-	// contentTopic, err := protocol.StringToContentTopic(topic)
 
 	// block
 	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
@@ -522,7 +516,7 @@ func (dagctx *DagJsonHandler) Update(c *gin.Context) {
 
 	cid := dagctx.Store.Store(ipld.LinkContext{}, n)
 
-	lastHash, _ := dagctx.ProofHandler.proofs.GetCurrentVersion()
+	lastHash := dagctx.Store.GetTreeHash()
 
 	dbl := &DagBlockResult{
 		Issuer:        from,
@@ -612,4 +606,145 @@ func (dagctx *DagJsonHandler) DagJsonRead(c *gin.Context) {
 		return
 	}
 
+}
+
+// @BasePath /v0
+// Verify godoc
+// @Summary Verifies an ics23 proofs
+// @Schemes
+// @Description Verifies an ics23 proof
+// @Tags proofs
+// @Accept json
+// @Produce json
+// @Success 201 {string} cid
+// @Router /v1/proofs/verify [post]
+func (dagctx *DagJsonHandler) ReadCurrentRootHash(c *gin.Context) {
+
+	lastHash := dagctx.Store.GetTreeHash()
+
+	sig := c.Query("sig")
+
+	if sig == "true" {
+		var digest []byte
+		// priv, err := crypto.GenerateKey()
+		keccak.Keccak256(digest, []byte(lastHash))
+		signed, err := dagctx.PrivateKey.Sign(rand.Reader, digest, nil) //priv.Sign(rand.Reader, digest, nil)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("Sig query Error %v", err).Error(),
+			})
+			return
+		}
+		c.JSON(201, gin.H{
+			"lastHash":  lastHash,
+			"signature": signed,
+		})
+		return
+	}
+
+	c.JSON(201, gin.H{
+		"lastHash": lastHash,
+	})
+}
+
+// @BasePath /v0
+// Read godoc
+// @Summary Reads an existing proof
+// @Schemes
+// @Description Returns JSON
+// @Tags proofs
+// @Accept json
+// @Produce json
+// @Success 200
+// @Router /v1/proof/{path} [get]
+func (dagctx *DagJsonHandler) Read(c *gin.Context) {
+
+	key, _ := c.Params.Get("key")
+
+	if key == "" {
+		key, _ = c.GetQuery("key")
+	}
+	if key == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing key").Error(),
+		})
+		return
+	}
+	height, _ := c.GetQuery("height")
+
+	if height == "" {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("missing height").Error(),
+		})
+		return
+	}
+	version := cast.ToInt64(height)
+	internalKey, _ := base64.StdEncoding.DecodeString(key)
+	data, err := dagctx.Store.GetCommitmentProof([]byte(internalKey), version)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": fmt.Errorf("decode Error %v", err).Error(),
+		})
+		return
+	}
+
+	exportAs, _ := c.GetQuery("export")
+	if exportAs == "qr" {
+		qrc, err := qrcode.New(string(data))
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("decode Error %v", err).Error(),
+			})
+			return
+		}
+
+		bg := c.Query("bgcolor")
+		if bg == "" {
+			bg = "#ffffff"
+		} else {
+			bg = "#" + bg
+		}
+		fg := c.Query("fgcolor")
+		if fg == "" {
+			fg = "#000000"
+		} else {
+			fg = "#" + fg
+		}
+		buf := &bytes.Buffer{}
+		buf2 := &bytes.Buffer{}
+		wr := gzip.NewWriter(buf)
+
+		w := standard.NewWithWriter(wr,
+			standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
+			standard.WithBgColorRGBHex(bg),
+			standard.WithFgColorRGBHex(fg),
+		)
+		qrc.Save(w)
+		w.Close()
+		rdr, err := gzip.NewReader(buf)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("error %v", err).Error(),
+			})
+			return
+		}
+
+		data, err := io.ReadAll(rdr)
+		buf2.Write(data)
+		defer rdr.Close()
+
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": fmt.Errorf("error %v", err).Error(),
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"qr": base64.StdEncoding.EncodeToString(buf2.Bytes()),
+		})
+	} else {
+		c.JSON(200, data)
+	}
 }

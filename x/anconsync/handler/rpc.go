@@ -9,12 +9,11 @@ import (
 	gql "github.com/graphql-go/handler"
 
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	dbName string = "proofs-db"
+	DBName string = "proofs-db"
 	dbPath string = ".ancon/db/proofs"
 )
 
@@ -35,7 +34,7 @@ var (
 // }
 
 func PlaygroundHandler(anconCtx sdk.AnconSyncContext,
-	adapter *ethereum.OnchainAdapter, proofs *proofsignature.IavlProofAPI) gin.HandlerFunc {
+	adapter *ethereum.OnchainAdapter) gin.HandlerFunc {
 	//	api := protocol.NewProtocolAPI(adapter, &anconCtx.Store, proofs)
 
 	return func(c *gin.Context) {

@@ -6,7 +6,11 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/docs"
@@ -87,8 +91,20 @@ func main() {
 	}
 
 	ctx := context.Background()
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
 
-	s := sdk.NewStorage(*dataFolder)
+	// os.OpenFile(,,privateKeyPath)
+
+	folder := filepath.Join(userHomeDir, *dataFolder)
+	db, err := dbm.NewGoLevelDB(handler.DBName, folder)
+	if err != nil {
+		panic(err)
+	}
+
+	s := sdk.NewStorage(db, 0, 1024)
 
 	dagHandler := &sdk.AnconSyncContext{Store: s}
 
@@ -118,7 +134,7 @@ func main() {
 
 		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
 
-		result, _, err := handler.InitGenesis(*hostName, *moniker, link, priv)
+		result, _, err := handler.InitGenesis(&s, *hostName, *moniker, link, priv)
 
 		if err != nil {
 			panic(err)
@@ -154,7 +170,6 @@ func main() {
 
 	didHandler := handler.NewDidHandler(
 		dagHandler,
-		proofHandler.GetProofService(),
 		wakuHandler,
 		*rootkey,
 		*moniker,
@@ -178,14 +193,13 @@ func main() {
 		api.POST("/did", didHandler.CreateDid)
 		api.POST("/did/web", didHandler.CreateDid)
 		api.GET("/did/:did", didHandler.ReadDid)
-		api.GET("/proof/:key", proofHandler.Read)
-		api.GET("/proof", proofHandler.Read)
-		api.GET("/proofs/lasthash", proofHandler.ReadCurrentRootHash)
+		api.GET("/proof/:key", dagJsonHandler.Read)
+		api.GET("/proof", dagJsonHandler.Read)
+		api.GET("/proofs/lasthash", dagJsonHandler.ReadCurrentRootHash)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	dagJsonHandler.ListenAndSync(ctx)
-	proofHandler.Listen(ctx)
 	proofHandler.HandleIncomingProofRequests()
 
 	if *quic {

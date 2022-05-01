@@ -12,11 +12,8 @@ import (
 
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
-	"github.com/anconprotocol/sdk/proofsignature"
 	"github.com/buger/jsonparser"
-	"github.com/spf13/cast"
 	"github.com/status-im/go-waku/waku/v2/protocol"
-	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/did"
@@ -44,7 +41,6 @@ const (
 
 type DidHandler struct {
 	*sdk.AnconSyncContext
-	Proof        *proofsignature.IavlProofService
 	WakuPeer     *WakuHandler
 	RootKey      string
 	Moniker      string
@@ -52,14 +48,12 @@ type DidHandler struct {
 }
 
 func NewDidHandler(ctx *sdk.AnconSyncContext,
-	proof *proofsignature.IavlProofService,
 	wakuPeer *WakuHandler,
 	rootKey string,
 	moniker string) *DidHandler {
 
 	return &DidHandler{
 		AnconSyncContext: ctx,
-		Proof:            proof,
 		WakuPeer:         wakuPeer,
 		RootKey:          rootKey,
 		Moniker:          moniker,
@@ -194,7 +188,7 @@ func (dagctx *DidHandler) ReadDidWebUrl(c *gin.Context) {
 	// path := strings.Join([]string{"did:web:ipfs:user", did}, ":")
 	p := types.GetUserPath(dagctx.Moniker)
 
-	value, err := dagctx.Store.Get(p, did)
+	value, err := dagctx.Store.Get([]byte(p), did)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": fmt.Errorf("did web not found %v", err),
@@ -241,7 +235,7 @@ func (dagctx *DidHandler) ReadDid(c *gin.Context) {
 	lnk, err := sdk.ParseCidLink(did)
 	if err != nil {
 
-		value, err := dagctx.Store.Get(p, did)
+		value, err := dagctx.Store.Get(([]byte(p)), did)
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": fmt.Errorf("did web not found %v", err),
@@ -326,20 +320,13 @@ func (dagctx *DidHandler) CreateDid(c *gin.Context) {
 			"error": fmt.Errorf("failed to create did").Error(),
 		})
 	}
-	commit, err := dagctx.Proof.SaveVersion(&emptypb.Empty{})
 
 	p := types.GetUserPath(dagctx.Moniker)
 
-	hash, err := jsonparser.GetString(commit, "root_hash")
-	version, err := jsonparser.GetInt(commit, "version")
-	lastHash := []byte(hash)
-	blockNumber := cast.ToInt64(version)
 	block := fluent.MustBuildMap(basicnode.Prototype.Map, 8, func(na fluent.MapAssembler) {
 		na.AssembleEntry("issuer").AssignString(addr)
 		na.AssembleEntry("timestamp").AssignInt(time.Now().Unix())
 		na.AssembleEntry("contentHash").AssignLink(cid)
-		na.AssembleEntry("commitHash").AssignString(string(lastHash))
-		na.AssembleEntry("height").AssignInt(blockNumber)
 		na.AssembleEntry("signature").AssignString(v["signature"])
 		na.AssembleEntry("key").AssignString(base64.StdEncoding.EncodeToString([]byte(key)))
 		na.AssembleEntry("parent").AssignString(p)
@@ -348,7 +335,7 @@ func (dagctx *DidHandler) CreateDid(c *gin.Context) {
 
 	resp, _ := sdk.Encode(block)
 	if ethrdid != "" {
-		dagctx.Store.Put(p, "raw:"+ethrdid, []byte(resp))
+		dagctx.Store.Put([]byte(p), "raw:"+ethrdid, []byte(resp))
 	}
 	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
 
@@ -410,21 +397,10 @@ func (dagctx *DidHandler) AddDid(didType AvailableDid, domainName string, addr s
 
 	//	dagctx.WakuPeer.Publish(dagctx.ContentTopic, n)
 
-	dagctx.Store.Put(p, didDoc.ID, []byte(lnk.String()))
-	dagctx.Store.Put(p, domainName, patch)
+	dagctx.Store.Put([]byte(p), didDoc.ID, []byte(lnk.String()))
+	dagctx.Store.Put([]byte(p), domainName, patch)
 
-	// proofs
-	internalKey := fmt.Sprintf("%s/%s", types.GetUserPath(dagctx.Moniker), lnk.String())
-	_, err = dagctx.Proof.Set([]byte(internalKey), []byte(didDoc.ID))
-	if err != nil {
-		return nil, "", fmt.Errorf("invalid key")
-	}
-
-	if err != nil {
-		return nil, "", fmt.Errorf("invalid commit")
-	}
-
-	return lnk, internalKey, nil
+	return lnk, "", nil
 }
 
 func (dagctx *DidHandler) ParseDIDWeb(id string, useHTTP bool) (string, string, error) {
