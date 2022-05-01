@@ -2,13 +2,11 @@ package handler
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/0xPolygon/polygon-sdk/crypto"
@@ -25,8 +23,6 @@ import (
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/spf13/cast"
-	"github.com/yeqown/go-qrcode/v2"
-	"github.com/yeqown/go-qrcode/writer/standard"
 
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
@@ -689,62 +685,6 @@ func (dagctx *DagJsonHandler) Read(c *gin.Context) {
 		return
 	}
 
-	exportAs, _ := c.GetQuery("export")
-	if exportAs == "qr" {
-		qrc, err := qrcode.New(string(data))
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("decode Error %v", err).Error(),
-			})
-			return
-		}
+	c.JSON(200, data)
 
-		bg := c.Query("bgcolor")
-		if bg == "" {
-			bg = "#ffffff"
-		} else {
-			bg = "#" + bg
-		}
-		fg := c.Query("fgcolor")
-		if fg == "" {
-			fg = "#000000"
-		} else {
-			fg = "#" + fg
-		}
-		buf := &bytes.Buffer{}
-		buf2 := &bytes.Buffer{}
-		wr := gzip.NewWriter(buf)
-
-		w := standard.NewWithWriter(wr,
-			standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
-			standard.WithBgColorRGBHex(bg),
-			standard.WithFgColorRGBHex(fg),
-		)
-		qrc.Save(w)
-		w.Close()
-		rdr, err := gzip.NewReader(buf)
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("error %v", err).Error(),
-			})
-			return
-		}
-
-		data, err := io.ReadAll(rdr)
-		buf2.Write(data)
-		defer rdr.Close()
-
-		if err != nil {
-			c.JSON(400, gin.H{
-				"error": fmt.Errorf("error %v", err).Error(),
-			})
-			return
-		}
-
-		c.JSON(200, gin.H{
-			"qr": base64.StdEncoding.EncodeToString(buf2.Bytes()),
-		})
-	} else {
-		c.JSON(200, data)
-	}
 }

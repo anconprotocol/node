@@ -61,10 +61,10 @@ func NewWakuHandler(ctx *sdk.AnconSyncContext, peerAddr string, address string, 
 
 func (h *WakuHandler) Start() {
 
-	h.Node.AddPeer(h.PeerAddress, store.StoreID_v20beta4)
-	h.Node.AddPeer(h.PeerAddress, lightpush.LightPushID_v20beta1)
-	h.Node.AddPeer(h.PeerAddress, relay.WakuRelayID_v200)
-	h.Node.AddPeer(h.PeerAddress, filter.FilterID_v20beta1)
+	h.Node.AddPeer(h.PeerAddress, string(store.StoreID_v20beta4))
+	h.Node.AddPeer(h.PeerAddress, string(lightpush.LightPushID_v20beta1))
+	h.Node.AddPeer(h.PeerAddress, string(relay.WakuRelayID_v200))
+	h.Node.AddPeer(h.PeerAddress, string(filter.FilterID_v20beta1))
 
 	if err := h.Node.Start(); err != nil {
 		panic(err)
