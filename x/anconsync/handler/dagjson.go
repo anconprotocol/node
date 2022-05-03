@@ -13,6 +13,7 @@ import (
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
+
 	"github.com/anconprotocol/sdk"
 	"github.com/buger/jsonparser"
 	cborfx "github.com/fxamacker/cbor"
@@ -23,6 +24,7 @@ import (
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent"
 	"github.com/spf13/cast"
+	rpcclient "github.com/tendermint/tendermint/rpc/client/http"
 
 	"github.com/ipld/go-ipld-prime/must"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
@@ -41,6 +43,7 @@ type DagJsonHandler struct {
 	Moniker       string
 	PreviousBlock datamodel.Link
 	ContentTopic  protocol.ContentTopic
+	chain         *rpcclient.HTTP
 }
 type Mutation struct {
 	Path          string
@@ -51,12 +54,15 @@ type Mutation struct {
 
 func NewDagHandler(ctx *sdk.AnconSyncContext,
 	proof *ProofHandler,
+
+	chain *rpcclient.HTTP,
 	wakuPeer *WakuHandler,
 	rootKey string,
 	moniker string) *DagJsonHandler {
 
 	return &DagJsonHandler{
 		AnconSyncContext: ctx,
+		chain:            chain,
 		ProofHandler:     proof,
 		WakuPeer:         wakuPeer,
 		RootKey:          rootKey,
@@ -296,12 +302,15 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 
 	// block
 	dagctx.WakuPeer.Publish(dagctx.ContentTopic, block)
-
-	// // metadata
 	// dagctx.WakuPeer.Publish(contentTopic, n)
-
+	bz, err := dagctx.Store.LinkSystem.LoadRaw(ipld.LinkContext{
+		LinkPath: ipld.ParsePath("/"),
+	}, key)
+	r, err := dagctx.chain.BroadcastTxAsync(c.Request.Context(), bz)
 	c.JSON(201, gin.H{
 		"cid": key.String(),
+
+		"tx": r,
 	})
 }
 

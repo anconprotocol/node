@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"flag"
@@ -10,9 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/anconprotocol/node/app"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	"github.com/ignite-hq/cli/ignite/pkg/cosmoscmd"
+	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/0xPolygon/polygon-sdk/helper/keccak"
@@ -20,6 +18,7 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
+	rpcclient "github.com/tendermint/tendermint/rpc/client/http"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gin-contrib/cors"
@@ -30,6 +29,7 @@ import (
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	abciserver "github.com/tendermint/tendermint/abci/server"
 )
 
 type SubgraphConfig struct {
@@ -93,7 +93,7 @@ func main() {
 		r.Use(cors.New(config))
 	}
 
-	ctx := context.Background()
+	//////// ctx := context.Background()
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -147,6 +147,7 @@ func main() {
 
 		return
 	}
+	app := sdk.NewAnconAppChain(&s)
 	wakuHandler := handler.NewWakuHandler(dagHandler, *peerAddr, *wakuAddr, *privateKeyPath)
 	wakuHandler.Start()
 	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, *moniker, *privateKeyPath)
@@ -163,9 +164,12 @@ func main() {
 
 	}
 
+	tm := "http://127.0.0.1:26657"
+	client, err := rpcclient.New(tm, "/websocket")
 	dagJsonHandler := handler.NewDagHandler(
 		dagHandler,
 		proofHandler,
+		client,
 		wakuHandler,
 		*rootkey,
 		*moniker,
@@ -202,25 +206,25 @@ func main() {
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	dagJsonHandler.ListenAndSync(ctx)
-	proofHandler.HandleIncomingProofRequests()
+	// dagJsonHandler.ListenAndSync(ctx)
+	// proofHandler.HandleIncomingProofRequests()
+
+	writer := bytes.Buffer{}
+
+	server := abciserver.NewSocketServer("tcp://127.0.0.1:26658", app)
+	server.SetLogger(tmlog.NewTMJSONLogger(&writer))
+	go func() {
+		if err := server.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "error starting socket server: %v", err)
+			os.Exit(1)
+		}
+	}()
 
 	if *quic {
 		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
 	} else {
 		r.Run(*apiAddr)
 	}
+	defer server.Stop()
 
-	rootCmd, _ := cosmoscmd.NewRootCmd(
-		app.Name,
-		app.AccountAddressPrefix,
-		app.DefaultNodeHome,
-		app.Name,
-		app.ModuleBasics,
-		app.New,
-		// this line is used by starport scaffolding # root/arguments
-	)
-	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
-		os.Exit(1)
-	}
 }
