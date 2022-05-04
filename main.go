@@ -1,35 +1,37 @@
 package main
 
 import (
-	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"flag"
 	"fmt"
 	"os"
+	"time"
+
+	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	"github.com/tendermint/tendermint/cmd/tendermint/commands/debug"
+	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proxy"
+
 	"path/filepath"
 	"strings"
 
+	tmconfig "github.com/tendermint/tendermint/config"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/0xPolygon/polygon-sdk/helper/keccak"
 	"github.com/anconprotocol/node/docs"
 	"github.com/anconprotocol/node/x/anconsync/handler"
-	"github.com/anconprotocol/node/x/anconsync/handler/types"
 	"github.com/anconprotocol/sdk"
 	rpcclient "github.com/tendermint/tendermint/rpc/client/http"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/ipld/go-ipld-prime"
-	"github.com/ipld/go-ipld-prime/node/basicnode"
 	"github.com/lucas-clemente/quic-go/http3"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	abciserver "github.com/tendermint/tendermint/abci/server"
 )
 
 type SubgraphConfig struct {
@@ -60,10 +62,7 @@ func main() {
 	dataFolder := flag.String("data", ".ancon", "Data directory")
 	enableCors := flag.Bool("cors", false, "Allow CORS")
 	allowOrigins := flag.String("origins", "*", "Must send a delimited string by commas")
-	init := flag.Bool("init", false, "Initialize merkle tree storage")
-	genKeys := flag.Bool("keys", false, "Generate keys")
-	hostName := flag.String("hostname", "cerro-ancon", "Send custom host name")
-	rootHash := flag.String("roothash", "", "root hash")
+
 	rootkey := flag.String("rootkey", "", "root key")
 	moniker := flag.String("moniker", "anconprotocol", "DAG Store rootname")
 	//	seedPeers := flag.String("peers", "", "Array of peer addresses ")
@@ -73,17 +72,6 @@ func main() {
 	privateKeyPath := flag.String("privatekeypath", "", "")
 
 	flag.Parse()
-	if *genKeys == true {
-		result, err := handler.GenerateKeys()
-
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Println(result)
-		return
-	}
 
 	r := gin.Default()
 	config := cors.DefaultConfig()
@@ -112,59 +100,35 @@ func main() {
 	dagHandler := &sdk.AnconSyncContext{Store: s}
 
 	docs.SwaggerInfo.BasePath = "/v1"
-
-	if *init == true {
-
-		// Set your own keypair
-		priv, err := crypto.GenerateKey()
-		if err != nil {
-			panic(err)
-		}
-		var digest []byte
-
-		keccak.Keccak256(digest, []byte(*hostName))
-		signed, err := priv.Sign(rand.Reader, digest, nil)
-
-		if err != nil {
-			panic(err)
-		}
-
-		lnkCtx := ipld.LinkContext{
-			LinkPath: ipld.ParsePath(types.GetNetworkPath(*moniker)),
-		}
-
-		n := basicnode.NewString(base64.RawStdEncoding.EncodeToString(signed))
-
-		link := dagHandler.Store.Store(lnkCtx, n) //Put(ctx, key, []byte(key))
-
-		result, _, err := handler.InitGenesis(&s, *hostName, *moniker, link, priv)
-
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(result)
-
-		return
-	}
 	app := sdk.NewAnconAppChain(&s)
 	wakuHandler := handler.NewWakuHandler(dagHandler, *peerAddr, *wakuAddr, *privateKeyPath)
 	wakuHandler.Start()
 	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, *moniker, *privateKeyPath)
 
-	if *rootHash != "" {
-		hash, err := proofHandler.VerifyGenesis(*rootkey, *moniker)
-
+	tm := "tcp://0.0.0.0:26657"
+	// nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	// privvalKey := privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
+	nodeFunc := func(cfg *tmconfig.Config, logger tmlog.Logger) (*node.Node, error) {
+		nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 		if err != nil {
-			fmt.Println(err)
-			return
+			return nil, fmt.Errorf("failed to load or gen node key %s: %w", cfg.NodeKeyFile(), err)
 		}
+		sec, err := time.ParseDuration("14s")
 
-		fmt.Println("key validated with last current root hash: ", string(hash))
-
+		cfg.Consensus.TimeoutCommit = sec
+		return node.NewNode(cfg,
+			privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
+			nodeKey,
+			proxy.NewLocalClientCreator(app),
+			node.DefaultGenesisDocProviderFunc(cfg),
+			func(d *node.DBContext) (dbm.DB, error) {
+				return db, nil
+			},
+			node.DefaultMetricsProvider(cfg.Instrumentation),
+			logger,
+		)
 	}
 
-	tm := "http://127.0.0.1:26657"
 	client, err := rpcclient.New(tm, "/websocket")
 	dagJsonHandler := handler.NewDagHandler(
 		dagHandler,
@@ -206,25 +170,51 @@ func main() {
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// dagJsonHandler.ListenAndSync(ctx)
-	// proofHandler.HandleIncomingProofRequests()
-
-	writer := bytes.Buffer{}
-
-	server := abciserver.NewSocketServer("tcp://127.0.0.1:26658", app)
-	server.SetLogger(tmlog.NewTMJSONLogger(&writer))
 	go func() {
-		if err := server.Start(); err != nil {
-			fmt.Fprintf(os.Stderr, "error starting socket server: %v", err)
-			os.Exit(1)
+		if *quic {
+			http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
+		} else {
+			r.Run(*apiAddr)
 		}
 	}()
 
-	if *quic {
-		http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
-	} else {
-		r.Run(*apiAddr)
+	rootCmd := cmd.RootCmd
+	rootCmd.AddCommand(
+		cmd.GenValidatorCmd,
+		cmd.InitFilesCmd,
+		cmd.ProbeUpnpCmd,
+		cmd.LightCmd,
+		cmd.ReplayCmd,
+		cmd.ReplayConsoleCmd,
+		cmd.ResetAllCmd,
+		cmd.ResetPrivValidatorCmd,
+		cmd.ResetStateCmd,
+		cmd.ShowValidatorCmd,
+		cmd.TestnetFilesCmd,
+		cmd.ShowNodeIDCmd,
+		cmd.GenNodeKeyCmd,
+		cmd.VersionCmd,
+		cmd.RollbackStateCmd,
+		debug.DebugCmd,
+		cli.NewCompletionCmd(rootCmd, true),
+	)
+
+	// NOTE:
+	// Users wishing to:
+	//	* Use an external signer for their validators
+	//	* Supply an in-proc abci app
+	//	* Supply a genesis doc file from another source
+	//	* Provide their own DB implementation
+	// can copy this file and use something other than the
+	// DefaultNewNode function
+	// nodeFunc := nm.DefaultNewNode
+
+	// Create & start node
+	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
+
+	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", *dataFolder)))
+	if err := cmd.Execute(); err != nil {
+		panic(err)
 	}
-	defer server.Stop()
 
 }

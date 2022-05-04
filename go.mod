@@ -33,6 +33,7 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/Workiva/go-datastructures v1.0.53 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -86,6 +87,7 @@ require (
 	github.com/google/cel-go v0.9.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
+	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/graphql-go/graphql v0.8.0 // indirect
@@ -114,6 +116,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/koron/go-ssdp v0.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/libp2p/go-cidranger v1.1.0 // indirect
 	github.com/libp2p/go-conn-security-multistream v0.3.0 // indirect
@@ -163,6 +166,7 @@ require (
 	github.com/mikioh/tcpopt v0.0.0-20190314235656-172688c1accc // indirect
 	github.com/mimoo/StrobeGo v0.0.0-20181016162300-f8f6d4d2b643 // indirect
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
+	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -197,6 +201,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
 	github.com/relvacode/iso8601 v1.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
+	github.com/rs/cors v1.8.2 // indirect
 	github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
@@ -245,6 +250,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.1.0
 	github.com/anconprotocol/bigqueue v1.2.4
 	github.com/anconprotocol/sdk v0.0.0-20220502150303-1bccfe313c26
 	github.com/coreos/go-oidc/v3 v3.1.0
