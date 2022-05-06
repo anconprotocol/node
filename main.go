@@ -1,11 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
+	"path"
 	"time"
 
+	"github.com/spf13/viper"
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	"github.com/tendermint/tendermint/cmd/tendermint/commands/debug"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -56,58 +57,50 @@ type SubgraphConfig struct {
 // @BasePath  /v1
 func main() {
 
-	peerAddr := flag.String("peeraddr", "/ip4/127.0.0.1/tcp/34075/p2p/16Uiu2HAmAihQ3QDNyNxfYiN8qAvaBZKzqosmudoG9KYFMhW2YDXd", "A remote peer to sync")
-	wakuAddr := flag.String("wakuaddr", "0.0.0.0:8876", "Waku address")
-	apiAddr := flag.String("apiaddr", "0.0.0.0:7788", "API address")
-	dataFolder := flag.String("data", ".ancon", "Data directory")
-	enableCors := flag.Bool("cors", false, "Allow CORS")
-	allowOrigins := flag.String("origins", "*", "Must send a delimited string by commas")
-
-	rootkey := flag.String("rootkey", "", "root key")
-	moniker := flag.String("moniker", "anconprotocol", "DAG Store rootname")
-	//	seedPeers := flag.String("peers", "", "Array of peer addresses ")
-	quic := flag.Bool("quic", false, "Enable QUIC")
-	tlsKey := flag.String("tlscert", "", "TLS certificate")
-	tlsCert := flag.String("tlskey", "", "TLS key")
-	privateKeyPath := flag.String("privatekeypath", "", "")
-
-	flag.Parse()
-
-	r := gin.Default()
-	config := cors.DefaultConfig()
-
-	if *enableCors == true {
-		config.AllowOrigins = strings.Split(*allowOrigins, ",")
-		r.Use(cors.New(config))
-	}
-
-	//////// ctx := context.Background()
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
 
-	// os.OpenFile(,,privateKeyPath)
+	viper.AutomaticEnv()
+	viper.SetConfigFile(path.Join(userHomeDir, ".env"))
+	peerAddr := viper.GetString("PEER_ADDRESS")
+	wakuAddr := viper.GetString("WAKU_ADDRESS")
 
-	folder := filepath.Join(userHomeDir, *dataFolder)
+	dataFolder := viper.GetString("DATA_FOLDER")
+	enableCors := viper.GetBool("ENABLE_CORS")
+
+	moniker := viper.GetString("MONIKER")
+
+	quic := viper.GetBool("ENABLE_QUIC")
+	tlsKey := viper.GetString("TLS_KEY")
+	tlsCert := viper.GetString("TLS_CERT")
+	privateKeyPath := viper.GetString("PRIVATE_KEY")
+	apiAddr := viper.GetString("API_ADDRESS")
+
+	r := gin.Default()
+	config := cors.DefaultConfig()
+
+	if enableCors == true {
+		config.AllowOrigins = strings.Split("*", ",")
+		r.Use(cors.New(config))
+	}
+
+	folder := filepath.Join(userHomeDir, dataFolder)
 	db, err := dbm.NewGoLevelDB(handler.DBName, folder)
 	if err != nil {
 		panic(err)
 	}
 
 	s := sdk.NewStorage(db, 0, 1024)
-
 	dagHandler := &sdk.AnconSyncContext{Store: s}
-
 	docs.SwaggerInfo.BasePath = "/v1"
 	app := sdk.NewAnconAppChain(&s)
-	wakuHandler := handler.NewWakuHandler(dagHandler, *peerAddr, *wakuAddr, *privateKeyPath)
+	wakuHandler := handler.NewWakuHandler(dagHandler, peerAddr, wakuAddr, privateKeyPath)
 	wakuHandler.Start()
-	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, *moniker, *privateKeyPath)
+	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, moniker, privateKeyPath)
 
 	tm := "tcp://0.0.0.0:26657"
-	// nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
-	// privvalKey := privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
 	nodeFunc := func(cfg *tmconfig.Config, logger tmlog.Logger) (*node.Node, error) {
 		nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 		if err != nil {
@@ -135,21 +128,18 @@ func main() {
 		proofHandler,
 		client,
 		wakuHandler,
-		*rootkey,
-		*moniker,
+		moniker,
 	)
 
 	didHandler := handler.NewDidHandler(
 		dagHandler,
 		wakuHandler,
-		*rootkey,
-		*moniker,
+		moniker,
 	)
 
 	fileHandler := handler.FileHandler{
-		RootKey:          *rootkey,
 		AnconSyncContext: dagHandler,
-		Moniker:          *moniker,
+		Moniker:          moniker,
 	}
 	//	g := handler.PlaygroundHandler(*dagHandler, adapter, proofHandler.GetProofAPI())
 
@@ -171,10 +161,10 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	go func() {
-		if *quic {
-			http3.ListenAndServe(*apiAddr, *tlsCert, *tlsKey, r)
+		if quic {
+			http3.ListenAndServe(apiAddr, tlsCert, tlsKey, r)
 		} else {
-			r.Run(*apiAddr)
+			r.Run(apiAddr)
 		}
 	}()
 
@@ -212,7 +202,8 @@ func main() {
 	// Create & start node
 	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
 
-	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", *dataFolder)))
+	tmconfig.EnsureRoot(os.ExpandEnv(filepath.Join("$HOME", dataFolder)))
+	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", dataFolder)))
 	if err := cmd.Execute(); err != nil {
 		panic(err)
 	}

@@ -250,9 +250,8 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v1.1.0
 	github.com/anconprotocol/bigqueue v1.2.4
-	github.com/anconprotocol/sdk v0.0.0-20220502150303-1bccfe313c26
+	github.com/anconprotocol/sdk v0.0.0-20220506120351-2e14c55b37a1
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/cosmos/iavl v0.17.3
 	github.com/fxamacker/cbor v1.5.1

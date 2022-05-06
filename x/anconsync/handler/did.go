@@ -49,13 +49,11 @@ type DidHandler struct {
 
 func NewDidHandler(ctx *sdk.AnconSyncContext,
 	wakuPeer *WakuHandler,
-	rootKey string,
 	moniker string) *DidHandler {
 
 	return &DidHandler{
 		AnconSyncContext: ctx,
 		WakuPeer:         wakuPeer,
-		RootKey:          rootKey,
 		Moniker:          moniker,
 		ContentTopic:     protocol.NewContentTopic(moniker, 1, "did", "json"),
 	}

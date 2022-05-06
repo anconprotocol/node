@@ -57,7 +57,6 @@ func NewDagHandler(ctx *sdk.AnconSyncContext,
 
 	chain *rpcclient.HTTP,
 	wakuPeer *WakuHandler,
-	rootKey string,
 	moniker string) *DagJsonHandler {
 
 	return &DagJsonHandler{
@@ -65,7 +64,6 @@ func NewDagHandler(ctx *sdk.AnconSyncContext,
 		chain:            chain,
 		ProofHandler:     proof,
 		WakuPeer:         wakuPeer,
-		RootKey:          rootKey,
 		Moniker:          moniker,
 		ContentTopic:     protocol.NewContentTopic(moniker, 1, "dag", "json"),
 	}
@@ -309,8 +307,7 @@ func (dagctx *DagJsonHandler) DagJsonWrite(c *gin.Context) {
 	r, err := dagctx.chain.BroadcastTxAsync(c.Request.Context(), bz)
 	c.JSON(201, gin.H{
 		"cid": key.String(),
-
-		"tx": r,
+		"tx":  r.Hash.String(),
 	})
 }
 
