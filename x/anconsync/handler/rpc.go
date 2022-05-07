@@ -8,7 +8,7 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/protocol/ethereum"
 	gql "github.com/graphql-go/handler"
 
-	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/node/sdk"
 	"github.com/gin-gonic/gin"
 )
 

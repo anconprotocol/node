@@ -14,7 +14,7 @@ import (
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
 
-	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/node/sdk"
 	"github.com/buger/jsonparser"
 	cborfx "github.com/fxamacker/cbor"
 	"github.com/gin-gonic/gin"

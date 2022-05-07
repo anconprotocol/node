@@ -6,6 +6,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/spf13/viper"
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	"github.com/tendermint/tendermint/cmd/tendermint/commands/debug"
@@ -23,8 +24,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/anconprotocol/node/docs"
+	"github.com/anconprotocol/node/sdk"
 	"github.com/anconprotocol/node/x/anconsync/handler"
-	"github.com/anconprotocol/sdk"
 	rpcclient "github.com/tendermint/tendermint/rpc/client/http"
 
 	"github.com/gin-contrib/cors"
@@ -92,10 +93,14 @@ func main() {
 		panic(err)
 	}
 
-	s := sdk.NewStorage(db, 0, 1024)
-	dagHandler := &sdk.AnconSyncContext{Store: s}
+	app := sdk.NewAnconAppChain("anconprotocol", db)
+	app.Store.SetInitialVersion(0)
+	fmt.Println(app.Store.LastCommitID().Version)
+	app.Store.SetPruning(types.PruneDefault)
+
+	dagHandler := &sdk.AnconSyncContext{Store: app.StorageManager}
 	docs.SwaggerInfo.BasePath = "/v1"
-	app := sdk.NewAnconAppChain(&s)
+
 	wakuHandler := handler.NewWakuHandler(dagHandler, peerAddr, wakuAddr, privateKeyPath)
 	wakuHandler.Start()
 	proofHandler := handler.NewProofHandler(dagHandler, wakuHandler, moniker, privateKeyPath)
@@ -106,8 +111,8 @@ func main() {
 		if err != nil {
 			return nil, fmt.Errorf("failed to load or gen node key %s: %w", cfg.NodeKeyFile(), err)
 		}
-		sec, err := time.ParseDuration("14s")
-
+		sec, err := time.ParseDuration("3s")
+		cfg.Consensus.CreateEmptyBlocks = true
 		cfg.Consensus.TimeoutCommit = sec
 		return node.NewNode(cfg,
 			privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
@@ -199,8 +204,12 @@ func main() {
 	// DefaultNewNode function
 	// nodeFunc := nm.DefaultNewNode
 
+	if err != nil {
+		panic(err)
+	}
 	// Create & start node
 	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
+	err = app.Store.LoadLatestVersion()
 
 	tmconfig.EnsureRoot(os.ExpandEnv(filepath.Join("$HOME", dataFolder)))
 	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", dataFolder)))

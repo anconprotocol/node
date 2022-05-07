@@ -20,7 +20,7 @@ import (
 	"github.com/status-im/go-waku/waku/v2/protocol/store"
 	"github.com/status-im/go-waku/waku/v2/utils"
 
-	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/node/sdk"
 
 	"context"
 )

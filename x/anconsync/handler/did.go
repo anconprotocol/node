@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/anconprotocol/node/sdk"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
-	"github.com/anconprotocol/sdk"
 	"github.com/buger/jsonparser"
 	"github.com/status-im/go-waku/waku/v2/protocol"
 

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/anconprotocol/node/sdk"
 	"github.com/anconprotocol/node/x/anconsync/handler/hexutil"
-	"github.com/anconprotocol/sdk"
 
 	"github.com/gin-gonic/gin"
 )

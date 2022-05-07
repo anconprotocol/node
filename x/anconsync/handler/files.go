@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/anconprotocol/node/sdk"
 	"github.com/anconprotocol/node/x/anconsync/handler/types"
-	"github.com/anconprotocol/sdk"
 
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/raw"

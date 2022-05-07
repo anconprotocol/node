@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/anconprotocol/sdk"
+	"github.com/anconprotocol/node/sdk"
 	"github.com/gin-gonic/gin"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/datamodel"
