@@ -2,20 +2,21 @@ package sdk
 
 import (
 	"github.com/cosmos/cosmos-sdk/store"
-	"github.com/cosmos/cosmos-sdk/store/cache"
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/version"
 	dbm "github.com/tendermint/tm-db"
 )
 
-type AnconAppChain struct {
-	StorageManager Storage
-
-	Store types.CommitMultiStore
-}
-
 var _ abcitypes.Application = (*AnconAppChain)(nil)
+
+type AnconAppChain struct {
+	abcitypes.Application
+
+	StorageManager Storage
+	Store          types.CommitMultiStore
+}
 
 func NewAnconAppChain(key string, db dbm.DB) *AnconAppChain {
 	store := store.NewCommitMultiStore(db)
@@ -34,7 +35,7 @@ func (app *AnconAppChain) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo
 
 	return abcitypes.ResponseInfo{
 		// Data:             "",
-		// Version:          "",
+		Version:          version.ABCIVersion,
 		AppVersion:       1,
 		LastBlockHeight:  app.Store.LastCommitID().Version,
 		LastBlockAppHash: app.Store.LastCommitID().Hash,
@@ -77,21 +78,22 @@ func (app *AnconAppChain) CheckTx(req abcitypes.RequestCheckTx) abcitypes.Respon
 }
 
 func (app *AnconAppChain) Commit() abcitypes.ResponseCommit {
+
 	res := app.Store.Commit()
-	return abcitypes.ResponseCommit{Data: res.Hash, RetainHeight: res.Version}
+
+	return abcitypes.ResponseCommit{Data: res.Hash}
 }
 
 func (app *AnconAppChain) Query(req abcitypes.RequestQuery) abcitypes.ResponseQuery {
 
-	mngr := cache.NewCommitKVStoreCacheManager(cache.DefaultCommitKVStoreCacheSize)
-	mngr.GetStoreCache(types.NewKVStoreKey(STORE_KEY), app.Store.GetCommitKVStore(types.NewKVStoreKey(STORE_KEY)))
-	iavlstore := mngr.Unwrap(types.NewKVStoreKey(STORE_KEY)).(*iavl.Store)
+	st := app.StorageManager.dataStore
+	s := st.GetCommitStore(STORE_KEY_TYPE)
+	iavlstore := s.(*iavl.Store)
 
 	queryableStore := store.Queryable(iavlstore)
 
 	return queryableStore.Query(req)
 }
-
 func (AnconAppChain) InitChain(req abcitypes.RequestInitChain) abcitypes.ResponseInitChain {
 	return abcitypes.ResponseInitChain{}
 }
@@ -117,6 +119,6 @@ func (AnconAppChain) LoadSnapshotChunk(abcitypes.RequestLoadSnapshotChunk) abcit
 	return abcitypes.ResponseLoadSnapshotChunk{}
 }
 
-func (AnconAppChain) ApplySnapshotChunk(abcitypes.RequestApplySnapshotChunk) abcitypes.ResponseApplySnapshotChunk {
+func (app *AnconAppChain) ApplySnapshotChunk(req abcitypes.RequestApplySnapshotChunk) abcitypes.ResponseApplySnapshotChunk {
 	return abcitypes.ResponseApplySnapshotChunk{}
 }
