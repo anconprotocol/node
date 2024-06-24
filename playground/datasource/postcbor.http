@@ -1,6 +1,6 @@
 
 
-POST http://localhost:7788/v0/dagcbor
+POST http://localhost:7788/v1/dagcbor
 Content-Type: application/json
 
 {

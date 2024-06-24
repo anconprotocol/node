@@ -9,7 +9,7 @@ info:
   title: Ancon Protocol Sync API v0.4.0
   version: 0.4.0
 paths:
-  /v0/code:
+  /v1/code:
     post:
       consumes:
       - application/json
@@ -24,7 +24,7 @@ paths:
       summary: Upload hybrid smartcontracts
       tags:
       - file
-  /v0/dagcbor:
+  /v1/dagcbor:
     post:
       consumes:
       - application/json
@@ -39,7 +39,7 @@ paths:
       summary: Stores CBOR as dag-json
       tags:
       - dag-cbor
-  /v0/dagcbor/{cid}/{path}:
+  /v1/dagcbor/{cid}/{path}:
     get:
       consumes:
       - application/json
@@ -52,7 +52,7 @@ paths:
       summary: Reads CBOR from a dag-cbor block
       tags:
       - dag-cbor
-  /v0/dagjson:
+  /v1/dagjson:
     post:
       consumes:
       - application/json
@@ -81,7 +81,7 @@ paths:
       summary: Stores JSON as dag-json
       tags:
       - dag-json
-  /v0/dagjson/{cid}/{path}:
+  /v1/dagjson/{cid}/{path}:
     get:
       consumes:
       - application/json
@@ -94,7 +94,7 @@ paths:
       summary: Reads JSON from a dag-json block
       tags:
       - dag-json
-  /v0/file:
+  /v1/file:
     post:
       consumes:
       - application/json
@@ -109,7 +109,7 @@ paths:
       summary: Stores files
       tags:
       - file
-  /v0/file/{cid}/{path}:
+  /v1/file/{cid}/{path}:
     get:
       consumes:
       - application/json
@@ -122,7 +122,7 @@ paths:
       summary: Reads JSON from a dag-json block
       tags:
       - file
-  /v0/proofs:
+  /v1/proofs:
     post:
       consumes:
       - application/json
@@ -137,7 +137,7 @@ paths:
       summary: Create
       tags:
       - proofs
-  /v0/proofs/get/{path}:
+  /v1/proofs/get/{path}:
     get:
       consumes:
       - application/json
@@ -150,7 +150,7 @@ paths:
       summary: Reads an existing proof
       tags:
       - proofs
-  /v0/proofs/qr:
+  /v1/proofs/qr:
     post:
       consumes:
       - application/json
@@ -163,7 +163,7 @@ paths:
       summary: Extracts a QR code
       tags:
       - proofs
-  /v0/proofs/verify:
+  /v1/proofs/verify:
     post:
       consumes:
       - application/json
@@ -178,7 +178,7 @@ paths:
       summary: Verifies an ics23 proofs
       tags:
       - proofs
-  /v0/tip:
+  /v1/tip:
     post:
       consumes:
       - application/json
